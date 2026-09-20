@@ -1,0 +1,105 @@
+{
+  "towels": [
+    {
+      "id": 1,
+      "name": "Luxury Hotel Bath Towel",
+      "price": "24.99 CAD",
+      "rating": 4.9,
+      "imageKey": "luxuryhotelbathtowel"
+    },
+    {
+      "id": 2,
+      "name": "Premium Spa Pool Towel",
+      "price": "29.99 CAD",
+      "rating": 4.8,
+      "imageKey": "premiumspapooltowel"
+    },
+    {
+      "id": 3,
+      "name": "Ultra-Plush Hand Towel",
+      "price": "12.99 CAD",
+      "rating": 4.7,
+      "imageKey": "ultra-plushhandtowel"
+    }
+  ],
+  "bed-sheets": [
+    {
+      "id": 4,
+      "name": "Egyptian Cotton King Sheet Set",
+      "price": "89.99 CAD",
+      "rating": 5.0,
+      "imageKey": "egyptianCottonKingSheet"
+    },
+    {
+      "id": 5,
+      "name": "Commercial Grade White Fitted Sheet",
+      "price": "45.00 CAD",
+      "rating": 4.8,
+      "imageKey": "CommercialGradeWhiteFittedSheet"
+    }
+  ],
+  "mattress-pads": [
+    {
+      "id": 6,
+      "name": "Waterproof Hospitality Mattress Pad",
+      "price": "54.99 CAD",
+      "rating": 4.9,
+      "imageKey": "WaterproofHospitalityMattressPad"
+    },
+    {
+      "id": 7,
+      "name": "Plush Pillow-Top Mattress Protector",
+      "price": "69.99 CAD",
+      "rating": 4.8,
+      "imageKey": "PlushPillow-TopMattressProtector"
+    }
+  ],
+  "pillows": [
+    {
+      "id": 8,
+      "name": "Down-Alternative Hotel Pillow",
+      "price": "34.99 CAD",
+      "rating": 4.9,
+      "imageKey": "Down-AlternativeHotelPillow"
+    },
+    {
+      "id": 9,
+      "name": "Firm Support Gusseted Pillow",
+      "price": "39.99 CAD",
+      "rating": 4.7,
+      "imageKey": "FirmSupportGussetedPillow"
+    }
+  ],
+  "blankets": [
+    {
+      "id": 10,
+      "name": "Thermal Waffle Weave Blanket",
+      "price": "49.99 CAD",
+      "rating": 4.8,
+      "imageKey": "ThermalWaffleWeaveBlanket"
+    },
+    {
+      "id": 11,
+      "name": "Plush Fleece Hospitality Blanket",
+      "price": "59.99 CAD",
+      "rating": 4.9,
+      "imageKey": "PlushFleeceHospitalityBlanket"
+    }
+  ],
+  "others": [
+    {
+      "id": 12,
+      "name": "Luxury Bath Mat Set",
+      "price": "19.99 CAD",
+      "rating": 4.7,
+      "imageKey": "LuxuryBathMatSet"
+    },
+    {
+      "id": 13,
+      "name": "Waterproof Shower Curtain",
+      "price": "22.99 CAD",
+      "rating": 4.6,
+      "imageKey": "WaterproofShowerCurtain"
+    }
+  ]
+}

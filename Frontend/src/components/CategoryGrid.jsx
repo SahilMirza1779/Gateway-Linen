@@ -51,7 +51,7 @@ export default function CategoryGrid() {
   return (
     <section className="w-full bg-[#F0EAE1] py-16 px-4 md:px-10 font-sans">
       <div className="max-w-[1536px] mx-auto">
-        {/* Section Header with Golden Subtitle */}
+        {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-[#031D44]/10 pb-6">
           <div>
             <div className="inline-flex items-center gap-2 bg-[#B58E58]/15 px-3 py-1 rounded-full mb-3 border border-[#B58E58]/30">
@@ -70,25 +70,25 @@ export default function CategoryGrid() {
           </p>
         </div>
 
-        {/* Categories Grid - High-End Luxury Cards */}
+        {/* Categories Grid - Soft Champagne / Luxury Cream Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {categories.map((cat) => (
             <div
               key={cat.id}
               onClick={() => navigate(cat.path)}
-              className="group relative bg-white rounded-[28px] p-6 border border-gray-100/80 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer flex flex-col items-center text-center overflow-hidden"
+              className="group relative bg-[#F7F2EB] rounded-[28px] p-6 border border-[#E5DCD0] shadow-sm hover:shadow-2xl hover:shadow-[#B58E58]/15 hover:-translate-y-2 transition-all duration-500 cursor-pointer flex flex-col items-center text-center overflow-hidden"
             >
-              {/* Top Accent Line on Hover */}
+              {/* Top Gold Accent Line on Hover */}
               <div className="absolute inset-x-0 top-0 h-1.5 bg-[#B58E58] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-              {/* Circular Image Container with Golden Ring Border */}
-              <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden mb-5 shadow-inner border-4 border-[#FAF6F0] group-hover:border-[#B58E58]/40 transition-colors">
+              {/* Circular Image Container */}
+              <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden mb-5 shadow-inner border-4 border-[#EAE2D8] group-hover:border-[#B58E58] transition-colors">
                 <img
                   src={cat.image}
                   alt={cat.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-[#031D44]/15 group-hover:bg-transparent transition-colors"></div>
+                <div className="absolute inset-0 bg-[#031D44]/10 group-hover:bg-transparent transition-colors"></div>
               </div>
 
               {/* Category Counter */}
@@ -102,7 +102,7 @@ export default function CategoryGrid() {
               </h3>
 
               {/* Pill Button Action */}
-              <div className="mt-auto w-full py-2.5 px-4 rounded-xl bg-gray-50 group-hover:bg-[#031D44] text-[#031D44] group-hover:text-white text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-sm">
+              <div className="mt-auto w-full py-2.5 px-4 rounded-xl bg-white/70 group-hover:bg-[#031D44] text-[#031D44] group-hover:text-white text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-sm">
                 <span>Explore</span>
                 <FiArrowRight
                   size={14}

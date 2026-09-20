@@ -161,12 +161,10 @@ const Dashboard = () => {
     let updatedAddresses;
 
     if (editingAddressId !== null) {
-      // Edit existing address
       updatedAddresses = addresses.map((item) =>
         item.id === editingAddressId ? { ...item, ...addressForm } : item,
       );
     } else {
-      // Add new address (if first, make it default)
       const newAddr = {
         id: Date.now(),
         ...addressForm,
@@ -182,7 +180,6 @@ const Dashboard = () => {
 
   const handleDeleteAddress = (id) => {
     const updatedAddresses = addresses.filter((item) => item.id !== id);
-    // If deleted address was default and others exist, make the first one default
     if (
       updatedAddresses.length > 0 &&
       !updatedAddresses.some((i) => i.isDefault)
@@ -250,38 +247,39 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] py-12 px-4 sm:px-6 lg:px-8 font-sans relative">
+    <div className="min-h-screen bg-[#F0EAE1] py-12 px-4 sm:px-6 lg:px-8 font-sans relative">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-serif font-bold text-[#031D44]">
             My Dashboard
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs text-gray-600 font-light mt-1">
             Manage your profile, multiple shipping addresses, and buying
             history.
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 mb-8">
-          <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
+        {/* Profile Card */}
+        <div className="bg-[#F7F2EB] rounded-[32px] p-8 border border-[#E5DCD0] shadow-xl mb-8">
+          <div className="flex items-center gap-4 mb-8 pb-6 border-b border-[#E5DCD0]">
             <div className="w-16 h-16 bg-[#031D44] text-[#B58E58] rounded-full flex items-center justify-center text-2xl font-bold shadow-md">
               {formData.fullName
                 ? formData.fullName.charAt(0).toUpperCase()
                 : "U"}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-serif font-bold text-[#031D44]">
                 {formData.fullName || "User Profile"}
               </h2>
-              <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5">
-                <FiCheckCircle className="text-green-500" /> Verified Member
+              <p className="text-xs text-gray-600 flex items-center gap-1.5 mt-0.5">
+                <FiCheckCircle className="text-green-600" /> Verified Member
               </p>
             </div>
           </div>
 
           {message.text && (
             <div
-              className={`mb-6 text-center text-xs font-bold p-3 rounded-lg ${message.type === "error" ? "bg-red-50 text-red-600 border border-red-100" : "bg-green-50 text-green-600 border border-green-100"}`}
+              className={`mb-6 text-center text-xs font-bold p-3 rounded-xl ${message.type === "error" ? "bg-red-50 text-red-600 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
             >
               {message.text}
             </div>
@@ -290,7 +288,7 @@ const Dashboard = () => {
           <form onSubmit={handleUpdate} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-widest mb-2">
+                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
                   Full Name
                 </label>
                 <div className="relative">
@@ -302,14 +300,14 @@ const Dashboard = () => {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] bg-gray-50 focus:bg-white transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-white transition-all shadow-2xs"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-widest mb-2">
+                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
                   Email Address
                 </label>
                 <div className="relative">
@@ -321,14 +319,14 @@ const Dashboard = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] bg-gray-50 focus:bg-white transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-white transition-all shadow-2xs"
                     required
                   />
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-widest mb-2">
+                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
                   Phone Number
                 </label>
                 <div className="relative">
@@ -340,7 +338,7 @@ const Dashboard = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] bg-gray-50 focus:bg-white transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-white transition-all shadow-2xs"
                   />
                 </div>
               </div>
@@ -350,32 +348,34 @@ const Dashboard = () => {
               <button
                 disabled={loading}
                 type="submit"
-                className={`flex items-center gap-2 py-3 px-8 rounded-xl shadow-md shadow-[#B58E58]/20 text-[14px] font-semibold text-white ${loading ? "bg-gray-400" : "bg-[#B58E58] hover:bg-[#9E7A4A]"} focus:outline-none transition-all`}
+                className={`flex items-center gap-2 py-3.5 px-8 rounded-xl shadow-md text-xs font-bold tracking-widest uppercase text-white ${loading ? "bg-gray-400" : "bg-[#031D44] hover:bg-[#B58E58]"} transition-all cursor-pointer`}
               >
-                <FiSave size={16} />
+                <FiSave size={15} />
                 {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>
         </div>
 
-        {/* SAVED ADDRESSES SECTION WITH ADD/EDIT/DELETE */}
-        <div className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 mb-8">
+        {/* SAVED ADDRESSES SECTION */}
+        <div className="bg-[#F7F2EB] rounded-[32px] p-8 border border-[#E5DCD0] shadow-xl mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2 text-[#031D44]">
               <FiMapPin size={20} className="text-[#B58E58]" />
-              <h2 className="text-lg font-bold">Saved Shipping Addresses</h2>
+              <h2 className="text-lg font-serif font-bold">
+                Saved Shipping Addresses
+              </h2>
             </div>
             <button
               onClick={handleOpenAddAddressModal}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[#031D44] text-white rounded-xl text-xs font-semibold hover:bg-[#B58E58] transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-[#031D44] text-white rounded-xl text-xs font-bold hover:bg-[#B58E58] transition-all cursor-pointer shadow-sm"
             >
               <FiPlus size={14} /> Add New Address
             </button>
           </div>
 
           {addresses.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500 font-light">
               No saved addresses found. Add one above!
             </p>
           ) : (
@@ -383,20 +383,20 @@ const Dashboard = () => {
               {addresses.map((addr) => (
                 <div
                   key={addr.id}
-                  className="p-5 bg-gray-50 rounded-2xl border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                  className="p-5 bg-white rounded-2xl border border-[#E5DCD0] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-2xs"
                 >
                   <div>
                     <div className="flex items-center gap-3 mb-1">
-                      <p className="text-sm font-semibold text-gray-800">
+                      <p className="text-xs font-bold text-[#031D44]">
                         {addr.address}
                       </p>
                       {addr.isDefault && (
-                        <span className="text-[10px] font-bold text-[#B58E58] bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/50">
+                        <span className="text-[9px] font-bold text-[#B58E58] bg-[#B58E58]/10 px-2.5 py-0.5 rounded-full border border-[#B58E58]/30">
                           Default
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 font-light">
                       {addr.city} - {addr.postalCode}
                     </p>
                   </div>
@@ -405,21 +405,21 @@ const Dashboard = () => {
                     {!addr.isDefault && (
                       <button
                         onClick={() => handleSetDefaultAddress(addr.id)}
-                        className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-100 transition-all"
+                        className="px-3 py-1.5 bg-[#F7F2EB] border border-[#E5DCD0] text-gray-700 rounded-lg text-xs font-semibold hover:border-[#B58E58] transition-all cursor-pointer"
                       >
                         Set Default
                       </button>
                     )}
                     <button
                       onClick={() => handleOpenEditAddressModal(addr)}
-                      className="p-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:text-[#B58E58] transition-all"
+                      className="p-2 bg-[#F7F2EB] border border-[#E5DCD0] text-gray-600 rounded-lg hover:text-[#B58E58] transition-all cursor-pointer"
                       title="Edit Address"
                     >
                       <FiEdit2 size={14} />
                     </button>
                     <button
                       onClick={() => handleDeleteAddress(addr.id)}
-                      className="p-2 bg-white border border-gray-200 text-red-500 rounded-lg hover:bg-red-50 transition-all"
+                      className="p-2 bg-[#F7F2EB] border border-[#E5DCD0] text-red-500 rounded-lg hover:bg-red-50 transition-all cursor-pointer"
                       title="Delete Address"
                     >
                       <FiTrash2 size={14} />
@@ -432,31 +432,35 @@ const Dashboard = () => {
         </div>
 
         {/* BUYING HISTORY SECTION */}
-        <div className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 mb-8">
+        <div className="bg-[#F7F2EB] rounded-[32px] p-8 border border-[#E5DCD0] shadow-xl mb-8">
           <div className="flex items-center gap-2 mb-6 text-[#031D44]">
             <FiShoppingBag size={20} className="text-[#B58E58]" />
-            <h2 className="text-lg font-bold">Buying History (Orders)</h2>
+            <h2 className="text-lg font-serif font-bold">
+              Buying History (Orders)
+            </h2>
           </div>
 
           {orders.length === 0 ? (
-            <p className="text-sm text-gray-500">No past orders found.</p>
+            <p className="text-xs text-gray-500 font-light">
+              No past orders found.
+            </p>
           ) : (
             <div className="space-y-4">
               {orders.map((order, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-2xl border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                  className="p-5 bg-white rounded-2xl border border-[#E5DCD0] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xs"
                 >
                   <div>
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-bold text-[#031D44]">
                         Order #{order.id}
                       </span>
-                      <span className="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-semibold">
+                      <span className="text-[10px] bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full font-semibold">
                         {order.status}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 font-light mt-1">
                       Date: {order.date}
                     </p>
                     <p className="text-xs font-semibold text-gray-700 mt-2">
@@ -469,7 +473,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-bold text-gray-900">
+                    <span className="text-sm font-bold text-[#031D44]">
                       CAD ${order.total}
                     </span>
                   </div>
@@ -480,20 +484,20 @@ const Dashboard = () => {
         </div>
 
         {/* DANGER ZONE - DELETE ACCOUNT */}
-        <div className="pt-2 border-t border-red-100">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-red-50/50 border border-red-100 p-6 rounded-2xl">
+        <div className="pt-2 border-t border-red-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-red-50 border border-red-200 p-6 rounded-[24px] shadow-sm">
             <div>
               <h3 className="text-base font-bold text-red-700 flex items-center gap-2">
                 <FiAlertTriangle size={18} /> Delete Account
               </h3>
-              <p className="text-xs text-red-600/80 mt-1">
+              <p className="text-xs text-red-600/80 font-light mt-1">
                 Once you delete your account, there is no going back. All your
                 data will be permanently removed from the database.
               </p>
             </div>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all focus:outline-none"
+              className="shrink-0 flex items-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-wider uppercase rounded-xl shadow-md transition-all cursor-pointer"
             >
               <FiTrash2 size={14} />
               Permanently Delete
@@ -504,23 +508,23 @@ const Dashboard = () => {
 
       {/* ADD / EDIT ADDRESS MODAL */}
       {showAddressModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-100">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#F7F2EB] rounded-[28px] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#E5DCD0]">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-xl font-serif font-bold text-[#031D44]">
                 {editingAddressId !== null ? "Edit Address" : "Add New Address"}
               </h3>
               <button
                 onClick={() => setShowAddressModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors"
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors cursor-pointer bg-white border border-gray-200"
               >
-                <FiX size={20} />
+                <FiX size={18} />
               </button>
             </div>
 
             <form onSubmit={handleSaveAddress} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
+                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
                   Street Address
                 </label>
                 <input
@@ -531,12 +535,12 @@ const Dashboard = () => {
                     setAddressForm({ ...addressForm, address: e.target.value })
                   }
                   placeholder="e.g. 123 Hospitality Lane"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#B58E58]"
+                  className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
+                  <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
                     City
                   </label>
                   <input
@@ -547,11 +551,11 @@ const Dashboard = () => {
                       setAddressForm({ ...addressForm, city: e.target.value })
                     }
                     placeholder="e.g. Surat"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#B58E58]"
+                    className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
+                  <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
                     Postal Code
                   </label>
                   <input
@@ -565,7 +569,7 @@ const Dashboard = () => {
                       })
                     }
                     placeholder="e.g. 395006"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#B58E58]"
+                    className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
               </div>
@@ -574,13 +578,13 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddressModal(false)}
-                  className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all"
+                  className="flex-1 py-3 px-4 bg-white border border-[#E5DCD0] hover:bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 px-4 bg-[#031D44] hover:bg-[#B58E58] text-white text-xs font-semibold rounded-xl shadow-md transition-all"
+                  className="flex-1 py-3 px-4 bg-[#031D44] hover:bg-[#B58E58] text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   Save Address
                 </button>
@@ -592,24 +596,24 @@ const Dashboard = () => {
 
       {/* CUSTOM MODERN DELETE CONFIRMATION MODAL */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-100">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#F7F2EB] rounded-[28px] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#E5DCD0]">
             <div className="flex justify-between items-center mb-5">
-              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center">
-                <FiTrash2 size={24} />
+              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <FiTrash2 size={22} />
               </div>
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors"
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors cursor-pointer bg-white border border-gray-200"
               >
-                <FiX size={20} />
+                <FiX size={18} />
               </button>
             </div>
 
             <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
               Delete Account Permanently?
             </h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-xs text-gray-600 font-light mb-6 leading-relaxed">
               Are you sure you want to delete your account? This action is
               irreversible and all your data will be erased from our database.
             </p>
@@ -618,7 +622,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-all"
+                className="flex-1 py-3 px-4 bg-white border border-[#E5DCD0] hover:bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -626,7 +630,7 @@ const Dashboard = () => {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={deleteLoading}
-                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 {deleteLoading ? "Deleting..." : "Yes, Delete"}
               </button>

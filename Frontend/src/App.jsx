@@ -20,8 +20,8 @@ import ProductDetail from "./components/ProductDetail";
 import Checkout from "./components/Checkout";
 import { CartProvider } from "./context/CartContext";
 import CartDrawer from "./components/CartDrawer";
-import { WishlistProvider } from "./context/WishlistContext"; // Naya Import
-import WishlistDrawer from "./components/WishlistDrawer"; // Naya Import
+import { WishlistProvider } from "./context/WishlistContext";
+import WishlistDrawer from "./components/WishlistDrawer";
 import ProductsPage from "./components/ProductsPage";
 
 const Home = () => {
@@ -31,7 +31,7 @@ const Home = () => {
       <CategoryGrid />
       <FeaturedProducts />
       <WholesaleSection />
-      <Footer />
+      {/* Footer yahan se hata diya hai taaki global AppLayout handle kare */}
     </>
   );
 };
@@ -45,25 +45,32 @@ const AppLayout = () => {
 
   return (
     <WishlistProvider>
-      {" "}
-      {/* NAYA: Wishlist se Wrap Kiya */}
       <CartProvider>
         <div className="min-h-screen bg-white font-sans flex flex-col relative">
           {!isAuthPage && <Navbar />}
           <CartDrawer />
-          <WishlistDrawer /> {/* NAYA: Wishlist Drawer Lagaya */}
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/category/:categoryName" element={<CategoryPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/products" element={<ProductsPage />} />
-          </Routes>
+          <WishlistDrawer />
+
+          <div className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route
+                path="/category/:categoryName"
+                element={<CategoryPage />}
+              />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/products" element={<ProductsPage />} />
+            </Routes>
+          </div>
+
+          {/* Global Footer jo ab har page par (chahe Home ho ya Contact) bilkul sahi jagah dikhega */}
+          {!isAuthPage && <Footer />}
         </div>
       </CartProvider>
     </WishlistProvider>

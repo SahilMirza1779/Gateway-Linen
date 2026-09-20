@@ -1,99 +1,161 @@
-import logo from "../assets/GatewayLinen-logo.png";
+import { Link } from "react-router-dom";
 import { FiPhone, FiMail, FiMapPin } from "react-icons/fi";
+import logo from "../assets/GatewayLinen-logo.png";
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-[#031D44] text-white pt-16 pb-6 border-t-[4px] border-[#B58E58]">
-      <div className="max-w-[1536px] mx-auto px-4 md:px-10">
-        {/* Top Section - 4 Columns */}
+    <footer className="w-full bg-[#031D44] text-white pt-16 pb-8 border-t-[4px] border-[#B58E58] font-sans relative overflow-hidden">
+      {/* Background Decorative Gold Glow */}
+      <div className="absolute right-0 bottom-0 w-96 h-96 bg-[#B58E58]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-[1536px] mx-auto px-4 md:px-10 relative z-10">
+        {/* Main Footer Grid - Clean & Balanced 4 Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 mb-16">
           {/* Col 1: Brand Info */}
           <div className="flex flex-col items-start">
-            {/* LOGO FIX: Changed from circle to a sleek rounded rectangle for wide logos */}
-            <div className="bg-white px-5 py-3 rounded-xl inline-flex items-center justify-center mb-6 shadow-lg">
+            <div className="bg-white px-5 py-3 rounded-xl inline-flex items-center justify-center mb-6 shadow-md border border-[#B58E58]/30">
               <img
                 src={logo}
                 alt="Gateway Linen"
-                className="h-10 sm:h-12 w-auto object-contain"
+                className="h-9 sm:h-10 w-auto object-contain"
               />
             </div>
-            <p className="text-gray-300 text-[13px] leading-relaxed font-light">
+            <p className="text-gray-300 text-[13px] leading-relaxed font-light mb-6">
               Premium linen solutions for hotels, resorts, healthcare, and
               hospitality facilities across North America. Quality you can
               trust.
             </p>
+            <div className="inline-flex items-center gap-2 bg-[#B58E58]/20 px-3.5 py-1.5 rounded-full border border-[#B58E58]/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#B58E58]"></span>
+              <span className="text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
+                B2B Commercial Partner
+              </span>
+            </div>
           </div>
 
           {/* Col 2: Quick Links */}
           <div>
-            <h4 className="text-white text-[15px] font-bold mb-5 tracking-wide">
+            <h4 className="text-white text-[15px] font-serif font-bold mb-6 tracking-wide border-l-2 border-[#B58E58] pl-3">
               Quick Links
             </h4>
-            <ul className="flex flex-col space-y-3 text-[13px] text-gray-400 font-light">
+            <ul className="flex flex-col space-y-3 text-[13px] text-gray-300 font-light">
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/products"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   All Products
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/category/towels"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   Towels
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/category/bed-sheets"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   Bed Sheets
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/category/mattress-pads"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   Mattress Pads
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Company */}
+          {/* Col 3: Company (Fully Functional Links) */}
           <div>
-            <h4 className="text-white text-[15px] font-bold mb-5 tracking-wide">
+            <h4 className="text-white text-[15px] font-serif font-bold mb-6 tracking-wide border-l-2 border-[#B58E58] pl-3">
               Company
             </h4>
-            <ul className="flex flex-col space-y-3 text-[13px] text-gray-400 font-light">
+            <ul className="flex flex-col space-y-3 text-[13px] text-gray-300 font-light">
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/contact"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/contact"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/contact"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   FAQ / Support
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#B58E58] transition-colors">
+                <Link
+                  to="/contact"
+                  onClick={() =>
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
+                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
+                >
                   Request a Quote
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Contact Info (UPDATED WITH REAL DETAILS) */}
+          {/* Col 4: Contact Info */}
           <div>
-            <h4 className="text-white text-[15px] font-bold mb-5 tracking-wide">
+            <h4 className="text-white text-[15px] font-serif font-bold mb-6 tracking-wide border-l-2 border-[#B58E58] pl-3">
               Contact Us
             </h4>
             <ul className="flex flex-col space-y-4 text-[13px] text-gray-300 font-light">
-              {/* Address */}
               <li className="flex items-start gap-3">
                 <FiMapPin size={18} className="text-[#B58E58] mt-1 shrink-0" />
                 <span className="leading-relaxed">
@@ -105,7 +167,6 @@ const Footer = () => {
                 </span>
               </li>
 
-              {/* Phone */}
               <li className="flex items-center gap-3">
                 <FiPhone size={18} className="text-[#B58E58] shrink-0" />
                 <a
@@ -116,7 +177,6 @@ const Footer = () => {
                 </a>
               </li>
 
-              {/* Emails */}
               <li className="flex items-start gap-3">
                 <FiMail size={18} className="text-[#B58E58] mt-1 shrink-0" />
                 <div className="flex flex-col space-y-1.5">
@@ -138,19 +198,25 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Section - Copyright */}
-        <div className="border-t border-gray-700/50 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] text-gray-500 font-light">
+        {/* Bottom Section - Copyright & Legal */}
+        <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[12px] text-gray-400 font-light">
           <p>
             © {new Date().getFullYear()} Gateway Linen. All rights reserved.
           </p>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-white transition-colors">
+          <div className="flex gap-4 items-center">
+            <Link
+              to="/contact"
+              className="hover:text-[#B58E58] transition-colors"
+            >
               Privacy Policy
-            </a>
-            <span>|</span>
-            <a href="#" className="hover:text-white transition-colors">
+            </Link>
+            <span>•</span>
+            <Link
+              to="/contact"
+              className="hover:text-[#B58E58] transition-colors"
+            >
               Terms & Conditions
-            </a>
+            </Link>
           </div>
         </div>
       </div>

@@ -108,7 +108,7 @@ const Navbar = () => {
     return "sahil.mirza@gatewaylinen.ca";
   });
 
-  const { toggleWishlist, wishlistItems } = useWishlist();
+  const { wishlistItems, toggleWishlistDrawer } = useWishlist();
   const { cartItems, toggleCart } = useCart();
 
   if (location.pathname === "/login" || location.pathname === "/register") {
@@ -220,12 +220,14 @@ const Navbar = () => {
             >
               Others
             </Link>
-            <Link
-              to="/contact"
-              className="hover:text-[#B58E58] transition-colors"
+            <span
+              onClick={() => {
+                window.location.href = "/contact";
+              }}
+              className="hover:text-[#B58E58] transition-colors cursor-pointer"
             >
               Contact
-            </Link>
+            </span>
           </nav>
 
           {/* Right Action Icons */}
@@ -290,7 +292,9 @@ const Navbar = () => {
 
             {/* Wishlist Button */}
             <button
-              onClick={toggleWishlist}
+              onClick={() => {
+                if (toggleWishlistDrawer) toggleWishlistDrawer();
+              }}
               className="relative text-[#031D44] hover:text-[#B58E58] transition-colors cursor-pointer p-1"
             >
               <FiHeart size={20} />
@@ -507,13 +511,15 @@ const Navbar = () => {
               >
                 Others
               </Link>
-              <Link
-                to="/contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2 hover:text-[#B58E58] transition-colors"
+              <span
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  window.location.href = "/contact";
+                }}
+                className="py-2 hover:text-[#B58E58] transition-colors cursor-pointer block"
               >
                 Contact Us
-              </Link>
+              </span>
             </div>
 
             <div className="mt-auto pt-6 border-t border-gray-100 space-y-3">
@@ -568,22 +574,22 @@ const Navbar = () => {
                 />
                 <span>
                   <strong>Address:</strong> 9 Mapleridge crescent, Brandon
-                  R7A6P8, Manitoba, Canada[cite: 22]
+                  R7A6P8, Manitoba, Canada
                 </span>
               </div>
               <div className="flex items-center gap-3 text-xs text-gray-700">
                 <FiPhone className="text-[#B58E58] flex-shrink-0" size={16} />
                 <span>
-                  <strong>Phone:</strong> +1 (204) 979-4044[cite: 22]
+                  <strong>Phone:</strong> +1 (204) 979-4044
                 </span>
               </div>
               <div className="flex items-start gap-3 text-xs text-gray-700">
                 <FiMail className="text-[#B58E58] flex-shrink-0" size={16} />
                 <div className="flex flex-col">
                   <span>
-                    <strong>Email:</strong> tapu_parikh@yahoo.com[cite: 22]
+                    <strong>Email:</strong> tapu_parikh@yahoo.com
                   </span>
-                  <span>gatewaylinen@gmail.com[cite: 22]</span>
+                  <span>gatewaylinen@gmail.com</span>
                 </div>
               </div>
             </div>

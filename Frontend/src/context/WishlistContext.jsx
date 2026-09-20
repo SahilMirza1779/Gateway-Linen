@@ -9,34 +9,45 @@ export const WishlistProvider = ({ children }) => {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const location = useLocation();
 
-  // 1. Har baar page badalne par (Login/Logout) current user ki wishlist load karna
+  // 1. Har baar page badalne par current user ki wishlist load karna
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
-      const parsedUser = JSON.parse(user);
-      // User ki specific email se wishlist dhundho
-      const savedWishlist = localStorage.getItem(
-        `wishlist_${parsedUser.email}`,
-      );
-      if (savedWishlist) {
-        setWishlistItems(JSON.parse(savedWishlist));
-      } else {
-        setWishlistItems([]); // Naye user ki empty wishlist
+      try {
+        const parsedUser = JSON.parse(user);
+        if (parsedUser.email) {
+          const savedWishlist = localStorage.getItem(
+            `wishlist_${parsedUser.email}`,
+          );
+          if (savedWishlist) {
+            setWishlistItems(JSON.parse(savedWishlist));
+          } else {
+            setWishlistItems([]);
+          }
+        }
+      } catch {
+        setWishlistItems([]);
       }
     } else {
-      setWishlistItems([]); // Bina login wale ki empty wishlist
+      setWishlistItems([]);
     }
   }, [location.pathname]);
 
-  // 2. Jaise hi wishlist update ho, use current user ke email ke sath save karna
+  // 2. Jaise hi wishlist update ho, current user ke email ke sath save karna
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
-      const parsedUser = JSON.parse(user);
-      localStorage.setItem(
-        `wishlist_${parsedUser.email}`,
-        JSON.stringify(wishlistItems),
-      );
+      try {
+        const parsedUser = JSON.parse(user);
+        if (parsedUser.email) {
+          localStorage.setItem(
+            `wishlist_${parsedUser.email}`,
+            JSON.stringify(wishlistItems),
+          );
+        }
+      } catch {
+        // error handling
+      }
     }
   }, [wishlistItems]);
 
@@ -54,7 +65,9 @@ export const WishlistProvider = ({ children }) => {
     setWishlistItems((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  const toggleWishlist = () => setIsWishlistOpen(!isWishlistOpen);
+  // Dono functions provide kar diye hain taaki kahin confusion na ho
+  const toggleWishlist = () => setIsWishlistOpen((prev) => !prev);
+  const toggleWishlistDrawer = () => setIsWishlistOpen((prev) => !prev);
 
   const isInWishlist = (productId) => {
     return wishlistItems.some((item) => item.id === productId);
@@ -68,6 +81,7 @@ export const WishlistProvider = ({ children }) => {
         removeFromWishlist,
         isWishlistOpen,
         toggleWishlist,
+        toggleWishlistDrawer, // Navbar ke sath fully synchronized
         setIsWishlistOpen,
         isInWishlist,
       }}

@@ -36,7 +36,7 @@ const Login = () => {
 
       // API Call to WAMP server
       const response = await fetch(
-        "http://localhost/GatewayLinen/GatewayLinenadmin-main/users/api.php",
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/api.php",
         {
           method: "POST",
           headers: {

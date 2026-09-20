@@ -7,23 +7,24 @@ import {
   FiX,
   FiUser,
   FiHeart,
-} from "react-icons/fi"; // FiHeart import kiya
+} from "react-icons/fi";
 import { useCart } from "../context/CartContext";
-import { useWishlist } from "../context/WishlistContext"; // Naya Import
+import { useWishlist } from "../context/WishlistContext";
 
+// Saare images import kar liye without spaces
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
 import egyptianCottonKingSheet from "../assets/newImages/egyptianCottonKingSheet.jpg";
-import commercialGradeWhiteFittedSheet from "../assets/newImages/CommercialGradeWhiteFittedSheet.jpg";
-import waterproofHospitalityMattressPad from "../assets/newImages/Waterproof Hospitality Mattress Pad.jpg";
-import plushPillowTopMattressProtector from "../assets/newImages/Plush Pillow-Top Mattress Protector.jpg";
-import downAlternativeHotelPillow from "../assets/newImages/Down-Alternative Hotel Pillow.jpg";
-import firmSupportGussetedPillow from "../assets/newImages/Firm Support Gusseted Pillow.jpg";
-import thermalWaffleWeaveBlanket from "../assets/newImages/Thermal Waffle Weave Blanket.jpg";
-import plushFleeceHospitalityBlanket from "../assets/newImages/Plush Fleece Hospitality Blanket.jpg";
-import luxuryBathMatSet from "../assets/newImages/Luxury Bath Mat Set.jpg";
-import waterproofShowerCurtain from "../assets/newImages/Waterproof Shower Curtain.jpg";
+import commercialGradeWhiteFittedSheet from "../assets/newImages/commercialGradeWhiteFittedSheet.jpg";
+import waterproofHospitalityMattressPad from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
+import plushPillowTopMattressProtector from "../assets/newImages/plushPillowTopMattressProtector.jpg";
+import downAlternativeHotelPillow from "../assets/newImages/downAlternativeHotelPillow.jpg";
+import firmSupportGussetedPillow from "../assets/newImages/firmSupportGussetedPillow.jpg";
+import thermalWaffleWeaveBlanket from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
+import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospitalityBlanket.jpg";
+import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
+import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
 
 const productsData = {
   1: {
@@ -215,7 +216,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
 
   const { addToCart } = useCart();
-  const { toggleWishlistItem, isInWishlist } = useWishlist(); // Wishlist context laya gaya
+  const { toggleWishlistItem, isInWishlist } = useWishlist();
 
   const productId = Number(id) || 1;
   const product = productsData[productId] || productsData[1];
@@ -287,7 +288,6 @@ export default function ProductDetail() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div className="flex flex-col gap-4">
-            {/* NAYA: Image ke upar relative div me button */}
             <div className="relative w-full h-[420px] bg-[#F4F4F5] rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex items-center justify-center">
               <button
                 onClick={() =>

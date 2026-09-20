@@ -1,20 +1,20 @@
 import { useParams, Link } from "react-router-dom";
 import { FiArrowLeft, FiShoppingCart, FiStar } from "react-icons/fi";
 
-// Exact filename imports from newImages folder
+// Exact filename imports from newImages folder (spaces removed)
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
 import egyptianCottonKingSheet from "../assets/newImages/egyptianCottonKingSheet.jpg";
-import commercialGradeWhiteFittedSheet from "../assets/newImages/CommercialGradeWhiteFittedSheet.jpg";
-import waterproofHospitalityMattressPad from "../assets/newImages/Waterproof Hospitality Mattress Pad.jpg";
-import plushPillowTopMattressProtector from "../assets/newImages/Plush Pillow-Top Mattress Protector.jpg";
-import downAlternativeHotelPillow from "../assets/newImages/Down-Alternative Hotel Pillow.jpg";
-import firmSupportGussetedPillow from "../assets/newImages/Firm Support Gusseted Pillow.jpg";
-import thermalWaffleWeaveBlanket from "../assets/newImages/Thermal Waffle Weave Blanket.jpg";
-import plushFleeceHospitalityBlanket from "../assets/newImages/Plush Fleece Hospitality Blanket.jpg";
-import luxuryBathMatSet from "../assets/newImages/Luxury Bath Mat Set.jpg";
-import waterproofShowerCurtain from "../assets/newImages/Waterproof Shower Curtain.jpg";
+import commercialGradeWhiteFittedSheet from "../assets/newImages/commercialGradeWhiteFittedSheet.jpg";
+import waterproofHospitalityMattressPad from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
+import plushPillowTopMattressProtector from "../assets/newImages/plushPillowTopMattressProtector.jpg";
+import downAlternativeHotelPillow from "../assets/newImages/downAlternativeHotelPillow.jpg";
+import firmSupportGussetedPillow from "../assets/newImages/firmSupportGussetedPillow.jpg";
+import thermalWaffleWeaveBlanket from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
+import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospitalityBlanket.jpg";
+import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
+import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
 
 // All products with direct image links
 const productsData = {

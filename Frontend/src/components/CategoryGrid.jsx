@@ -1,153 +1,118 @@
-import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiArrowRight } from "react-icons/fi";
 
-import towelImg from "../assets/towel.jpg";
-import badsheetImg from "../assets/badsheet.jpg";
+import duvetImg from "../assets/newImages/egyptianCottonKingSheet.jpg";
+import mattressImg from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
+import pillowsImg from "../assets/newImages/firmSupportGussetedPillow.jpg";
+import bathroomImg from "../assets/newImages/luxuryBathMatSet.jpg";
+import blanketsImg from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
 
-const CategoryGrid = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const scrollRef = useRef(null);
+const categories = [
+  {
+    id: 1,
+    name: "Duvet & Duvet Covers",
+    path: "/category/bed-sheets",
+    image: duvetImg,
+    count: "12+ ITEMS",
+  },
+  {
+    id: 2,
+    name: "Mattress Protectors",
+    path: "/category/mattress-pads",
+    image: mattressImg,
+    count: "8+ ITEMS",
+  },
+  {
+    id: 3,
+    name: "Pillows & Pillow Covers",
+    path: "/category/pillows",
+    image: pillowsImg,
+    count: "10+ ITEMS",
+  },
+  {
+    id: 4,
+    name: "Bathroom Accessories",
+    path: "/category/others",
+    image: bathroomImg,
+    count: "15+ ITEMS",
+  },
+  {
+    id: 5,
+    name: "Blankets",
+    path: "/category/blankets",
+    image: blanketsImg,
+    count: "6+ ITEMS",
+  },
+];
+
+export default function CategoryGrid() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost/GatewayLinen/GatewayLinenadmin-main/categories/api.php",
-          {
-            method: "GET",
-            headers: {
-              "X-API-KEY": "GatewayLinen@2026",
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        const result = await response.json();
-        if (result.success && result.data) {
-          setCategories(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (scrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-        if (scrollLeft + clientWidth >= scrollWidth - 10) {
-          scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          scrollRef.current.scrollBy({ left: 280, behavior: "smooth" });
-        }
-      }
-    }, 6000);
-
-    return () => clearInterval(interval);
-  }, [categories]);
-
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
-
-  const handleCategoryClick = (categoryName) => {
-    const slug = categoryName.toLowerCase().replace(/\s+/g, "-");
-    navigate(`/category/${slug}`);
-  };
-
   return (
-    <section className="w-full bg-white py-12 md:py-16">
-      <div className="max-w-[1536px] mx-auto px-4 md:px-10 relative">
-        <div className="flex justify-between items-center mb-8">
+    <section className="w-full bg-[#F0EAE1] py-16 px-4 md:px-10 font-sans">
+      <div className="max-w-[1536px] mx-auto">
+        {/* Section Header with Golden Subtitle */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-[#031D44]/10 pb-6">
           <div>
-            <span className="text-[#B58E58] text-[11px] font-bold tracking-[0.2em] uppercase">
-              Browse Collections
-            </span>
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#031D44] mt-1">
+            <div className="inline-flex items-center gap-2 bg-[#B58E58]/15 px-3 py-1 rounded-full mb-3 border border-[#B58E58]/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#B58E58]"></span>
+              <span className="text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase">
+                Browse Collections
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-[#031D44]">
               Shop By Categories
             </h2>
           </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={scrollLeft}
-              className="p-2.5 rounded-full border border-gray-200 text-gray-700 hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-colors shadow-sm cursor-pointer"
-            >
-              <FiChevronLeft size={20} />
-            </button>
-            <button
-              onClick={scrollRight}
-              className="p-2.5 rounded-full border border-gray-200 text-gray-700 hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-colors shadow-sm cursor-pointer"
-            >
-              <FiChevronRight size={20} />
-            </button>
-          </div>
+          <p className="text-xs md:text-sm text-gray-600 mt-3 md:mt-0 max-w-md font-light leading-relaxed">
+            Explore premium hotel-grade linen categories crafted exclusively for
+            high-end hospitality and unmatched guest comfort.
+          </p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12 text-gray-400 text-sm">
-            Loading categories from database...
-          </div>
-        ) : (
-          <div
-            ref={scrollRef}
-            className="flex gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-4 px-1"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {categories.map((category) => {
-              let imageUrl = category.imageUrl
-                ? `http://localhost/GatewayLinen/GatewayLinenadmin-main/${category.imageUrl}`
-                : null;
+        {/* Categories Grid - High-End Luxury Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          {categories.map((cat) => (
+            <div
+              key={cat.id}
+              onClick={() => navigate(cat.path)}
+              className="group relative bg-white rounded-[28px] p-6 border border-gray-100/80 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer flex flex-col items-center text-center overflow-hidden"
+            >
+              {/* Top Accent Line on Hover */}
+              <div className="absolute inset-x-0 top-0 h-1.5 bg-[#B58E58] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-              if (!imageUrl) {
-                imageUrl = category.name.toLowerCase().includes("bed")
-                  ? badsheetImg
-                  : towelImg;
-              }
+              {/* Circular Image Container with Golden Ring Border */}
+              <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden mb-5 shadow-inner border-4 border-[#FAF6F0] group-hover:border-[#B58E58]/40 transition-colors">
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-[#031D44]/15 group-hover:bg-transparent transition-colors"></div>
+              </div>
 
-              return (
-                <div
-                  key={category.categoryId}
-                  onClick={() => handleCategoryClick(category.name)}
-                  className="group flex-shrink-0 w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] lg:w-[calc(20%-16px)] bg-white border border-gray-100 rounded-[40px] p-5 cursor-pointer hover:border-gray-300 hover:shadow-xl transition-all duration-300 flex flex-col items-center"
-                >
-                  <div className="w-[140px] h-[140px] md:w-[155px] md:h-[155px] rounded-full overflow-hidden mb-4 shadow-sm border border-gray-100 relative">
-                    <img
-                      src={imageUrl}
-                      alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
-                    />
-                  </div>
+              {/* Category Counter */}
+              <span className="text-[10px] font-bold text-[#B58E58] tracking-widest uppercase mb-1.5">
+                {cat.count}
+              </span>
 
-                  <div className="w-full py-2.5 px-3 bg-gray-50 group-hover:bg-[#031D44] rounded-2xl transition-all duration-300 text-center mt-1">
-                    <h3 className="text-[#031D44] group-hover:text-white text-[13.5px] font-semibold tracking-wide transition-colors">
-                      {category.name}
-                    </h3>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+              {/* Category Title */}
+              <h3 className="text-sm md:text-base font-serif font-bold text-[#031D44] mb-5 group-hover:text-[#B58E58] transition-colors line-clamp-2 leading-snug">
+                {cat.name}
+              </h3>
+
+              {/* Pill Button Action */}
+              <div className="mt-auto w-full py-2.5 px-4 rounded-xl bg-gray-50 group-hover:bg-[#031D44] text-[#031D44] group-hover:text-white text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-sm">
+                <span>Explore</span>
+                <FiArrowRight
+                  size={14}
+                  className="group-hover:translate-x-1.5 transition-transform"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
-};
-
-export default CategoryGrid;
+}

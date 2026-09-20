@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { FiShoppingCart } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { FiShoppingCart, FiFilter } from "react-icons/fi";
 
-// Saare images import kar liye without spaces
+// Imported images (Aapke project ke assets ke hisaab se)
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
@@ -17,7 +17,7 @@ import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospit
 import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
 import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
 
-const allFeaturedItems = [
+const allProducts = [
   {
     id: 1,
     category: "TOWELS",
@@ -124,59 +124,87 @@ const allFeaturedItems = [
   },
 ];
 
-const FeaturedProducts = () => {
-  const [visibleCount, setVisibleCount] = useState(4);
+export default function ProductsPage() {
   const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
 
-  const handleLoadMore = () => {
-    setVisibleCount((prevCount) =>
-      Math.min(prevCount + 4, allFeaturedItems.length),
-    );
-  };
+  const categories = [
+    "ALL",
+    "TOWELS",
+    "BED SHEETS",
+    "MATTRESS PADS",
+    "PILLOWS",
+    "BLANKETS",
+    "OTHERS",
+  ];
 
-  const displayedItems = allFeaturedItems.slice(0, visibleCount);
+  const filteredProducts =
+    selectedCategory === "ALL"
+      ? allProducts
+      : allProducts.filter((item) => item.category === selectedCategory);
 
   return (
-    <section className="w-full py-16 px-4 md:px-10 bg-white font-sans">
+    <div className="min-h-screen bg-[#F0EAE1] py-10 px-4 md:px-10 font-sans">
       <div className="max-w-[1536px] mx-auto">
-        {/* Header Title */}
-        <div className="text-center mb-12">
+        {/* Page Header */}
+        <div className="mb-8 text-center md:text-left">
           <span className="text-[11px] font-bold text-[#B58E58] tracking-[0.25em] uppercase">
-            Top Picks For You
+            Commercial Catalog
           </span>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#031D44] mt-1">
-            Featured Products
-          </h2>
-          <div className="w-12 h-0.5 bg-[#B58E58] mx-auto mt-3"></div>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#031D44] mt-1">
+            All Hospitality Products
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Explore our complete collection of 5-star hotel grade linens and
+            supplies.
+          </p>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {displayedItems.map((item) => (
+        {/* Category Filter Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
+          <span className="text-[#031D44] font-bold text-xs uppercase flex items-center gap-1.5 mr-2">
+            <FiFilter size={14} /> Filter:
+          </span>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
+                selectedCategory === cat
+                  ? "bg-[#031D44] text-white shadow-md"
+                  : "bg-white text-[#031D44] border border-gray-200 hover:border-[#B58E58]"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {filteredProducts.map((item) => (
             <div
               key={item.id}
               onClick={() => navigate(`/product/${item.id}`)}
-              className="group flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer"
+              className="group flex flex-col bg-white rounded-2xl border border-white/50 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
             >
-              {/* Image Container */}
-              <div className="relative h-72 bg-[#F4F4F5] overflow-hidden">
-                <span className="absolute top-3 left-3 z-10 bg-[#031D44] text-white text-[9.5px] font-bold tracking-wider px-2.5 py-1 rounded-md">
+              <div className="relative h-56 bg-white overflow-hidden p-2">
+                <span className="absolute top-4 left-4 z-10 bg-[#031D44] text-white text-[9.5px] font-bold tracking-wider px-2 py-1 rounded-md">
                   {item.tag}
                 </span>
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              {/* Details */}
-              <div className="p-5 flex flex-col flex-grow justify-between">
+              <div className="p-4 flex flex-col flex-grow justify-between bg-white">
                 <div>
-                  <span className="text-[10.5px] font-bold text-gray-400 tracking-widest uppercase">
+                  <span className="text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
                     {item.category}
                   </span>
-                  <h3 className="text-sm font-serif font-bold text-[#031D44] mt-1 line-clamp-1">
+                  <h3 className="text-sm font-serif font-bold text-[#031D44] mt-1 line-clamp-2 leading-snug">
                     {item.name}
                   </h3>
                   <div className="text-sm font-bold text-gray-900 mt-2">
@@ -189,7 +217,7 @@ const FeaturedProducts = () => {
                     e.stopPropagation();
                     alert(`Added ${item.name} to cart!`);
                   }}
-                  className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 border border-gray-200 rounded-xl text-xs font-semibold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all"
+                  className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 border border-[#031D44]/20 rounded-xl text-xs font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white transition-all cursor-pointer"
                 >
                   <FiShoppingCart size={14} />
                   <span>Add to Cart</span>
@@ -199,20 +227,12 @@ const FeaturedProducts = () => {
           ))}
         </div>
 
-        {/* Load More Button */}
-        {visibleCount < allFeaturedItems.length && (
-          <div className="text-center mt-12">
-            <button
-              onClick={handleLoadMore}
-              className="px-8 py-3.5 bg-[#031D44] text-white text-xs font-semibold tracking-widest uppercase rounded-xl shadow-md hover:bg-[#B58E58] transition-all"
-            >
-              Load More Products
-            </button>
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-20 text-gray-500 text-sm">
+            No products found in this category.
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
-};
-
-export default FeaturedProducts;
+}

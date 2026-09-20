@@ -22,6 +22,7 @@ import { CartProvider } from "./context/CartContext";
 import CartDrawer from "./components/CartDrawer";
 import { WishlistProvider } from "./context/WishlistContext"; // Naya Import
 import WishlistDrawer from "./components/WishlistDrawer"; // Naya Import
+import ProductsPage from "./components/ProductsPage";
 
 const Home = () => {
   return (
@@ -61,6 +62,7 @@ const AppLayout = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/products" element={<ProductsPage />} />
           </Routes>
         </div>
       </CartProvider>

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiShoppingCart, FiHeart } from "react-icons/fi";
+import { FiShoppingCart, FiHeart, FiX, FiUser } from "react-icons/fi";
 import { useWishlist } from "../context/WishlistContext";
+import { useCart } from "../context/CartContext";
 
-// Aapke original local imported images
+// Saare images import kar liye without spaces
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
@@ -126,9 +127,20 @@ const allFeaturedItems = [
 ];
 
 const FeaturedProducts = () => {
-  const [visibleCount, setVisibleCount] = useState(5); // Default 5 items dikhane ke liye
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
   const { toggleWishlistItem, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
+
+  const handleAuthAction = (actionCallback) => {
+    const loggedInUser = localStorage.getItem("user");
+    if (!loggedInUser) {
+      setShowLoginModal(true);
+    } else {
+      actionCallback();
+    }
+  };
 
   const handleLoadMore = () => {
     setVisibleCount((prevCount) =>
@@ -139,7 +151,7 @@ const FeaturedProducts = () => {
   const displayedItems = allFeaturedItems.slice(0, visibleCount);
 
   return (
-    <section className="w-full py-16 px-4 md:px-10 bg-white font-sans">
+    <section className="w-full py-16 px-4 md:px-10 bg-[#F0EAE1] font-sans">
       <div className="max-w-[1536px] mx-auto">
         {/* Header Title */}
         <div className="text-center mb-12">
@@ -160,13 +172,13 @@ const FeaturedProducts = () => {
               onClick={() => navigate(`/product/${item.id}`)}
               className="group flex flex-col bg-[#F7F2EB] rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer p-3.5 relative"
             >
-              {/* Wishlist Heart Icon Button with stopPropagation */}
+              {/* Wishlist Heart Icon Button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleWishlistItem(item);
+                  handleAuthAction(() => toggleWishlistItem(item));
                 }}
-                className="absolute top-6 right-6 z-20 p-2 bg-white/90 backdrop-blur-xs rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
+                className="absolute top-6 right-6 z-20 p-2 bg-white/95 backdrop-blur-xs rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
                 title="Wishlist"
               >
                 <FiHeart
@@ -208,7 +220,13 @@ const FeaturedProducts = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    alert(`Added ${item.name} to cart!`);
+                    handleAuthAction(() => {
+                      const numericPrice = Number(
+                        item.price.replace(/[^0-9.]/g, ""),
+                      );
+                      addToCart(item, 1, "Standard", numericPrice);
+                      alert(`Added ${item.name} to cart!`);
+                    });
                   }}
                   className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-[11px] font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all shadow-2xs cursor-pointer"
                 >
@@ -232,6 +250,39 @@ const FeaturedProducts = () => {
           </div>
         )}
       </div>
+
+      {/* Login Required Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity p-4">
+          <div className="bg-[#F7F2EB] border border-[#E5DCD0] p-8 rounded-[28px] shadow-2xl w-full max-w-sm text-center relative">
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
+            >
+              <FiX size={18} />
+            </button>
+
+            <div className="w-16 h-16 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
+              <FiUser size={28} />
+            </div>
+
+            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+              Login Required
+            </h3>
+            <p className="text-xs text-gray-600 mb-8 font-light leading-relaxed px-2">
+              Please login first to add items to your cart, wishlist, or proceed
+              to checkout.
+            </p>
+
+            <button
+              onClick={() => navigate("/login")}
+              className="w-full py-3.5 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
+            >
+              Login Now
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

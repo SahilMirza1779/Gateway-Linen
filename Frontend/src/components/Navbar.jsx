@@ -12,6 +12,8 @@ import {
   FiUser,
   FiLogOut,
   FiMenu,
+  FiLogIn,
+  FiUserPlus,
 } from "react-icons/fi";
 import logo from "../assets/GatewayLinen-logo.png";
 import CartDrawer from "./CartDrawer";
@@ -91,21 +93,22 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [showContactModal, setShowContactModal] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showAuthDropdown, setShowAuthDropdown] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false); // Login Modal State
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [userEmail] = useState(() => {
+  const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.email) return parsedUser.email;
+        return JSON.parse(storedUser);
       } catch {
-        return storedUser;
+        return null;
       }
     }
-    return "sahil.mirza@gatewaylinen.ca";
+    return null;
   });
 
   const { wishlistItems, toggleWishlistDrawer } = useWishlist();
@@ -119,8 +122,19 @@ const Navbar = () => {
     ? cartItems.reduce((acc, item) => acc + item.quantity, 0)
     : 0;
 
+  const handleAuthAction = (actionCallback) => {
+    const loggedInUser = localStorage.getItem("user");
+    if (!loggedInUser) {
+      setShowLoginModal(true);
+    } else {
+      actionCallback();
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
+    setCurrentUser(null);
+    setShowUserDropdown(false);
     navigate("/login");
   };
 
@@ -290,76 +304,113 @@ const Navbar = () => {
               <FiSearch size={20} />
             </button>
 
-            {/* Wishlist Button */}
+            {/* Wishlist Button with Login Check */}
             <button
               onClick={() => {
-                if (toggleWishlistDrawer) toggleWishlistDrawer();
+                handleAuthAction(() => {
+                  if (toggleWishlistDrawer) toggleWishlistDrawer();
+                });
               }}
               className="relative text-[#031D44] hover:text-[#B58E58] transition-colors cursor-pointer p-1"
             >
               <FiHeart size={20} />
-              {wishlistItems && wishlistItems.length > 0 && (
+              {currentUser && wishlistItems && wishlistItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-[#B58E58] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {wishlistItems.length}
                 </span>
               )}
             </button>
 
-            {/* User Profile & Dropdown (Desktop) */}
-            <div className="relative hidden sm:block">
-              <button
-                onClick={() => setShowUserDropdown(!showUserDropdown)}
-                className="flex items-center gap-2 bg-transparent px-3 py-1.5 rounded-full border border-[#031D44]/20 hover:border-[#B58E58] transition-colors cursor-pointer"
-              >
-                <div className="w-6 h-6 bg-[#031D44] text-[#F0EAE1] rounded-full flex items-center justify-center text-[10px] font-bold">
-                  S
-                </div>
-                <span className="text-[12px] font-bold text-[#031D44]">
-                  Sahil I.
-                </span>
-                <FiChevronDown size={14} className="text-[#031D44]" />
-              </button>
-
-              {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50">
-                  <div className="px-3 py-2 border-b border-gray-100 mb-2">
-                    <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                      Signed in as
-                    </p>
-                    <p className="text-xs font-bold text-[#031D44] truncate">
-                      {userEmail}
-                    </p>
+            {/* Conditional User Profile / Account Dropdown (Desktop) */}
+            {currentUser ? (
+              <div className="relative hidden sm:block">
+                <button
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="flex items-center gap-2 bg-transparent px-3 py-1.5 rounded-full border border-[#031D44]/20 hover:border-[#B58E58] transition-colors cursor-pointer"
+                >
+                  <div className="w-6 h-6 bg-[#031D44] text-[#F0EAE1] rounded-full flex items-center justify-center text-[10px] font-bold">
+                    {currentUser.fullName
+                      ? currentUser.fullName.charAt(0).toUpperCase()
+                      : "U"}
                   </div>
+                  <span className="text-[12px] font-bold text-[#031D44] max-w-[100px] truncate">
+                    {currentUser.fullName || "User"}
+                  </span>
+                  <FiChevronDown size={14} className="text-[#031D44]" />
+                </button>
 
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setShowUserDropdown(false)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#031D44] hover:bg-[#FAF9F6] rounded-xl transition-colors"
-                  >
-                    <FiUser size={14} className="text-[#B58E58]" /> User
-                    Dashboard
-                  </Link>
+                {showUserDropdown && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-2 z-50">
+                    <div className="px-3 py-2 border-b border-gray-100 mb-2">
+                      <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                        Signed in as
+                      </p>
+                      <p className="text-xs font-bold text-[#031D44] truncate">
+                        {currentUser.email}
+                      </p>
+                    </div>
 
-                  <button
-                    onClick={() => {
-                      setShowUserDropdown(false);
-                      handleLogout();
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-1 cursor-pointer"
-                  >
-                    <FiLogOut size={14} /> Logout
-                  </button>
-                </div>
-              )}
-            </div>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setShowUserDropdown(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#031D44] hover:bg-[#FAF9F6] rounded-xl transition-colors"
+                    >
+                      <FiUser size={14} className="text-[#B58E58]" /> User
+                      Dashboard
+                    </Link>
 
-            {/* Cart Button */}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-1 cursor-pointer"
+                    >
+                      <FiLogOut size={14} /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Auth Dropdown for Unauthenticated Users */
+              <div className="relative hidden sm:block">
+                <button
+                  onClick={() => setShowAuthDropdown(!showAuthDropdown)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-[#031D44] text-white rounded-full text-xs font-bold tracking-wider uppercase hover:bg-[#B58E58] transition-all shadow-sm cursor-pointer"
+                >
+                  <FiUser size={14} /> Account <FiChevronDown size={12} />
+                </button>
+
+                {showAuthDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 px-1 z-50">
+                    <Link
+                      to="/login"
+                      onClick={() => setShowAuthDropdown(false)}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-[#031D44] hover:bg-[#FAF9F6] rounded-xl transition-colors"
+                    >
+                      <FiLogIn size={14} className="text-[#B58E58]" /> Sign In
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setShowAuthDropdown(false)}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-[#031D44] hover:bg-[#FAF9F6] rounded-xl transition-colors mt-0.5"
+                    >
+                      <FiUserPlus size={14} className="text-[#B58E58]" />{" "}
+                      Register
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Cart Button with Login Check */}
             <button
-              onClick={toggleCart}
+              onClick={() => {
+                handleAuthAction(() => {
+                  if (toggleCart) toggleCart();
+                });
+              }}
               className="relative text-[#031D44] hover:text-[#B58E58] transition-colors cursor-pointer p-1"
             >
               <FiShoppingCart size={22} />
-              {totalCartCount > 0 && (
+              {currentUser && totalCartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-[#B58E58] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {totalCartCount}
                 </span>
@@ -367,62 +418,43 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-
-        {/* Expandable Mobile Search Bar Dropdown */}
-        {showMobileSearch && (
-          <div className="xl:hidden px-4 pb-3 pt-1 border-t border-gray-200/50 bg-[#F0EAE1]">
-            <div className="relative w-full">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products, brands..."
-                className="bg-white text-[#031D44] placeholder-[#031D44]/60 text-xs px-4 py-2.5 pl-9 rounded-xl border border-[#031D44]/20 focus:outline-none focus:border-[#B58E58] w-full shadow-sm"
-                autoFocus
-              />
-              <FiSearch
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#031D44]/60"
-                size={14}
-              />
-
-              {searchQuery.trim() !== "" && (
-                <div className="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-72 overflow-y-auto z-50 p-2">
-                  {filteredSearchProducts.length > 0 ? (
-                    filteredSearchProducts.map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() => handleProductSelect(item.id)}
-                        className="flex items-center gap-3 p-2 hover:bg-[#FAF9F6] rounded-xl cursor-pointer transition-colors"
-                      >
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-10 h-10 object-cover rounded-lg flex-shrink-0 border border-gray-100"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-[#B58E58] uppercase tracking-wider">
-                            {item.category}
-                          </p>
-                          <h4 className="text-xs font-serif font-bold text-[#031D44] truncate">
-                            {item.name}
-                          </h4>
-                          <p className="text-[11px] font-bold text-gray-900">
-                            {item.price}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-xs text-gray-400">
-                      No products found matching "{searchQuery}"
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </header>
+
+      {/* Login Required Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity p-4">
+          <div className="bg-[#F7F2EB] border border-[#E5DCD0] p-8 rounded-[28px] shadow-2xl w-full max-w-sm text-center relative">
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
+            >
+              <FiX size={18} />
+            </button>
+
+            <div className="w-16 h-16 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
+              <FiUser size={28} />
+            </div>
+
+            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+              Login Required
+            </h3>
+            <p className="text-xs text-gray-600 mb-8 font-light leading-relaxed px-2">
+              Please login first to add items to your cart, wishlist, or proceed
+              to checkout.
+            </p>
+
+            <button
+              onClick={() => {
+                setShowLoginModal(false);
+                navigate("/login");
+              }}
+              className="w-full py-3.5 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
+            >
+              Login Now
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
@@ -443,15 +475,34 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* User Info in Mobile Drawer */}
-            <div className="bg-[#FAF9F6] p-3.5 rounded-2xl border border-gray-100 mb-6">
-              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                Signed in as
-              </p>
-              <p className="text-xs font-bold text-[#031D44] truncate mt-0.5">
-                {userEmail}
-              </p>
-            </div>
+            {/* Mobile User Section / Auth Links */}
+            {currentUser ? (
+              <div className="bg-[#FAF9F6] p-3.5 rounded-2xl border border-gray-100 mb-6">
+                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                  Signed in as
+                </p>
+                <p className="text-xs font-bold text-[#031D44] truncate mt-0.5">
+                  {currentUser.email}
+                </p>
+              </div>
+            ) : (
+              <div className="flex gap-2 mb-6">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2.5 bg-[#031D44] text-white text-xs font-bold tracking-wider uppercase rounded-xl flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  <FiLogIn size={13} /> Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2.5 bg-[#B58E58] text-white text-xs font-bold tracking-wider uppercase rounded-xl flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  <FiUserPlus size={13} /> Register
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Navigation Links */}
             <div className="flex flex-col gap-3 text-sm font-bold text-[#031D44]">
@@ -522,24 +573,26 @@ const Navbar = () => {
               </span>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-gray-100 space-y-3">
-              <Link
-                to="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 bg-[#031D44] text-white text-xs font-bold tracking-wider uppercase rounded-xl flex items-center justify-center gap-2 shadow-md"
-              >
-                <FiUser size={14} /> User Dashboard
-              </Link>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                className="w-full py-3 bg-red-50 text-red-600 text-xs font-bold tracking-wider uppercase rounded-xl flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <FiLogOut size={14} /> Logout
-              </button>
-            </div>
+            {currentUser && (
+              <div className="mt-auto pt-6 border-t border-gray-100 space-y-3">
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 bg-[#031D44] text-white text-xs font-bold tracking-wider uppercase rounded-xl flex items-center justify-center gap-2 shadow-md"
+                >
+                  <FiUser size={14} /> User Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full py-3 bg-red-50 text-red-600 text-xs font-bold tracking-wider uppercase rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <FiLogOut size={14} /> Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

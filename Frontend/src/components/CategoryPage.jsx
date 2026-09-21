@@ -10,7 +10,7 @@ import {
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 
-// Aapke original local imported images
+// Local imported images
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
@@ -160,7 +160,7 @@ const CategoryPage = () => {
   );
 
   return (
-    <div className="w-full bg-[#F0EAE1] min-h-screen py-12 px-4 md:px-10 font-sans">
+    <div className="w-full bg-[#F0EAE1] min-h-screen py-12 px-3 md:px-10 font-sans">
       <div className="max-w-[1536px] mx-auto">
         {/* Back Link & Header */}
         <div className="mb-10">
@@ -170,7 +170,7 @@ const CategoryPage = () => {
           >
             <FiArrowLeft size={14} /> Back to Home
           </button>
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#031D44] uppercase tracking-wide">
+          <h1 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] uppercase tracking-wide">
             {formattedCategory}
           </h1>
           <p className="text-xs md:text-sm text-gray-600 font-light mt-2">
@@ -179,14 +179,14 @@ const CategoryPage = () => {
           </p>
         </div>
 
-        {/* Products Grid - 5 Cards per row */}
+        {/* Products Grid - Mobile par 2 columns, Laptop par 5 columns */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3.5 md:gap-6">
             {filteredProducts.map((item) => (
               <div
                 key={item.id}
                 onClick={() => navigate(`/product/${item.id}`)}
-                className="group flex flex-col bg-[#F7F2EB] rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer p-3.5 relative"
+                className="group flex flex-col bg-[#F7F2EB] rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer p-3 relative"
               >
                 {/* Wishlist Button */}
                 <button
@@ -194,11 +194,11 @@ const CategoryPage = () => {
                     e.stopPropagation();
                     handleAuthAction(() => toggleWishlistItem(item));
                   }}
-                  className="absolute top-6 right-6 z-20 p-2 bg-white/95 backdrop-blur-xs rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
+                  className="absolute top-4 right-4 z-20 p-2 bg-white/95 backdrop-blur-xs rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
                   title="Wishlist"
                 >
                   <FiHeart
-                    size={16}
+                    size={14}
                     className={
                       isInWishlist(item.id)
                         ? "fill-red-500 text-red-500"
@@ -208,8 +208,8 @@ const CategoryPage = () => {
                 </button>
 
                 {/* Image Container */}
-                <div className="relative h-52 bg-[#FAF7F2] rounded-xl overflow-hidden mb-3 border border-gray-100">
-                  <span className="absolute top-2.5 left-2.5 z-10 bg-[#031D44] text-white text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-md shadow-md">
+                <div className="relative h-36 sm:h-44 md:h-52 bg-[#FAF7F2] rounded-xl overflow-hidden mb-3 border border-gray-100">
+                  <span className="absolute top-2 left-2 z-10 bg-[#031D44] text-white text-[8px] md:text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-md shadow-md">
                     {item.tag}
                   </span>
                   <img
@@ -222,13 +222,13 @@ const CategoryPage = () => {
                 {/* Details */}
                 <div className="flex flex-col flex-grow justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
+                    <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
                       {item.category}
                     </span>
                     <h3 className="text-xs font-serif font-bold text-[#031D44] mt-1 line-clamp-1">
                       {item.name}
                     </h3>
-                    <div className="text-xs font-bold text-gray-900 mt-1.5">
+                    <div className="text-xs font-bold text-gray-900 mt-1">
                       {item.price}
                     </div>
                   </div>
@@ -244,9 +244,9 @@ const CategoryPage = () => {
                         alert(`Added ${item.name} to cart!`);
                       });
                     }}
-                    className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-[11px] font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all shadow-2xs cursor-pointer"
+                    className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 md:py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-[10px] md:text-[11px] font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all shadow-2xs cursor-pointer"
                   >
-                    <FiShoppingCart size={13} />
+                    <FiShoppingCart size={12} />
                     <span>Add to Cart</span>
                   </button>
                 </div>

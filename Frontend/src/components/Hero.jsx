@@ -24,10 +24,10 @@ const Hero = () => {
   };
 
   return (
-    <section className="w-full bg-[#F0EAE1] py-8 px-4 md:px-10 font-sans">
+    <section className="w-full bg-[#F0EAE1] py-4 md:py-8 px-4 md:px-10 font-sans">
       <div className="max-w-[1536px] mx-auto">
-        {/* Main Hero Wrapper */}
-        <div className="relative w-full h-[580px] md:h-[620px] rounded-[32px] overflow-hidden shadow-xl flex items-center">
+        {/* Main Hero Wrapper: Mobile par compact height, laptop par purani grand height */}
+        <div className="relative w-full h-[460px] sm:h-[500px] md:h-[620px] rounded-[24px] md:rounded-[32px] overflow-hidden shadow-xl flex items-center">
           {/* Background Image with Rich Overlay */}
           <div className="absolute inset-0 z-0 bg-[#031D44]">
             <img
@@ -39,29 +39,29 @@ const Hero = () => {
           </div>
 
           {/* Content Box */}
-          <div className="relative z-10 px-8 md:px-16 lg:px-20 max-w-2xl text-white">
-            <div className="inline-flex items-center gap-2 bg-[#B58E58]/20 border border-[#B58E58]/40 px-3.5 py-1.5 rounded-full mb-6 backdrop-blur-md">
+          <div className="relative z-10 px-6 sm:px-10 md:px-16 lg:px-20 max-w-2xl text-white">
+            <div className="inline-flex items-center gap-2 bg-[#B58E58]/20 border border-[#B58E58]/40 px-3 py-1 rounded-full mb-3 md:mb-6 backdrop-blur-md">
               <span className="w-2 h-2 rounded-full bg-[#B58E58] animate-ping"></span>
-              <span className="text-[#B58E58] text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">
+              <span className="text-[#B58E58] text-[9px] md:text-xs font-bold tracking-[0.2em] uppercase">
                 Exclusively For Hotels & Spas
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-serif font-bold leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-serif font-bold leading-tight mb-3 md:mb-6">
               Elevate Your <br />
               <span className="text-[#B58E58]">Hospitality</span> Experience
             </h1>
 
-            <p className="text-[#F0EAE1]/80 text-sm md:text-base font-light mb-8 leading-relaxed max-w-lg">
+            <p className="text-[#F0EAE1]/90 text-xs sm:text-sm md:text-base font-light mb-6 md:mb-8 leading-relaxed max-w-lg">
               Supply your establishment with world-class commercial linens,
               premium Egyptian cotton sheets, and ultra-plush hotel towels
               crafted for ultimate guest comfort.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4">
               <button
                 onClick={() => navigate("/products")}
-                className="bg-[#B58E58] hover:bg-[#9c7949] text-white px-8 py-4 rounded-2xl text-xs md:text-sm font-bold tracking-widest uppercase transition-all flex items-center gap-3 group shadow-xl shadow-[#B58E58]/30 cursor-pointer"
+                className="bg-[#B58E58] hover:bg-[#9c7949] text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl text-[11px] md:text-sm font-bold tracking-widest uppercase transition-all flex items-center gap-2 md:gap-3 group shadow-xl shadow-[#B58E58]/30 cursor-pointer"
               >
                 Explore Collection
                 <FiArrowRight
@@ -70,10 +70,9 @@ const Hero = () => {
                 />
               </button>
 
-              {/* Towel button replaced with Request a Quote */}
               <button
                 onClick={() => setShowQuoteModal(true)}
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-2xl text-xs md:text-sm font-bold tracking-widest uppercase backdrop-blur-md transition-all cursor-pointer"
+                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl text-[11px] md:text-sm font-bold tracking-widest uppercase backdrop-blur-md transition-all cursor-pointer"
               >
                 Request a Quote
               </button>
@@ -108,7 +107,7 @@ const Hero = () => {
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
             <button
               onClick={() => setShowQuoteModal(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors"
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 p-1 rounded-full transition-colors cursor-pointer"
             >
               <FiX size={20} />
             </button>
@@ -116,7 +115,7 @@ const Hero = () => {
             <h3 className="text-2xl font-serif font-bold text-[#031D44] mb-2">
               Request a Wholesale Quote
             </h3>
-            <p className="text-xs text-gray-500 mb-6">
+            <p className="text-xs text-gray-500 mb-6 font-light">
               Fill in your details and commercial requirements. Our team will
               get back to you with custom pricing.
             </p>

@@ -12,7 +12,6 @@ import {
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 
-// Saare images import kar liye without spaces
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
@@ -265,6 +264,7 @@ export default function ProductDetail() {
         selectedSize,
         unitPrice,
       );
+      alert(`Added ${product.name} to cart!`);
     });
   };
 
@@ -282,20 +282,20 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#F0EAE1] py-6 px-4 md:px-8 font-sans text-gray-800 relative">
+    <div className="w-full min-h-screen bg-[#F0EAE1] py-4 md:py-6 px-3 md:px-8 font-sans text-gray-800 relative">
       <div className="max-w-[1300px] mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-[#F7F2EB] border border-[#E5DCD0] text-[11px] font-bold uppercase tracking-wider rounded-xl text-[#031D44] hover:border-[#B58E58] transition-all cursor-pointer shadow-2xs"
+          className="mb-3 inline-flex items-center gap-2 px-3 py-1.5 bg-[#F7F2EB] border border-[#E5DCD0] text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl text-[#031D44] hover:border-[#B58E58] transition-all cursor-pointer shadow-2xs"
         >
           <FiArrowLeft size={13} /> Back to Products
         </button>
 
         {/* Compact & Screen-Fit Card */}
-        <div className="bg-[#F7F2EB] p-6 md:p-8 rounded-[28px] border border-[#E5DCD0] shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="bg-[#F7F2EB] p-4 md:p-8 rounded-[24px] md:rounded-[28px] border border-[#E5DCD0] shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
           {/* Left Gallery Section (Span 5) */}
-          <div className="lg:col-span-5 flex flex-col gap-3.5">
-            <div className="relative w-full h-[320px] md:h-[360px] bg-[#FAF7F2] rounded-2xl overflow-hidden border border-[#E5DCD0] shadow-sm flex items-center justify-center">
+          <div className="lg:col-span-5 flex flex-col gap-3">
+            <div className="relative w-full h-[260px] sm:h-[320px] md:h-[360px] bg-[#FAF7F2] rounded-2xl overflow-hidden border border-[#E5DCD0] shadow-sm flex items-center justify-center">
               <button
                 onClick={() =>
                   handleAuthAction(() =>
@@ -306,7 +306,7 @@ export default function ProductDetail() {
                 title="Add to Wishlist"
               >
                 <FiHeart
-                  size={18}
+                  size={16}
                   className={
                     isInWishlist(productId)
                       ? "fill-red-500 text-red-500"
@@ -323,12 +323,12 @@ export default function ProductDetail() {
             </div>
 
             {/* Thumbnails */}
-            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
               {product.gallery.map((img, index) => (
                 <div
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`min-w-[65px] h-14 bg-[#FAF7F2] rounded-xl overflow-hidden border-2 cursor-pointer transition-all flex-shrink-0 shadow-2xs ${currentIndex === index ? "border-[#B58E58] scale-105" : "border-[#E5DCD0] hover:border-[#B58E58]"}`}
+                  className={`min-w-[55px] h-12 md:min-w-[65px] md:h-14 bg-[#FAF7F2] rounded-xl overflow-hidden border-2 cursor-pointer transition-all flex-shrink-0 shadow-2xs ${currentIndex === index ? "border-[#B58E58] scale-105" : "border-[#E5DCD0] hover:border-[#B58E58]"}`}
                 >
                   <img
                     src={img}
@@ -343,34 +343,34 @@ export default function ProductDetail() {
           {/* Right Product Info Section (Span 7) */}
           <div className="lg:col-span-7 flex flex-col justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 bg-[#B58E58]/15 px-3 py-0.5 rounded-full mb-2 border border-[#B58E58]/30">
+              <div className="inline-flex items-center gap-1.5 bg-[#B58E58]/15 px-2.5 py-0.5 rounded-full mb-1.5 border border-[#B58E58]/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#B58E58]"></span>
-                <span className="text-[9.5px] font-bold text-[#B58E58] tracking-[0.2em] uppercase">
+                <span className="text-[9px] md:text-[9.5px] font-bold text-[#B58E58] tracking-[0.2em] uppercase">
                   {product.category}
                 </span>
               </div>
 
-              <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#031D44] tracking-tight mb-2">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#031D44] tracking-tight mb-1.5">
                 {product.name}
               </h1>
 
-              <div className="text-xl md:text-2xl font-bold text-[#031D44] mb-3 flex items-baseline gap-3">
+              <div className="text-lg md:text-2xl font-bold text-[#031D44] mb-2.5 flex items-baseline gap-2.5">
                 <span>CAD ${totalPrice}</span>
-                <span className="text-[11px] font-normal text-gray-500">
+                <span className="text-[10px] md:text-[11px] font-normal text-gray-500">
                   ({quantity} item{quantity > 1 ? "s" : ""} &bull;{" "}
                   {selectedSize})
                 </span>
               </div>
 
-              <p className="text-[11.5px] md:text-xs text-gray-600 leading-relaxed mb-4 border-b border-[#E5DCD0] pb-4 font-light">
+              <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed mb-3.5 border-b border-[#E5DCD0] pb-3.5 font-light">
                 Premium hospitality linen crafted for superior comfort,
                 durability, and luxury feel. Designed specifically for elite
                 hotels and resorts.
               </p>
 
               {/* Size Selector */}
-              <div className="mb-4">
-                <label className="block text-[10.5px] font-bold text-[#031D44] uppercase tracking-wider mb-2">
+              <div className="mb-3.5">
+                <label className="block text-[10px] md:text-[10.5px] font-bold text-[#031D44] uppercase tracking-wider mb-1.5">
                   Select Size Option
                 </label>
                 <div className="flex gap-2 flex-wrap">
@@ -378,7 +378,7 @@ export default function ProductDetail() {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${selectedSize === size ? "bg-[#031D44] text-white shadow-md border border-[#031D44]" : "bg-white text-gray-700 border border-[#E5DCD0] hover:border-[#B58E58]"}`}
+                      className={`px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[10px] md:text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${selectedSize === size ? "bg-[#031D44] text-white shadow-md border border-[#031D44]" : "bg-white text-gray-700 border border-[#E5DCD0] hover:border-[#B58E58]"}`}
                     >
                       {size}
                     </button>
@@ -387,24 +387,24 @@ export default function ProductDetail() {
               </div>
 
               {/* Quantity Selector */}
-              <div className="mb-5">
-                <label className="block text-[10.5px] font-bold text-[#031D44] uppercase tracking-wider mb-2">
+              <div className="mb-4">
+                <label className="block text-[10px] md:text-[10.5px] font-bold text-[#031D44] uppercase tracking-wider mb-1.5">
                   Quantity
                 </label>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center border border-[#E5DCD0] rounded-xl overflow-hidden bg-white shadow-2xs">
                     <button
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold transition-all cursor-pointer text-xs"
+                      className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold transition-all cursor-pointer text-xs"
                     >
                       -
                     </button>
-                    <span className="w-10 text-center text-xs font-bold text-[#031D44]">
+                    <span className="w-8 md:w-10 text-center text-xs font-bold text-[#031D44]">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity((q) => q + 1)}
-                      className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold transition-all cursor-pointer text-xs"
+                      className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold transition-all cursor-pointer text-xs"
                     >
                       +
                     </button>
@@ -415,30 +415,30 @@ export default function ProductDetail() {
 
             <div>
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-5">
+              <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-[#031D44] rounded-xl text-[11px] font-bold tracking-widest uppercase text-[#031D44] hover:bg-[#031D44] hover:text-white transition-all shadow-2xs cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 md:py-3 bg-white border border-[#031D44] rounded-xl text-[10px] md:text-[11px] font-bold tracking-widest uppercase text-[#031D44] hover:bg-[#031D44] hover:text-white transition-all shadow-2xs cursor-pointer"
                 >
-                  <FiShoppingCart size={15} />
+                  <FiShoppingCart size={14} />
                   <span>Add to Cart</span>
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="flex-1 py-3 bg-[#031D44] text-white rounded-xl text-[11px] font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
+                  className="flex-1 py-2.5 md:py-3 bg-[#031D44] text-white rounded-xl text-[10px] md:text-[11px] font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
                 >
                   Buy Now
                 </button>
               </div>
 
               {/* Trust Perks */}
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#E5DCD0] text-[11px] text-gray-600 font-light">
-                <div className="flex items-center gap-2 bg-white/50 p-2 rounded-lg border border-gray-200/30">
-                  <FiTruck className="text-[#B58E58]" size={16} />
+              <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-[#E5DCD0] text-[10px] md:text-[11px] text-gray-600 font-light">
+                <div className="flex items-center gap-1.5 bg-white/50 p-2 rounded-lg border border-gray-200/30">
+                  <FiTruck className="text-[#B58E58] shrink-0" size={15} />
                   <span>Fast Shipping Across Canada</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white/50 p-2 rounded-lg border border-gray-200/30">
-                  <FiShield className="text-[#B58E58]" size={16} />
+                <div className="flex items-center gap-1.5 bg-white/50 p-2 rounded-lg border border-gray-200/30">
+                  <FiShield className="text-[#B58E58] shrink-0" size={15} />
                   <span>Hospital Grade Quality</span>
                 </div>
               </div>

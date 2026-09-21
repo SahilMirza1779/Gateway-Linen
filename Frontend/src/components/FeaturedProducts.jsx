@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiShoppingCart, FiHeart, FiX, FiUser } from "react-icons/fi";
+import { FiShoppingCart, FiHeart, FiX, FiUser, FiCheck } from "react-icons/fi";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 
@@ -129,9 +129,17 @@ const allFeaturedItems = [
 const FeaturedProducts = () => {
   const [visibleCount, setVisibleCount] = useState(5);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const navigate = useNavigate();
   const { toggleWishlistItem, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 2500);
+  };
 
   const handleAuthAction = (actionCallback) => {
     const loggedInUser = localStorage.getItem("user");
@@ -151,7 +159,7 @@ const FeaturedProducts = () => {
   const displayedItems = allFeaturedItems.slice(0, visibleCount);
 
   return (
-    <section className="w-full py-12 md:py-16 px-3 md:px-10 bg-[#F0EAE1] font-sans">
+    <section className="w-full py-12 md:py-16 px-3 md:px-10 bg-[#F0EAE1] font-sans relative">
       <div className="max-w-[1536px] mx-auto">
         {/* Header Title */}
         <div className="text-center mb-8 md:mb-12">
@@ -225,7 +233,7 @@ const FeaturedProducts = () => {
                         item.price.replace(/[^0-9.]/g, ""),
                       );
                       addToCart(item, 1, "Standard", numericPrice);
-                      alert(`Added ${item.name} to cart!`);
+                      showToast(`Added ${item.name} to cart!`);
                     });
                   }}
                   className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 md:py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-[10px] md:text-[11px] font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all shadow-2xs cursor-pointer"
@@ -250,6 +258,18 @@ const FeaturedProducts = () => {
           </div>
         )}
       </div>
+
+      {/* Custom Theme-Matched Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#031D44] text-white px-5 py-3 rounded-2xl shadow-2xl border border-[#B58E58]/40 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="w-6 h-6 bg-[#B58E58] text-white rounded-full flex items-center justify-center shrink-0">
+            <FiCheck size={14} />
+          </div>
+          <span className="text-xs font-bold tracking-wide">
+            {toastMessage}
+          </span>
+        </div>
+      )}
 
       {/* Login Required Modal */}
       {showLoginModal && (

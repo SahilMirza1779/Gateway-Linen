@@ -127,7 +127,7 @@ const WholesaleSection = () => {
           </div>
         </div>
 
-        {/* Feature Cards Grid - Mobile par compact horizontal ya 1-col */}
+        {/* Feature Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {features.map((feature, index) => (
             <div
@@ -150,10 +150,10 @@ const WholesaleSection = () => {
         </div>
       </div>
 
-      {/* Quote Request Modal Popup */}
+      {/* Mobile Optimized Quote Request Modal */}
       {showQuoteModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-4">
-          <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-3xl max-w-xl w-full p-5 md:p-8 shadow-2xl relative border border-[#E5DCD0] max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+          <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-3xl max-w-lg w-full p-4 sm:p-6 md:p-8 shadow-2xl relative border border-[#E5DCD0] max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowQuoteModal(false)}
               className="absolute top-4 right-4 md:top-6 md:right-6 text-gray-400 hover:text-[#031D44] bg-white p-2 rounded-full transition-colors cursor-pointer shadow-sm border border-gray-100"
@@ -161,11 +161,11 @@ const WholesaleSection = () => {
               <FiX size={16} />
             </button>
 
-            <div className="mb-4 md:mb-5">
+            <div className="mb-4 pr-6">
               <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.2em] uppercase">
                 Corporate B2B Desk
               </span>
-              <h3 className="text-xl md:text-2xl font-serif font-bold text-[#031D44] mt-0.5">
+              <h3 className="text-lg md:text-2xl font-serif font-bold text-[#031D44] mt-0.5">
                 Request Wholesale Quote
               </h3>
               <p className="text-[11px] md:text-xs text-gray-500 mt-0.5">
@@ -174,9 +174,9 @@ const WholesaleSection = () => {
             </div>
 
             {submitted ? (
-              <div className="py-10 flex flex-col items-center justify-center text-center">
+              <div className="py-8 flex flex-col items-center justify-center text-center">
                 <FiCheckCircle
-                  size={48}
+                  size={42}
                   className="text-[#B58E58] mb-3 animate-bounce"
                 />
                 <h4 className="text-base md:text-lg font-serif font-bold text-[#031D44]">
@@ -187,11 +187,8 @@ const WholesaleSection = () => {
                 </p>
               </div>
             ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="space-y-3.5 md:space-y-4"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-[#031D44] mb-1">
                       Full Name
@@ -204,7 +201,7 @@ const WholesaleSection = () => {
                         setFormData({ ...formData, fullName: e.target.value })
                       }
                       placeholder="Enter your full name"
-                      className="w-full bg-white text-xs px-3.5 py-2.5 md:py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-sm"
+                      className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs"
                     />
                   </div>
                   <div>
@@ -219,7 +216,7 @@ const WholesaleSection = () => {
                         setFormData({ ...formData, email: e.target.value })
                       }
                       placeholder="name@company.ca"
-                      className="w-full bg-white text-xs px-3.5 py-2.5 md:py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-sm"
+                      className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs"
                     />
                   </div>
                 </div>
@@ -236,7 +233,7 @@ const WholesaleSection = () => {
                       setFormData({ ...formData, company: e.target.value })
                     }
                     placeholder="Enter your hotel or business name"
-                    className="w-full bg-white text-xs px-3.5 py-2.5 md:py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-sm"
+                    className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
 
@@ -246,7 +243,7 @@ const WholesaleSection = () => {
                     <label className="block text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-[#031D44]">
                       Product / Category Interest
                     </label>
-                    <span className="text-[9px] md:text-[10px] text-[#B58E58] font-medium">
+                    <span className="text-[9px] text-[#B58E58] font-medium">
                       Click tags below to add
                     </span>
                   </div>
@@ -261,17 +258,17 @@ const WholesaleSection = () => {
                       })
                     }
                     placeholder="Type or click categories below..."
-                    className="w-full bg-white text-xs px-3.5 py-2.5 md:py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-sm mb-2"
+                    className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs mb-2"
                   />
 
                   {/* Clickable Quick Category Pills */}
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1">
                     {availableCategories.map((cat, idx) => (
                       <button
                         type="button"
                         key={idx}
                         onClick={() => handleCategoryClick(cat)}
-                        className="text-[9px] md:text-[10px] font-medium bg-white hover:bg-[#031D44] hover:text-white text-[#031D44] border border-[#E5DCD0] px-2 py-1 rounded-lg transition-colors shadow-2xs cursor-pointer"
+                        className="text-[9px] font-medium bg-white hover:bg-[#031D44] hover:text-white text-[#031D44] border border-[#E5DCD0] px-2 py-1 rounded-lg transition-colors shadow-2xs cursor-pointer"
                       >
                         + {cat}
                       </button>
@@ -284,7 +281,7 @@ const WholesaleSection = () => {
                   <label className="block text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-[#031D44] mb-1.5">
                     Estimated Quantity Range
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {quantityRanges.map((range, idx) => (
                       <div
                         key={idx}
@@ -314,7 +311,7 @@ const WholesaleSection = () => {
                       setFormData({ ...formData, message: e.target.value })
                     }
                     placeholder="Mention custom embroidery, delivery dates..."
-                    className="w-full bg-white text-xs px-3.5 py-2.5 md:py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-sm resize-none"
+                    className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs resize-none"
                   ></textarea>
                 </div>
 

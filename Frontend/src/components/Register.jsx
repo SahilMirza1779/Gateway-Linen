@@ -9,8 +9,6 @@ import {
   FiEye,
   FiEyeOff,
 } from "react-icons/fi";
-import { BsMoonStars, BsStars } from "react-icons/bs";
-import { GiFeather } from "react-icons/gi";
 import logo from "../assets/GatewayLinen-logo.png";
 
 const Register = () => {
@@ -20,7 +18,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // Form states (Removed companyName)
+  // Form states
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -95,78 +93,72 @@ const Register = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-gradient-to-tr from-[#F4F6F9] via-[#FAF9F6] to-[#F0EFEA] flex items-center justify-center font-sans relative overflow-hidden">
-      <div className="absolute top-[10%] left-[15%] w-72 h-72 bg-[#B58E58]/10 rounded-full blur-[80px] pointer-events-none"></div>
-      <div className="absolute bottom-[15%] right-[15%] w-96 h-96 bg-[#031D44]/5 rounded-full blur-[100px] pointer-events-none"></div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center font-sans relative overflow-x-hidden bg-[#021026] py-6 px-3">
+      {/* Background Deep Navy Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-[#021026] via-[#062454] to-[#021026]"></div>
 
-      <div className="absolute top-12 left-[18%] text-[#B58E58]/40 animate-pulse">
-        <BsMoonStars size={22} />
-      </div>
-      <div className="absolute top-24 right-[20%] text-[#031D44]/30">
-        <BsStars size={24} />
-      </div>
-      <div className="absolute bottom-20 left-[24%] text-[#B58E58]/35">
-        <GiFeather size={26} className="rotate-45" />
-      </div>
-      <div className="absolute bottom-28 right-[22%] text-[#031D44]/25">
-        <BsStars size={18} />
+      {/* Card ke pichhe Gold / Amber Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] sm:w-[700px] sm:h-[700px] bg-gradient-to-r from-[#F39C12]/45 via-[#E67E22]/50 to-[#D4AF37]/55 rounded-full blur-[90px] pointer-events-none"></div>
+
+      {/* Return to Home Button */}
+      <div className="w-full max-w-[440px] mb-3 z-50 flex justify-start">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#031D44] hover:text-[#B58E58] transition-all bg-[#F7F2EB] px-3.5 py-2 rounded-xl border border-[#E5DCD0] shadow-md hover:shadow-lg hover:-translate-x-1"
+        >
+          <FiArrowLeft size={13} />
+          <span>Return to Home</span>
+        </Link>
       </div>
 
-      <Link
-        to="/"
-        className="absolute top-6 left-6 flex items-center gap-2 text-[13px] font-semibold text-gray-700 hover:text-[#031D44] transition-all bg-white/80 px-4 py-2.5 rounded-full shadow-sm border border-gray-200 backdrop-blur-md z-50 hover:shadow-md hover:-translate-x-1"
-      >
-        <FiArrowLeft size={16} />
-        <span>Return to Home</span>
-      </Link>
-
-      <div className="w-full max-w-[600px] z-10 px-4">
-        <div className="bg-white py-6 px-6 shadow-[0_20px_50px_rgb(0,0,0,0.08)] rounded-3xl sm:px-10 border border-gray-100">
-          <div className="flex justify-center items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+      <div className="w-full max-w-[440px] z-10">
+        <div className="bg-[#F7F2EB] py-6 px-5 sm:py-8 sm:px-8 shadow-[0_30px_70px_rgba(0,0,0,0.6)] rounded-[24px] sm:rounded-[32px] border border-[#E5DCD0] relative backdrop-blur-md">
+          {/* Logo & Header */}
+          <div className="flex justify-center items-center gap-3 mb-4 pb-4 border-b border-[#E5DCD0]">
             <Link to="/" className="shrink-0">
-              <div className="w-[50px] h-[50px] bg-white rounded-full shadow-sm flex items-center justify-center p-1 overflow-hidden hover:border-[#B58E58] border border-gray-100 transition-colors cursor-pointer">
+              <div className="w-12 h-12 sm:w-[50px] sm:h-[50px] bg-[#FAF7F2] rounded-2xl shadow-2xs flex items-center justify-center p-1 overflow-hidden border border-[#E5DCD0] hover:border-[#B58E58] transition-colors cursor-pointer">
                 <img
                   src={logo}
                   alt="Gateway Linen"
-                  className="w-full h-full object-contain rounded-full"
+                  className="w-full h-full object-contain rounded-xl"
                 />
               </div>
             </Link>
-            <div className="flex flex-col justify-center border-l-2 border-gray-200 pl-3">
+            <div className="flex flex-col justify-center border-l-2 border-[#E5DCD0] pl-3">
               <h2 className="text-[15px] font-serif font-bold text-[#031D44] tracking-wide leading-tight">
                 GATEWAY LINEN
               </h2>
-              <p className="text-[8px] text-gray-500 uppercase tracking-[0.2em] mt-0.5 font-medium">
+              <p className="text-[8px] text-[#B58E58] uppercase tracking-[0.2em] mt-0.5 font-bold">
                 Hospitality Supply
               </p>
             </div>
           </div>
 
-          <div className="mb-5 text-center">
-            <span className="text-[#B58E58] text-[9.5px] font-bold tracking-[0.2em] uppercase">
+          <div className="mb-4 text-center">
+            <span className="text-[#B58E58] text-[9.5px] font-bold tracking-[0.25em] uppercase">
               Create Account
             </span>
-            <h2 className="text-[22px] font-serif font-bold text-[#031D44] mt-1 leading-tight">
+            <h2 className="text-xl sm:text-[22px] font-serif font-bold text-[#031D44] mt-0.5 leading-tight">
               Join Gateway Linen
             </h2>
           </div>
 
           {message.text && (
             <div
-              className={`mb-4 text-center text-xs font-bold p-2.5 rounded-lg ${message.type === "error" ? "bg-red-50 text-red-600 border border-red-100" : "bg-green-50 text-green-600 border border-green-100"}`}
+              className={`mb-3 text-center text-xs font-bold p-2.5 rounded-xl ${message.type === "error" ? "bg-red-50 text-red-600 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
             >
               {message.text}
             </div>
           )}
 
-          <form className="space-y-4" onSubmit={handleRegister}>
-            {/* Full Name - Full Width */}
+          <form className="space-y-3" onSubmit={handleRegister}>
+            {/* Full Name */}
             <div>
-              <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
+              <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                 Full name
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <FiUser className="text-gray-400" size={14} />
                 </div>
                 <input
@@ -174,138 +166,132 @@ const Register = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="block w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] transition-all bg-white shadow-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#B58E58] transition-all bg-white shadow-2xs"
                   placeholder="John Smith"
                   required
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Email */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
-                  Email address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiMail className="text-gray-400" size={14} />
-                  </div>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="block w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] transition-all bg-white shadow-sm"
-                    placeholder="you@company.com"
-                    required
-                  />
+            {/* Email */}
+            <div>
+              <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
+                Email address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <FiMail className="text-gray-400" size={14} />
                 </div>
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
-                  Phone
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiPhone className="text-gray-400" size={14} />
-                  </div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="block w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] transition-all bg-white shadow-sm"
-                    placeholder="+1 416 555 0123"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiLock className="text-gray-400" size={14} />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="block w-full pl-9 pr-10 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] transition-all bg-white shadow-sm"
-                    placeholder="Minimum 6 chars"
-                    required
-                    minLength="6"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#B58E58] transition-colors"
-                  >
-                    {showPassword ? (
-                      <FiEyeOff size={14} />
-                    ) : (
-                      <FiEye size={14} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">
-                  Confirm password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiLock className="text-gray-400" size={14} />
-                  </div>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="block w-full pl-9 pr-10 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-1 focus:ring-[#B58E58] focus:border-[#B58E58] transition-all bg-white shadow-sm"
-                    placeholder="Repeat password"
-                    required
-                    minLength="6"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#B58E58] transition-colors"
-                  >
-                    {showConfirmPassword ? (
-                      <FiEyeOff size={14} />
-                    ) : (
-                      <FiEye size={14} />
-                    )}
-                  </button>
-                </div>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#B58E58] transition-all bg-white shadow-2xs"
+                  placeholder="you@company.com"
+                  required
+                />
               </div>
             </div>
 
-            <div className="pt-3">
+            {/* Phone */}
+            <div>
+              <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
+                Phone number
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <FiPhone className="text-gray-400" size={14} />
+                </div>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#B58E58] transition-all bg-white shadow-2xs"
+                  placeholder="+1 416 555 0123"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <FiLock className="text-gray-400" size={14} />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-10 py-2.5 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#B58E58] transition-all bg-white shadow-2xs"
+                  placeholder="Minimum 6 chars"
+                  required
+                  minLength="6"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-[#B58E58] transition-colors cursor-pointer"
+                >
+                  {showPassword ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
+                Confirm password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <FiLock className="text-gray-400" size={14} />
+                </div>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-10 py-2.5 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#B58E58] transition-all bg-white shadow-2xs"
+                  placeholder="Repeat password"
+                  required
+                  minLength="6"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-[#B58E58] transition-colors cursor-pointer"
+                >
+                  {showConfirmPassword ? (
+                    <FiEyeOff size={14} />
+                  ) : (
+                    <FiEye size={14} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-2">
               <button
                 disabled={loading}
                 type="submit"
-                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md shadow-[#B58E58]/20 text-[13px] font-semibold text-white ${loading ? "bg-gray-400" : "bg-[#B58E58] hover:bg-[#9E7A4A]"} focus:outline-none transition-all`}
+                className={`w-full flex justify-center py-3 px-4 rounded-xl shadow-md text-xs font-bold tracking-widest uppercase text-white ${loading ? "bg-gray-400" : "bg-[#031D44] hover:bg-[#B58E58]"} transition-all cursor-pointer`}
               >
                 {loading ? "Processing..." : "Create Account"}
               </button>
             </div>
           </form>
 
-          <div className="mt-5 text-center text-[12.5px] text-gray-600">
+          <div className="mt-5 text-center text-xs text-gray-600 font-light">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-semibold text-[#031D44] hover:text-[#B58E58] transition-colors ml-1"
+              className="font-bold text-[#031D44] hover:text-[#B58E58] transition-colors ml-1"
             >
               Sign in
             </Link>

@@ -143,37 +143,61 @@ const ProductsPage = () => {
       : allProducts.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="w-full bg-[#F0EAE1] min-h-screen py-12 px-3 md:px-10 font-sans">
+    <div className="w-full bg-[#F0EAE1] min-h-screen py-8 md:py-12 px-3 md:px-10 font-sans">
       <div className="max-w-[1536px] mx-auto">
         {/* Page Header */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44]">
             Products Catalog
           </h1>
-          <p className="text-xs md:text-sm text-gray-600 font-light mt-1.5">
+          <p className="text-xs md:text-sm text-gray-600 font-light mt-1">
             Explore our complete collection of 5-star hotel grade linens and
             supplies.
           </p>
         </div>
 
-        {/* Category Filters */}
-        <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-4 mb-8 scrollbar-none">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-[#031D44] uppercase tracking-wider mr-1 flex-shrink-0">
-            <FiFilter size={13} className="text-[#B58E58]" /> Filter:
-          </div>
-          {categories.map((cat, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-[11px] md:text-xs font-bold tracking-wider uppercase transition-all flex-shrink-0 cursor-pointer shadow-2xs ${
-                selectedCategory === cat
-                  ? "bg-[#031D44] text-white shadow-md"
-                  : "bg-[#F7F2EB] text-[#031D44] border border-[#E5DCD0] hover:border-[#B58E58]"
-              }`}
+        {/* Category Filters: Mobile Optimized Select Dropdown + Desktop Pill Buttons */}
+        <div className="mb-8">
+          {/* Mobile Dropdown View (< sm screens) */}
+          <div className="block sm:hidden relative">
+            <div className="flex items-center gap-2 mb-2">
+              <FiFilter size={14} className="text-[#B58E58]" />
+              <span className="text-[11px] font-bold text-[#031D44] uppercase tracking-wider">
+                Filter Category:
+              </span>
+            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full bg-[#F7F2EB] border border-[#E5DCD0] text-[#031D44] text-xs font-bold uppercase py-3 px-4 rounded-xl shadow-sm focus:outline-none focus:border-[#B58E58]"
             >
-              {cat}
-            </button>
-          ))}
+              {categories.map((cat, idx) => (
+                <option key={idx} value={cat}>
+                  {cat === "ALL" ? "All Categories" : cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tablet & Desktop Horizontal Pill Buttons (>= sm screens) */}
+          <div className="hidden sm:flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#031D44] uppercase tracking-wider mr-2 flex-shrink-0">
+              <FiFilter size={13} className="text-[#B58E58]" /> Filter:
+            </div>
+            {categories.map((cat, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition-all flex-shrink-0 cursor-pointer shadow-2xs ${
+                  selectedCategory === cat
+                    ? "bg-[#031D44] text-white shadow-md"
+                    : "bg-[#F7F2EB] text-[#031D44] border border-[#E5DCD0] hover:border-[#B58E58]"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Products Grid - Mobile par 2 columns, Laptop par 5 columns */}

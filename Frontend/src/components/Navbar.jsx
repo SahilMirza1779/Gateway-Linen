@@ -647,44 +647,47 @@ const Navbar = () => {
       <CartDrawer />
       <WishlistDrawer />
 
-      {/* Contact & Google Map Modal */}
+      {/* Contact & Google Map Modal - Mobile Optimized */}
       {showContactModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[28px] max-w-lg w-full p-6 md:p-8 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+          <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[24px] md:rounded-[28px] max-w-lg w-full p-4 sm:p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowContactModal(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
+              className="absolute top-4 right-4 md:top-6 md:right-6 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
             >
-              <FiX size={18} />
+              <FiX size={16} />
             </button>
 
-            <h3 className="text-2xl font-serif font-bold text-[#031D44] mb-1">
+            <h3 className="text-xl md:text-2xl font-serif font-bold text-[#031D44] mb-1">
               Gateway Linen HQ
             </h3>
-            <p className="text-xs text-gray-500 mb-6 font-light">
+            <p className="text-[11px] md:text-xs text-gray-500 mb-4 font-light">
               Official contact information and location.
             </p>
 
-            <div className="space-y-3 mb-6 bg-white p-4 rounded-2xl border border-[#E5DCD0]">
-              <div className="flex items-start gap-3 text-xs text-gray-700">
+            <div className="space-y-2.5 mb-4 bg-white p-3.5 rounded-xl border border-[#E5DCD0]">
+              <div className="flex items-start gap-2.5 text-xs text-gray-700">
                 <FiMapPin
                   className="text-[#B58E58] mt-0.5 flex-shrink-0"
-                  size={16}
+                  size={15}
                 />
-                <span>
+                <span className="leading-relaxed">
                   <strong>Address:</strong> 9 Mapleridge crescent, Brandon
                   R7A6P8, Manitoba, Canada
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-gray-700">
-                <FiPhone className="text-[#B58E58] flex-shrink-0" size={16} />
+              <div className="flex items-center gap-2.5 text-xs text-gray-700">
+                <FiPhone className="text-[#B58E58] flex-shrink-0" size={15} />
                 <span>
                   <strong>Phone:</strong> +1 (204) 979-4044
                 </span>
               </div>
-              <div className="flex items-start gap-3 text-xs text-gray-700">
-                <FiMail className="text-[#B58E58] flex-shrink-0" size={16} />
-                <div className="flex flex-col">
+              <div className="flex items-start gap-2.5 text-xs text-gray-700">
+                <FiMail
+                  className="text-[#B58E58] flex-shrink-0 mt-0.5"
+                  size={15}
+                />
+                <div className="flex flex-col break-all">
                   <span>
                     <strong>Email:</strong> tapu_parikh@yahoo.com
                   </span>
@@ -693,7 +696,7 @@ const Navbar = () => {
               </div>
             </div>
 
-            <div className="w-full h-48 rounded-2xl overflow-hidden border border-[#E5DCD0] mb-6">
+            <div className="w-full h-40 md:h-48 rounded-xl overflow-hidden border border-[#E5DCD0] mb-4">
               <iframe
                 title="Brandon Manitoba Map"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d81559.45876313715!2d-99.98816!3d49.8482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x52c1e65e638b6d85%3A0x44614e758784d531!2sBrandon%2C%20MB%2C%20Canada!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
@@ -718,5 +721,7 @@ const Navbar = () => {
     </>
   );
 };
+
+Navbar.displayName = "Navbar";
 
 export default Navbar;

@@ -351,154 +351,155 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0EAE1] py-12 px-4 sm:px-6 lg:px-8 font-sans relative">
+    <div className="min-h-screen bg-[#F0EAE1] py-6 md:py-12 px-3 md:px-10 font-sans relative">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-6 md:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-[#031D44]">
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#031D44]">
               My Dashboard
             </h1>
-            <p className="text-xs text-gray-600 font-light mt-1">
+            <p className="text-xs text-gray-600 font-light mt-0.5">
               Manage your profile, shipping addresses, and buying history.
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-2xs"
           >
-            <FiLogOut size={15} /> Logout
+            <FiLogOut size={14} /> Logout
           </button>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-[#F7F2EB] rounded-[32px] p-8 border border-[#E5DCD0] shadow-xl mb-8">
-          <div className="flex items-center gap-4 mb-8 pb-6 border-b border-[#E5DCD0]">
-            <div className="w-16 h-16 bg-[#031D44] text-[#B58E58] rounded-full flex items-center justify-center text-2xl font-bold shadow-md">
+        <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
+          <div className="flex items-center gap-3.5 mb-6 pb-4 border-b border-[#E5DCD0]">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-[#031D44] text-[#B58E58] rounded-full flex items-center justify-center text-xl md:text-2xl font-bold shadow-md">
               {formData.fullName
                 ? formData.fullName.charAt(0).toUpperCase()
                 : "U"}
             </div>
             <div>
-              <h2 className="text-xl font-serif font-bold text-[#031D44]">
+              <h2 className="text-lg md:text-xl font-serif font-bold text-[#031D44]">
                 {formData.fullName || "User Profile"}
               </h2>
-              <p className="text-xs text-gray-600 flex items-center gap-1.5 mt-0.5">
-                <FiCheckCircle className="text-green-600" /> Verified Member
+              <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
+                <FiCheckCircle className="text-green-600" size={13} /> Verified
+                Member
               </p>
             </div>
           </div>
 
           {message.text && (
             <div
-              className={`mb-6 text-center text-xs font-bold p-3 rounded-xl ${message.type === "error" ? "bg-red-50 text-red-600 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
+              className={`mb-5 text-center text-xs font-bold p-3 rounded-xl ${message.type === "error" ? "bg-red-50 text-red-600 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"}`}
             >
               {message.text}
             </div>
           )}
 
-          <form onSubmit={handleUpdate} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleUpdate} className="space-y-4 md:space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div>
-                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
                   Full Name
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <FiUser className="text-gray-400" size={15} />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiUser className="text-gray-400" size={14} />
                   </div>
                   <input
                     type="text"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-[#FFFDF9] transition-all shadow-2xs"
+                    className="block w-full pl-9 pr-3 py-2.5 md:py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-[#FFFDF9] transition-all shadow-2xs"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
                   Email Address
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <FiMail className="text-gray-400" size={15} />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiMail className="text-gray-400" size={14} />
                   </div>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-[#FFFDF9] transition-all shadow-2xs"
+                    className="block w-full pl-9 pr-3 py-2.5 md:py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-[#FFFDF9] transition-all shadow-2xs"
                     required
                   />
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
                   Phone Number
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <FiPhone className="text-gray-400" size={15} />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiPhone className="text-gray-400" size={14} />
                   </div>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-[#FFFDF9] transition-all shadow-2xs"
+                    className="block w-full pl-9 pr-3 py-2.5 md:py-3 border border-[#E5DCD0] rounded-xl text-xs text-gray-800 focus:outline-none focus:border-[#B58E58] bg-[#FFFDF9] transition-all shadow-2xs"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 flex justify-end">
+            <div className="pt-4 flex justify-end">
               <button
                 disabled={loading}
                 type="submit"
-                className={`flex items-center gap-2 py-3.5 px-8 rounded-xl shadow-md text-xs font-bold tracking-widest uppercase text-white ${loading ? "bg-gray-400" : "bg-[#031D44] hover:bg-[#B58E58]"} transition-all cursor-pointer`}
+                className={`w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 md:px-8 rounded-xl shadow-md text-xs font-bold tracking-widest uppercase text-white ${loading ? "bg-gray-400" : "bg-[#031D44] hover:bg-[#B58E58]"} transition-all cursor-pointer`}
               >
-                <FiSave size={15} />
+                <FiSave size={14} />
                 {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>
         </div>
 
-        {/* IMPROVED SAVED ADDRESSES SECTION (Soft Off-White Theme Match) */}
-        <div className="bg-[#F7F2EB] rounded-[32px] p-8 border border-[#E5DCD0] shadow-xl mb-8">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#E5DCD0]">
-            <div className="flex items-center gap-2 text-[#031D44]">
-              <div className="w-9 h-9 bg-[#031D44]/10 text-[#031D44] rounded-xl flex items-center justify-center">
-                <FiMapPin size={18} className="text-[#B58E58]" />
+        {/* SAVED ADDRESSES SECTION */}
+        <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#E5DCD0]">
+            <div className="flex items-center gap-2.5 text-[#031D44]">
+              <div className="w-8 h-8 md:w-9 md:h-9 bg-[#031D44]/10 text-[#031D44] rounded-xl flex items-center justify-center shrink-0">
+                <FiMapPin size={16} className="text-[#B58E58]" />
               </div>
               <div>
-                <h2 className="text-lg font-serif font-bold">
+                <h2 className="text-base md:text-lg font-serif font-bold">
                   Saved Shipping Addresses
                 </h2>
-                <p className="text-[11px] text-gray-500 font-light">
+                <p className="text-[10px] md:text-[11px] text-gray-500 font-light">
                   Manage your delivery locations for fast checkout
                 </p>
               </div>
             </div>
             <button
               onClick={handleOpenAddAddressModal}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-[#031D44] text-white rounded-xl text-xs font-bold hover:bg-[#B58E58] transition-all cursor-pointer shadow-sm"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-[#031D44] text-white rounded-xl text-xs font-bold hover:bg-[#B58E58] transition-all cursor-pointer shadow-sm"
             >
               <FiPlus size={14} /> Add New Address
             </button>
           </div>
 
           {loadingAddresses ? (
-            <div className="text-center py-10 text-xs text-gray-500 font-bold uppercase tracking-widest">
+            <div className="text-center py-8 text-xs text-gray-500 font-bold uppercase tracking-widest">
               Loading Addresses...
             </div>
           ) : addresses.length === 0 ? (
-            <div className="text-center py-12 bg-[#FFFDF9] rounded-2xl border border-dashed border-[#E5DCD0]">
-              <FiMapPin size={32} className="mx-auto text-gray-300 mb-2" />
+            <div className="text-center py-10 bg-[#FFFDF9] rounded-2xl border border-dashed border-[#E5DCD0]">
+              <FiMapPin size={28} className="mx-auto text-gray-300 mb-2" />
               <p className="text-xs font-bold text-[#031D44] mb-1">
                 No saved addresses found
               </p>
@@ -507,48 +508,48 @@ const Dashboard = () => {
               </p>
             </div>
           ) : (
-            <div className="max-h-[460px] overflow-y-auto pr-1 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="max-h-[460px] overflow-y-auto pr-1 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {addresses.map((addr) => (
                   <div
                     key={addr.AddressId}
-                    className="p-5 bg-[#FFFDF9] rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] flex flex-col justify-between shadow-2xs transition-all group relative overflow-hidden"
+                    className="p-4 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] hover:border-[#B58E58] flex flex-col justify-between shadow-2xs transition-all group relative overflow-hidden"
                   >
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-[#B58E58] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div>
-                      <div className="flex justify-between items-start mb-2.5">
-                        <span className="font-bold text-sm text-[#031D44] tracking-wide">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-xs md:text-sm text-[#031D44] tracking-wide">
                           {addr.RecipientName}
                         </span>
-                        <span className="text-[9px] bg-[#B58E58]/10 text-[#B58E58] border border-[#B58E58]/30 px-2.5 py-0.5 rounded-full uppercase font-bold tracking-wider">
+                        <span className="text-[8.5px] bg-[#B58E58]/10 text-[#B58E58] border border-[#B58E58]/30 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">
                           {addr.AddressType || "Shipping"}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600 font-light mb-1.5 leading-relaxed">
+                      <p className="text-[11px] md:text-xs text-gray-600 font-light mb-1 leading-relaxed">
                         {addr.AddressLine1}, {addr.City}, {addr.StateProvince}{" "}
                         {addr.PostalCode}
                       </p>
-                      <p className="text-xs text-gray-500 font-light mb-4 flex items-center gap-1.5">
-                        <FiPhone size={12} className="text-gray-400" />
+                      <p className="text-[11px] md:text-xs text-gray-500 font-light mb-3 flex items-center gap-1.5">
+                        <FiPhone size={11} className="text-gray-400" />
                         <span className="font-medium text-gray-800">
                           {addr.Phone}
                         </span>
                       </p>
                     </div>
 
-                    <div className="flex gap-2.5 pt-3 border-t border-gray-100">
+                    <div className="flex gap-2 pt-2.5 border-t border-gray-100">
                       <button
                         onClick={() => handleOpenEditAddressModal(addr)}
-                        className="flex-1 py-2.5 bg-white hover:bg-[#031D44] hover:text-white text-[#031D44] text-[11px] font-bold tracking-wider uppercase rounded-xl border border-gray-200 hover:border-[#031D44] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                        className="flex-1 py-2 bg-white hover:bg-[#031D44] hover:text-white text-[#031D44] text-[10px] font-bold tracking-wider uppercase rounded-lg border border-gray-200 hover:border-[#031D44] transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                       >
-                        <FiEdit2 size={13} /> Edit
+                        <FiEdit2 size={12} /> Edit
                       </button>
                       <button
                         onClick={() => handleDeleteAddress(addr.AddressId)}
-                        className="py-2.5 px-3.5 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 text-[11px] font-bold rounded-xl border border-red-200 hover:border-red-600 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                        className="py-2 px-3 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 text-[10px] font-bold rounded-lg border border-red-200 hover:border-red-600 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
                         title="Delete Address"
                       >
-                        <FiTrash2 size={14} />
+                        <FiTrash2 size={13} />
                       </button>
                     </div>
                   </div>
@@ -559,38 +560,38 @@ const Dashboard = () => {
         </div>
 
         {/* BUYING HISTORY SECTION */}
-        <div className="bg-[#F7F2EB] rounded-[32px] p-8 border border-[#E5DCD0] shadow-xl mb-8">
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-[#E5DCD0] text-[#031D44]">
-            <FiShoppingBag size={20} className="text-[#B58E58]" />
-            <h2 className="text-lg font-serif font-bold">
+        <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
+          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#E5DCD0] text-[#031D44]">
+            <FiShoppingBag size={18} className="text-[#B58E58]" />
+            <h2 className="text-base md:text-lg font-serif font-bold">
               Buying History (Orders)
             </h2>
           </div>
 
           {orders.length === 0 ? (
-            <div className="text-center py-8 text-xs text-gray-500 font-light">
+            <div className="text-center py-6 text-xs text-gray-500 font-light">
               No past orders found.
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {orders.map((order, idx) => (
                 <div
                   key={idx}
-                  className="p-5 bg-[#FFFDF9] rounded-2xl border border-[#E5DCD0] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xs"
+                  className="p-4 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-2xs"
                 >
                   <div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       <span className="text-xs font-bold text-[#031D44]">
                         Order #{order.id}
                       </span>
-                      <span className="text-[10px] bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full font-semibold">
+                      <span className="text-[9px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-semibold">
                         {order.status}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 font-light mt-1">
+                    <p className="text-[11px] text-gray-500 font-light mt-0.5">
                       Date: {order.date}
                     </p>
-                    <p className="text-xs font-semibold text-gray-700 mt-2">
+                    <p className="text-[11px] font-semibold text-gray-700 mt-1">
                       {order.items
                         .map(
                           (i) =>
@@ -600,7 +601,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-bold text-[#031D44]">
+                    <span className="text-xs md:text-sm font-bold text-[#031D44]">
                       CAD ${order.total}
                     </span>
                   </div>
@@ -611,22 +612,22 @@ const Dashboard = () => {
         </div>
 
         {/* DANGER ZONE - DELETE ACCOUNT */}
-        <div className="pt-2">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-red-50 border border-red-200 p-6 rounded-[24px] shadow-sm">
+        <div className="pt-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-red-50 border border-red-200 p-5 rounded-[20px] shadow-sm">
             <div>
-              <h3 className="text-base font-bold text-red-700 flex items-center gap-2">
-                <FiAlertTriangle size={18} /> Delete Account
+              <h3 className="text-sm font-bold text-red-700 flex items-center gap-1.5">
+                <FiAlertTriangle size={16} /> Delete Account
               </h3>
-              <p className="text-xs text-red-600/80 font-light mt-1">
-                Once you delete your account, there is no going back. All your
-                data will be permanently removed.
+              <p className="text-[11px] text-red-600/80 font-light mt-0.5">
+                Once you delete your account, all your data will be permanently
+                removed.
               </p>
             </div>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="shrink-0 flex items-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-wider uppercase rounded-xl shadow-md transition-all cursor-pointer"
+              className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold tracking-wider uppercase rounded-xl shadow-md transition-all cursor-pointer"
             >
-              <FiTrash2 size={14} />
+              <FiTrash2 size={13} />
               Permanently Delete
             </button>
           </div>
@@ -635,10 +636,10 @@ const Dashboard = () => {
 
       {/* ADD / EDIT ADDRESS MODAL */}
       {showAddressModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F7F2EB] rounded-[28px] max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#E5DCD0]">
-            <div className="flex justify-between items-center mb-5 pb-3 border-b border-[#E5DCD0]">
-              <h3 className="text-xl font-serif font-bold text-[#031D44]">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+          <div className="bg-[#F7F2EB] rounded-[24px] max-w-lg w-full p-5 md:p-8 shadow-2xl border border-[#E5DCD0]">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#E5DCD0]">
+              <h3 className="text-lg md:text-xl font-serif font-bold text-[#031D44]">
                 {isEditing
                   ? "Edit Shipping Address"
                   : "Add New Shipping Address"}
@@ -647,14 +648,14 @@ const Dashboard = () => {
                 onClick={() => setShowAddressModal(false)}
                 className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full transition-colors cursor-pointer bg-white border border-gray-200"
               >
-                <FiX size={18} />
+                <FiX size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveAddress} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSaveAddress} className="space-y-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                     Recipient Name
                   </label>
                   <input
@@ -664,11 +665,11 @@ const Dashboard = () => {
                     value={addressForm.recipientName}
                     onChange={handleFormChange}
                     placeholder="Full Name"
-                    className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                    className="w-full px-3.5 py-2.5 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                     Phone Number
                   </label>
                   <input
@@ -678,13 +679,13 @@ const Dashboard = () => {
                     value={addressForm.phone}
                     onChange={handleFormChange}
                     placeholder="+1 234 567 8900"
-                    className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                    className="w-full px-3.5 py-2.5 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                   Street Address
                 </label>
                 <input
@@ -694,13 +695,13 @@ const Dashboard = () => {
                   value={addressForm.addressLine1}
                   onChange={handleFormChange}
                   placeholder="House / Flat No, Street, Landmark"
-                  className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                  className="w-full px-3.5 py-2.5 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                     City
                   </label>
                   <input
@@ -710,11 +711,11 @@ const Dashboard = () => {
                     value={addressForm.city}
                     onChange={handleFormChange}
                     placeholder="City"
-                    className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                    className="w-full px-3.5 py-2.5 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                     State/Province
                   </label>
                   <input
@@ -724,11 +725,11 @@ const Dashboard = () => {
                     value={addressForm.stateProvince}
                     onChange={handleFormChange}
                     placeholder="State"
-                    className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                    className="w-full px-3.5 py-2.5 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] md:text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                     Postal Code
                   </label>
                   <input
@@ -738,22 +739,22 @@ const Dashboard = () => {
                     value={addressForm.postalCode}
                     onChange={handleFormChange}
                     placeholder="Postal Code"
-                    className="w-full px-4 py-3 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                    className="w-full px-3.5 py-2.5 border border-[#E5DCD0] rounded-xl text-xs bg-white focus:outline-none focus:border-[#B58E58] shadow-2xs"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2.5 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowAddressModal(false)}
-                  className="flex-1 py-3 px-4 bg-white border border-[#E5DCD0] hover:bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                  className="flex-1 py-2.5 px-3 bg-white border border-[#E5DCD0] hover:bg-gray-100 text-gray-700 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 px-4 bg-[#031D44] hover:bg-[#B58E58] text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer"
+                  className="flex-1 py-2.5 px-3 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   {isEditing ? "Update Address" : "Save Address"}
                 </button>
@@ -765,15 +766,15 @@ const Dashboard = () => {
 
       {/* GENERAL SUCCESS/ERROR MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F7F2EB] rounded-[24px] max-w-sm w-full p-8 shadow-2xl border border-[#E5DCD0] text-center">
-            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-              <FiCheckCircle size={32} />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+          <div className="bg-[#F7F2EB] rounded-[24px] max-w-sm w-full p-6 shadow-2xl border border-[#E5DCD0] text-center">
+            <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <FiCheckCircle size={28} />
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+            <h3 className="text-lg font-serif font-bold text-[#031D44] mb-1.5">
               {modalTitle}
             </h3>
-            <p className="text-xs text-gray-600 font-light mb-8 leading-relaxed">
+            <p className="text-xs text-gray-600 font-light mb-6 leading-relaxed">
               {modalMessage}
             </p>
             <button
@@ -788,33 +789,33 @@ const Dashboard = () => {
 
       {/* DELETE ACCOUNT CONFIRMATION MODAL */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#F7F2EB] rounded-[28px] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#E5DCD0]">
-            <div className="flex justify-between items-center mb-5">
-              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center shadow-sm">
-                <FiTrash2 size={22} />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+          <div className="bg-[#F7F2EB] rounded-[24px] max-w-md w-full p-5 sm:p-6 shadow-2xl border border-[#E5DCD0]">
+            <div className="flex justify-between items-center mb-4">
+              <div className="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center shadow-sm">
+                <FiTrash2 size={18} />
               </div>
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full transition-colors cursor-pointer bg-white border border-gray-200"
               >
-                <FiX size5={18} />
+                <FiX size={16} />
               </button>
             </div>
 
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+            <h3 className="text-lg font-serif font-bold text-[#031D44] mb-1.5">
               Delete Account Permanently?
             </h3>
-            <p className="text-xs text-gray-600 font-light mb-6 leading-relaxed">
+            <p className="text-xs text-gray-600 font-light mb-5 leading-relaxed">
               Are you sure you want to delete your account? This action is
               irreversible and all your data will be erased.
             </p>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 py-3 px-4 bg-white border border-[#E5DCD0] hover:bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                className="flex-1 py-2.5 px-3 bg-white border border-[#E5DCD0] hover:bg-gray-100 text-gray-700 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -822,7 +823,7 @@ const Dashboard = () => {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={deleteLoading}
-                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center"
+                className="flex-1 py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center"
               >
                 {deleteLoading ? "Deleting..." : "Yes, Delete"}
               </button>

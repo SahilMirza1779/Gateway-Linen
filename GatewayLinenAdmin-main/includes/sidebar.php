@@ -4,15 +4,15 @@
 | GatewayLinen Admin Sidebar
 |--------------------------------------------------------------------------
 | Location:
-| C:\wamp64\www\GatewayLinen\GatewayLinenadmin-main\includes\sidebar.php
+| C:\wamp64\www\Gateway-Linen\GatewayLinenAdmin-main\includes\sidebar.php
 |--------------------------------------------------------------------------
 | Admin Base:
-| /GatewayLinen/GatewayLinenAdmin-main-main
+| /Gateway-Linen/GatewayLinenAdmin-main
 |--------------------------------------------------------------------------
 */
 
 if (!defined('GATEWAY_BASE')) {
-    define('GATEWAY_BASE', '/GatewayLinen/GatewayLinenAdmin-main');
+    define('GATEWAY_BASE', '/Gateway-Linen/GatewayLinenAdmin-main');
 }
 
 $activeMenu = $activeMenu ?? '';

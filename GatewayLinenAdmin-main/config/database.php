@@ -10,7 +10,7 @@
 */
 
 // 👇 Yahan apna actual SQL Server name dalo (Jaise: 'localhost\SQLEXPRESS' ya tumhare PC ka naam)
-$serverName   = "LAPTOP-2L3H6B5C\\MSSQLSERVER02";
+$serverName   = "TR-HYFFVT2\SQLEXPRESS";
 $databaseName = "GatewayLinenDB";
 $username     = "gateway_admin";
 $password     = "Gateway@2026#Admin";

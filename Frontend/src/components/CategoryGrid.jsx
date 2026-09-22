@@ -15,7 +15,7 @@ const CategoryGrid = () => {
     const fetchCategories = async () => {
       try {
         const response = await fetch(
-          "http://localhost/GatewayLinen/GatewayLinenadmin-main/categories/api.php",
+          "http://localhost/Gateway-Linen/GatewayLinenadmin-main/categories/api.php",
           {
             method: "GET",
             headers: {

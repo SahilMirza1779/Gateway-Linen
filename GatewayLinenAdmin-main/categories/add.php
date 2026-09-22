@@ -4,6 +4,22 @@ session_start();
 
 /*
 |--------------------------------------------------------------------------
+| GatewayLinen Admin - Add Category
+|--------------------------------------------------------------------------
+| File:
+| GatewayLinenadmin/categories/add.php
+|
+| Requires:
+| ../config/database.php
+| ../includes/header.php
+| ../includes/sidebar.php
+| ../includes/footer.php
+|--------------------------------------------------------------------------
+*/
+
+
+/*
+|--------------------------------------------------------------------------
 | AUTHENTICATION
 |--------------------------------------------------------------------------
 */
@@ -52,13 +68,46 @@ if (!isset($_SESSION["admin_role"])) {
 
 /*
 |--------------------------------------------------------------------------
+| HELPER FUNCTION
+|--------------------------------------------------------------------------
+*/
+
+function e($value)
+{
+    return htmlspecialchars(
+        (string) $value,
+        ENT_QUOTES,
+        "UTF-8"
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CSRF TOKEN
+|--------------------------------------------------------------------------
+*/
+
+if (empty($_SESSION["category_csrf_token"])) {
+
+    $_SESSION["category_csrf_token"] =
+        bin2hex(random_bytes(32));
+
+}
+
+$csrfToken =
+    $_SESSION["category_csrf_token"];
+
+
+/*
+|--------------------------------------------------------------------------
 | FORM VARIABLES
 |--------------------------------------------------------------------------
 */
 
 $name            = "";
 $slug            = "";
-$parentId        = "";
+$parentId        = null;
 $description     = "";
 $metaTitle       = "";
 $metaDescription = "";
@@ -71,16 +120,76 @@ $error = "";
 
 /*
 |--------------------------------------------------------------------------
+| DATABASE COLUMN COMPATIBILITY
+|--------------------------------------------------------------------------
+|
+| This checks optional columns so the page can safely work with the
+| existing Categories table.
+|
+|--------------------------------------------------------------------------
+*/
+
+$hasParentCategoryId = false;
+$hasMetaTitle        = false;
+$hasMetaDescription  = false;
+
+
+/*
+|--------------------------------------------------------------------------
+| CHECK COLUMNS
+|--------------------------------------------------------------------------
+*/
+
+$columnCheckSql = "
+    SELECT
+        COL_LENGTH('dbo.Categories', 'ParentCategoryId') AS ParentCategoryIdLength,
+        COL_LENGTH('dbo.Categories', 'MetaTitle') AS MetaTitleLength,
+        COL_LENGTH('dbo.Categories', 'MetaDescription') AS MetaDescriptionLength
+";
+
+$columnCheckStmt = sqlsrv_query(
+    $conn,
+    $columnCheckSql
+);
+
+if ($columnCheckStmt !== false) {
+
+    $columnRow = sqlsrv_fetch_array(
+        $columnCheckStmt,
+        SQLSRV_FETCH_ASSOC
+    );
+
+    if ($columnRow) {
+
+        $hasParentCategoryId =
+            $columnRow["ParentCategoryIdLength"] !== null;
+
+        $hasMetaTitle =
+            $columnRow["MetaTitleLength"] !== null;
+
+        $hasMetaDescription =
+            $columnRow["MetaDescriptionLength"] !== null;
+    }
+
+    sqlsrv_free_stmt($columnCheckStmt);
+}
+
+
+/*
+|--------------------------------------------------------------------------
 | UPLOAD DIRECTORY
 |--------------------------------------------------------------------------
 */
 
-$uploadDirectory = __DIR__ . "/../uploads/categories/";
+$uploadDirectory =
+    __DIR__ . "/../uploads/categories/";
 
 if (!is_dir($uploadDirectory)) {
 
     if (!@mkdir($uploadDirectory, 0755, true)) {
-        $error = "Unable to create category upload directory.";
+
+        $error =
+            "Unable to create category upload directory.";
     }
 }
 
@@ -89,30 +198,84 @@ if (!is_dir($uploadDirectory)) {
 |--------------------------------------------------------------------------
 | GET NEXT DISPLAY ORDER
 |--------------------------------------------------------------------------
-|
-| Existing:
-| 1,2,3,4
-|
-| New:
-| 5
-|
-| Empty:
-| 1
-|
-|--------------------------------------------------------------------------
 */
 
-function getNextDisplayOrder($conn)
-{
+function getNextDisplayOrder(
+    $conn,
+    $parentId = null,
+    $hasParentCategoryId = true
+) {
+
     $nextOrder = 1;
 
-    $sql = "
-        SELECT
-            ISNULL(MAX(DisplayOrder), 0) + 1 AS NextDisplayOrder
-        FROM dbo.Categories
-    ";
 
-    $stmt = sqlsrv_query($conn, $sql);
+    /*
+    |--------------------------------------------------------------------------
+    | TABLE DOES NOT HAVE PARENT COLUMN
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$hasParentCategoryId) {
+
+        $sql = "
+            SELECT
+                ISNULL(MAX(DisplayOrder), 0) + 1
+                    AS NextDisplayOrder
+            FROM dbo.Categories
+        ";
+
+        $params = [];
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MAIN CATEGORY
+    |--------------------------------------------------------------------------
+    */
+
+    elseif ($parentId === null) {
+
+        $sql = "
+            SELECT
+                ISNULL(MAX(DisplayOrder), 0) + 1
+                    AS NextDisplayOrder
+            FROM dbo.Categories
+            WHERE ParentCategoryId IS NULL
+        ";
+
+        $params = [];
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHILD CATEGORY
+    |--------------------------------------------------------------------------
+    */
+
+    else {
+
+        $sql = "
+            SELECT
+                ISNULL(MAX(DisplayOrder), 0) + 1
+                    AS NextDisplayOrder
+            FROM dbo.Categories
+            WHERE ParentCategoryId = ?
+        ";
+
+        $params = [$parentId];
+    }
+
+
+    $stmt = sqlsrv_query(
+        $conn,
+        $sql,
+        $params
+    );
+
 
     if ($stmt !== false) {
 
@@ -121,20 +284,25 @@ function getNextDisplayOrder($conn)
             SQLSRV_FETCH_ASSOC
         );
 
+
         if ($row) {
 
-            $nextOrder = (int) (
-                $row["NextDisplayOrder"] ?? 1
-            );
-
+            $nextOrder =
+                (int) (
+                    $row["NextDisplayOrder"]
+                    ?? 1
+                );
         }
+
 
         sqlsrv_free_stmt($stmt);
     }
 
+
     if ($nextOrder < 1) {
         $nextOrder = 1;
     }
+
 
     return $nextOrder;
 }
@@ -146,7 +314,12 @@ function getNextDisplayOrder($conn)
 |--------------------------------------------------------------------------
 */
 
-$displayOrder = getNextDisplayOrder($conn);
+$displayOrder =
+    getNextDisplayOrder(
+        $conn,
+        null,
+        $hasParentCategoryId
+    );
 
 
 /*
@@ -157,18 +330,41 @@ $displayOrder = getNextDisplayOrder($conn);
 
 $parents = [];
 
-$parentSql = "
-    SELECT
-        CategoryId,
-        Name
-    FROM dbo.Categories
-    ORDER BY Name ASC
-";
+
+/*
+|--------------------------------------------------------------------------
+| ONLY ROOT CATEGORIES CAN BE PARENTS
+|--------------------------------------------------------------------------
+*/
+
+if ($hasParentCategoryId) {
+
+    $parentSql = "
+        SELECT
+            CategoryId,
+            Name
+        FROM dbo.Categories
+        WHERE ParentCategoryId IS NULL
+        ORDER BY Name ASC
+    ";
+
+} else {
+
+    $parentSql = "
+        SELECT
+            CategoryId,
+            Name
+        FROM dbo.Categories
+        ORDER BY Name ASC
+    ";
+}
+
 
 $parentStmt = sqlsrv_query(
     $conn,
     $parentSql
 );
+
 
 if ($parentStmt !== false) {
 
@@ -182,6 +378,7 @@ if ($parentStmt !== false) {
         $parents[] = $row;
     }
 
+
     sqlsrv_free_stmt($parentStmt);
 }
 
@@ -194,70 +391,111 @@ if ($parentStmt !== false) {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | CSRF VALIDATION
+    |--------------------------------------------------------------------------
+    */
+
+    $postedToken =
+        $_POST["csrf_token"]
+        ?? "";
+
+    if (
+        !hash_equals(
+            $_SESSION["category_csrf_token"],
+            $postedToken
+        )
+    ) {
+
+        $error =
+            "Security verification failed. Please refresh the page and try again.";
+    }
+
+
     /*
     |--------------------------------------------------------------------------
     | GET FORM DATA
     |--------------------------------------------------------------------------
     */
 
-    $name = trim(
-        $_POST["name"] ?? ""
-    );
+    if ($error === "") {
 
-    $slug = trim(
-        $_POST["slug"] ?? ""
-    );
+        $name =
+            trim(
+                $_POST["name"]
+                ?? ""
+            );
 
-    $parentId = !empty(
-        $_POST["parent_category_id"] ?? ""
-    )
-        ? (int) $_POST["parent_category_id"]
-        : null;
 
-    $description = trim(
-        $_POST["description"] ?? ""
-    );
+        $slug =
+            trim(
+                $_POST["slug"]
+                ?? ""
+            );
 
-    $metaTitle = trim(
-        $_POST["meta_title"] ?? ""
-    );
 
-    $metaDescription = trim(
-        $_POST["meta_description"] ?? ""
-    );
+        if ($hasParentCategoryId) {
+
+            $parentId =
+                !empty(
+                    $_POST["parent_category_id"]
+                    ?? ""
+                )
+                    ? (int)
+                        $_POST["parent_category_id"]
+                    : null;
+
+        } else {
+
+            $parentId = null;
+        }
+
+
+        $description =
+            trim(
+                $_POST["description"]
+                ?? ""
+            );
+
+
+        $metaTitle =
+            trim(
+                $_POST["meta_title"]
+                ?? ""
+            );
+
+
+        $metaDescription =
+            trim(
+                $_POST["meta_description"]
+                ?? ""
+            );
+
+
+        $isActive =
+            isset(
+                $_POST["is_active"]
+            )
+                ? 1
+                : 0;
+    }
+
 
     /*
     |--------------------------------------------------------------------------
-    | DISPLAY ORDER
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    | Do NOT trust browser value.
-    | Always calculate from database.
-    |
+    | CATEGORY NAME VALIDATION
     |--------------------------------------------------------------------------
     */
 
-    $displayOrder = getNextDisplayOrder($conn);
-
-    $isActive = isset(
-        $_POST["is_active"]
-    )
-        ? 1
-        : 0;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATION - CATEGORY NAME
-    |--------------------------------------------------------------------------
-    */
-
-    if ($name === "") {
+    if (
+        $error === "" &&
+        $name === ""
+    ) {
 
         $error =
             "Category name is required.";
-
     }
 
 
@@ -274,7 +512,54 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $error =
             "Category name cannot be longer than 100 characters.";
+    }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | DESCRIPTION LENGTH
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $error === "" &&
+        mb_strlen($description) > 1000
+    ) {
+
+        $error =
+            "Description cannot be longer than 1000 characters.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | META TITLE LENGTH
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $error === "" &&
+        mb_strlen($metaTitle) > 200
+    ) {
+
+        $error =
+            "Meta title cannot be longer than 200 characters.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | META DESCRIPTION LENGTH
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $error === "" &&
+        mb_strlen($metaDescription) > 500
+    ) {
+
+        $error =
+            "Meta description cannot be longer than 500 characters.";
     }
 
 
@@ -288,18 +573,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($slug === "") {
 
-            $slug = strtolower(
-                preg_replace(
-                    "/[^a-zA-Z0-9]+/",
-                    "-",
-                    $name
-                )
-            );
+            $slug =
+                strtolower(
+                    preg_replace(
+                        "/[^a-zA-Z0-9]+/",
+                        "-",
+                        $name
+                    )
+                );
 
-            $slug = trim(
-                $slug,
-                "-"
-            );
+
+            $slug =
+                trim(
+                    $slug,
+                    "-"
+                );
         }
 
 
@@ -309,25 +597,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         |--------------------------------------------------------------------------
         */
 
-        $slug = strtolower(
-            preg_replace(
-                "/[^a-zA-Z0-9\-]/",
-                "",
-                $slug
-            )
-        );
+        $slug =
+            strtolower(
+                preg_replace(
+                    "/[^a-zA-Z0-9\-]/",
+                    "",
+                    $slug
+                )
+            );
 
-        $slug = trim(
-            $slug,
-            "-"
-        );
+
+        $slug =
+            trim(
+                $slug,
+                "-"
+            );
 
 
         if ($slug === "") {
 
             $error =
                 "Please enter a valid category name or slug.";
-
         }
     }
 
@@ -345,7 +635,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $error =
             "Slug cannot be longer than 150 characters.";
-
     }
 
 
@@ -364,16 +653,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             WHERE Slug = ?
         ";
 
-        $checkSlugStmt = sqlsrv_query(
-            $conn,
-            $checkSlugSql,
-            [$slug]
-        );
+
+        $checkSlugStmt =
+            sqlsrv_query(
+                $conn,
+                $checkSlugSql,
+                [$slug]
+            );
 
 
         if ($checkSlugStmt === false) {
 
-            $errors = sqlsrv_errors();
+            $errors =
+                sqlsrv_errors();
 
             $error =
                 $errors[0]["message"]
@@ -387,6 +679,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     SQLSRV_FETCH_ASSOC
                 );
 
+
             sqlsrv_free_stmt(
                 $checkSlugStmt
             );
@@ -396,7 +689,67 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $error =
                     "This category slug already exists. Please use another slug.";
+            }
+        }
+    }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATE PARENT CATEGORY
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $error === "" &&
+        $hasParentCategoryId &&
+        $parentId !== null
+    ) {
+
+        $parentCheckSql = "
+            SELECT TOP 1
+                CategoryId
+            FROM dbo.Categories
+            WHERE CategoryId = ?
+              AND ParentCategoryId IS NULL
+        ";
+
+
+        $parentCheckStmt =
+            sqlsrv_query(
+                $conn,
+                $parentCheckSql,
+                [$parentId]
+            );
+
+
+        if ($parentCheckStmt === false) {
+
+            $errors =
+                sqlsrv_errors();
+
+            $error =
+                $errors[0]["message"]
+                ?? "Unable to validate parent category.";
+
+        } else {
+
+            $validParent =
+                sqlsrv_fetch_array(
+                    $parentCheckStmt,
+                    SQLSRV_FETCH_ASSOC
+                );
+
+
+            sqlsrv_free_stmt(
+                $parentCheckStmt
+            );
+
+
+            if (!$validParent) {
+
+                $error =
+                    "The selected parent category is invalid.";
             }
         }
     }
@@ -425,7 +778,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             !== UPLOAD_ERR_NO_FILE
     ) {
 
-        $file = $_FILES["category_image"];
+        $file =
+            $_FILES["category_image"];
 
 
         /*
@@ -441,7 +795,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $error =
                 "Unable to upload the category image.";
-
         }
 
 
@@ -458,7 +811,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $error =
                 "Image size must be less than 5 MB.";
-
         }
 
 
@@ -475,7 +827,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $error =
                 "The uploaded image is empty.";
+        }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | TEMP FILE CHECK
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $error === "" &&
+            !is_uploaded_file(
+                $file["tmp_name"]
+            )
+        ) {
+
+            $error =
+                "Invalid image upload.";
         }
 
 
@@ -486,6 +855,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         */
 
         $imageInformation = false;
+
 
         if ($error === "") {
 
@@ -501,7 +871,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $error =
                     "Please upload a valid image file.";
-
             }
         }
 
@@ -533,17 +902,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $error =
                 "Only JPG, JPEG, PNG, WEBP and GIF images are allowed.";
-
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | FILE EXTENSION
+        | MIME TO EXTENSION
         |--------------------------------------------------------------------------
         */
 
         $extension = "";
+
 
         if ($error === "") {
 
@@ -557,17 +926,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     break;
 
+
                 case "image/png":
 
                     $extension = "png";
 
                     break;
 
+
                 case "image/webp":
 
                     $extension = "webp";
 
                     break;
+
 
                 case "image/gif":
 
@@ -581,7 +953,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $error =
                     "Unsupported image format.";
-
             }
         }
 
@@ -598,14 +969,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $randomPart =
                     bin2hex(
-                        random_bytes(6)
+                        random_bytes(8)
                     );
 
             } catch (Throwable $e) {
 
                 $randomPart =
-                    uniqid();
-
+                    uniqid(
+                        "",
+                        true
+                    );
             }
 
 
@@ -663,7 +1036,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $metaTitle =
             $name .
             " | GatewayLinen";
-
     }
 
 
@@ -681,7 +1053,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $metaDescription =
             $description;
+    }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | CALCULATE DISPLAY ORDER
+    |--------------------------------------------------------------------------
+    */
+
+    if ($error === "") {
+
+        $displayOrder =
+            getNextDisplayOrder(
+                $conn,
+                $parentId,
+                $hasParentCategoryId
+            );
     }
 
 
@@ -693,84 +1081,192 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($error === "") {
 
+
         /*
         |--------------------------------------------------------------------------
-        | IMPORTANT:
-        | Calculate DisplayOrder one more time immediately
-        | before INSERT.
+        | BUILD INSERT DYNAMICALLY
         |--------------------------------------------------------------------------
         */
 
-        $displayOrder =
-            getNextDisplayOrder($conn);
+        $columns = [
+            "Name",
+            "Slug",
+            "Description",
+            "ImageUrl",
+            "DisplayOrder",
+            "IsActive",
+            "CreatedAt"
+        ];
 
+
+        $values = [
+            "?",
+            "?",
+            "?",
+            "?",
+            "?",
+            "?",
+            "GETDATE()"
+        ];
+
+
+        $params = [
+            $name,
+            $slug,
+            $description !== ""
+                ? $description
+                : null,
+            $uploadedImagePath !== null
+                ? $uploadedImagePath
+                : null,
+            $displayOrder,
+            $isActive
+        ];
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARENT CATEGORY
+        |--------------------------------------------------------------------------
+        */
+
+        if ($hasParentCategoryId) {
+
+            array_unshift(
+                $columns,
+                "ParentCategoryId"
+            );
+
+
+            array_unshift(
+                $values,
+                "?"
+            );
+
+
+            array_unshift(
+                $params,
+                $parentId
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | META TITLE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($hasMetaTitle) {
+
+            $insertIndex =
+                count($columns) - 1;
+
+
+            array_splice(
+                $columns,
+                $insertIndex,
+                0,
+                ["MetaTitle"]
+            );
+
+
+            array_splice(
+                $values,
+                $insertIndex,
+                0,
+                ["?"]
+            );
+
+
+            array_splice(
+                $params,
+                $insertIndex,
+                0,
+                [
+                    $metaTitle !== ""
+                        ? $metaTitle
+                        : null
+                ]
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | META DESCRIPTION
+        |--------------------------------------------------------------------------
+        */
+
+        if ($hasMetaDescription) {
+
+            $insertIndex =
+                count($columns) - 1;
+
+
+            array_splice(
+                $columns,
+                $insertIndex,
+                0,
+                ["MetaDescription"]
+            );
+
+
+            array_splice(
+                $values,
+                $insertIndex,
+                0,
+                ["?"]
+            );
+
+
+            array_splice(
+                $params,
+                $insertIndex,
+                0,
+                [
+                    $metaDescription !== ""
+                        ? $metaDescription
+                        : null
+                ]
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT SQL
+        |--------------------------------------------------------------------------
+        */
 
         $sql = "
             INSERT INTO dbo.Categories
             (
-                ParentCategoryId,
-                Name,
-                Slug,
-                Description,
-                ImageUrl,
-                MetaTitle,
-                MetaDescription,
-                DisplayOrder,
-                IsActive,
-                CreatedAt
+                " .
+                implode(
+                    ", ",
+                    $columns
+                ) .
+            "
             )
             VALUES
             (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                GETDATE()
+                " .
+                implode(
+                    ", ",
+                    $values
+                ) .
+            "
             )
         ";
 
 
-        $params = [
-
-            $parentId,
-
-            $name,
-
-            $slug,
-
-            $description !== ""
-                ? $description
-                : null,
-
-            $uploadedImagePath !== null
-                ? $uploadedImagePath
-                : null,
-
-            $metaTitle !== ""
-                ? $metaTitle
-                : null,
-
-            $metaDescription !== ""
-                ? $metaDescription
-                : null,
-
-            $displayOrder,
-
-            $isActive
-
-        ];
-
-
-        $stmt = sqlsrv_query(
-            $conn,
-            $sql,
-            $params
-        );
+        $stmt =
+            sqlsrv_query(
+                $conn,
+                $sql,
+                $params
+            );
 
 
         /*
@@ -781,9 +1277,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt === false) {
 
+
             /*
             |--------------------------------------------------------------------------
-            | DELETE IMAGE IF INSERT FAILED
+            | DELETE UPLOADED IMAGE
             |--------------------------------------------------------------------------
             */
 
@@ -810,9 +1307,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         } else {
 
+
             sqlsrv_free_stmt(
                 $stmt
             );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | NEW CSRF TOKEN
+            |--------------------------------------------------------------------------
+            */
+
+            $_SESSION["category_csrf_token"] =
+                bin2hex(
+                    random_bytes(32)
+                );
 
 
             /*
@@ -925,7 +1435,7 @@ body {
 .main,
 .content {
 
-    background: #0a1119 !important;
+    background: var(--bg-page) !important;
 
 }
 
@@ -1043,7 +1553,7 @@ body {
 
 /*
 |--------------------------------------------------------------------------
-| BACK BUTTON
+| BACK
 |--------------------------------------------------------------------------
 */
 
@@ -1484,7 +1994,7 @@ body {
 
 /*
 |--------------------------------------------------------------------------
-| DISPLAY ORDER AUTO FIELD
+| AUTO ORDER
 |--------------------------------------------------------------------------
 */
 
@@ -1624,6 +2134,20 @@ body {
     box-shadow:
         0 0 0 4px
         rgba(16,185,129,.06);
+
+}
+
+
+.category-upload-box.dragging {
+
+    border-color: var(--green);
+
+    background:
+        rgba(16,185,129,.12);
+
+    box-shadow:
+        0 0 0 4px
+        rgba(16,185,129,.08);
 
 }
 
@@ -1871,7 +2395,7 @@ body {
 
 /*
 |--------------------------------------------------------------------------
-| SEO HELP
+| SEO
 |--------------------------------------------------------------------------
 */
 
@@ -2227,7 +2751,7 @@ body {
 
 /*
 |--------------------------------------------------------------------------
-| TABLET
+| RESPONSIVE
 |--------------------------------------------------------------------------
 */
 
@@ -2241,12 +2765,6 @@ body {
 
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| MOBILE
-|--------------------------------------------------------------------------
-*/
 
 @media (max-width: 900px) {
 
@@ -2312,12 +2830,6 @@ body {
 
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| SMALL MOBILE
-|--------------------------------------------------------------------------
-*/
 
 @media (max-width: 560px) {
 
@@ -2559,11 +3071,7 @@ body {
 
                     <div>
 
-                        <?= htmlspecialchars(
-                            $error,
-                            ENT_QUOTES,
-                            "UTF-8"
-                        ) ?>
+                        <?= e($error) ?>
 
                     </div>
 
@@ -2581,6 +3089,13 @@ body {
                 class="add-category-form"
                 id="addCategoryForm"
             >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= e($csrfToken) ?>"
+                >
+
 
                 <div class="add-category-form-body">
 
@@ -2625,11 +3140,7 @@ body {
                                 id="categoryName"
                                 name="name"
                                 class="add-form-input"
-                                value="<?= htmlspecialchars(
-                                    $name,
-                                    ENT_QUOTES,
-                                    "UTF-8"
-                                ) ?>"
+                                value="<?= e($name) ?>"
                                 placeholder="e.g. Bath Towels"
                                 maxlength="100"
                                 required
@@ -2657,11 +3168,7 @@ body {
                                 id="categorySlug"
                                 name="slug"
                                 class="add-form-input"
-                                value="<?= htmlspecialchars(
-                                    $slug,
-                                    ENT_QUOTES,
-                                    "UTF-8"
-                                ) ?>"
+                                value="<?= e($slug) ?>"
                                 placeholder="bath-towels"
                                 maxlength="150"
                             >
@@ -2690,53 +3197,77 @@ body {
                             </label>
 
 
-                            <select
-                                id="parentCategory"
-                                name="parent_category_id"
-                                class="add-form-select"
-                            >
+                            <?php if ($hasParentCategoryId): ?>
 
-                                <option value="">
-                                    Main Category
-                                </option>
+                                <select
+                                    id="parentCategory"
+                                    name="parent_category_id"
+                                    class="add-form-select"
+                                >
 
-
-                                <?php foreach (
-                                    $parents
-                                    as $parent
-                                ): ?>
-
-                                    <?php
-
-                                    $parentCategoryId =
-                                        (int) (
-                                            $parent["CategoryId"]
-                                            ?? 0
-                                        );
-
-                                    ?>
-
-                                    <option
-                                        value="<?= $parentCategoryId ?>"
-                                        <?= (
-                                            (string) $parentId ===
-                                            (string) $parentCategoryId
-                                        )
-                                            ? "selected"
-                                            : "" ?>
-                                    >
-
-                                        <?= htmlspecialchars(
-                                            $parent["Name"] ?? "",
-                                            ENT_QUOTES,
-                                            "UTF-8"
-                                        ) ?>
-
+                                    <option value="">
+                                        Main Category
                                     </option>
 
-                                <?php endforeach; ?>
 
-                            </select>
+                                    <?php foreach (
+                                        $parents
+                                        as $parent
+                                    ): ?>
+
+                                        <?php
+
+                                        $parentCategoryId =
+                                            (int) (
+                                                $parent["CategoryId"]
+                                                ?? 0
+                                            );
+
+                                        ?>
+
+                                        <option
+                                            value="<?= $parentCategoryId ?>"
+                                            <?= (
+                                                (string) $parentId ===
+                                                (string) $parentCategoryId
+                                            )
+                                                ? "selected"
+                                                : "" ?>
+                                        >
+
+                                            <?= e(
+                                                $parent["Name"]
+                                                ?? ""
+                                            ) ?>
+
+                                        </option>
+
+                                    <?php endforeach; ?>
+
+                                </select>
+
+                            <?php else: ?>
+
+                                <select
+                                    id="parentCategory"
+                                    class="add-form-select"
+                                    disabled
+                                >
+
+                                    <option>
+                                        Main Category
+                                    </option>
+
+                                </select>
+
+                                <div class="seo-note">
+
+                                    Parent category support is not
+                                    available in the current database table.
+
+                                </div>
+
+                            <?php endif; ?>
 
                         </div>
 
@@ -2758,7 +3289,6 @@ body {
                             <input
                                 type="text"
                                 id="displayOrder"
-                                name="display_order"
                                 class="add-form-input auto-order-input"
                                 value="<?= (int) $displayOrder ?>"
                                 readonly
@@ -2952,11 +3482,7 @@ body {
                                 class="add-form-textarea"
                                 placeholder="Write a short description for this category..."
                                 maxlength="1000"
-                            ><?= htmlspecialchars(
-                                $description,
-                                ENT_QUOTES,
-                                "UTF-8"
-                            ) ?></textarea>
+                            ><?= e($description) ?></textarea>
 
                         </div>
 
@@ -3044,14 +3570,22 @@ body {
                                 id="metaTitle"
                                 name="meta_title"
                                 class="add-form-input"
-                                value="<?= htmlspecialchars(
-                                    $metaTitle,
-                                    ENT_QUOTES,
-                                    "UTF-8"
-                                ) ?>"
+                                value="<?= e($metaTitle) ?>"
                                 placeholder="SEO title"
                                 maxlength="200"
                             >
+
+
+                            <?php if (!$hasMetaTitle): ?>
+
+                                <div class="seo-note">
+
+                                    MetaTitle column is not available
+                                    in the current database.
+
+                                </div>
+
+                            <?php endif; ?>
 
                         </div>
 
@@ -3075,14 +3609,22 @@ body {
                                 id="metaDescription"
                                 name="meta_description"
                                 class="add-form-input"
-                                value="<?= htmlspecialchars(
-                                    $metaDescription,
-                                    ENT_QUOTES,
-                                    "UTF-8"
-                                ) ?>"
+                                value="<?= e($metaDescription) ?>"
                                 placeholder="SEO description"
                                 maxlength="500"
                             >
+
+
+                            <?php if (!$hasMetaDescription): ?>
+
+                                <div class="seo-note">
+
+                                    MetaDescription column is not available
+                                    in the current database.
+
+                                </div>
+
+                            <?php endif; ?>
 
                         </div>
 
@@ -3301,6 +3843,12 @@ document.addEventListener(
             );
 
 
+        const uploadBox =
+            document.getElementById(
+                "categoryUploadBox"
+            );
+
+
         const uploadContent =
             document.getElementById(
                 "categoryUploadContent"
@@ -3343,6 +3891,12 @@ document.addEventListener(
             );
 
 
+        const parentInput =
+            document.getElementById(
+                "parentCategory"
+            );
+
+
         const descriptionInput =
             document.getElementById(
                 "categoryDescription"
@@ -3381,7 +3935,214 @@ document.addEventListener(
 
         /*
         |--------------------------------------------------------------------------
-        | IMAGE PREVIEW
+        | SLUG STATE
+        |--------------------------------------------------------------------------
+        */
+
+        let slugManuallyChanged =
+            slugInput &&
+            slugInput.value.trim() !== "";
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | IMAGE RESET
+        |--------------------------------------------------------------------------
+        */
+
+        function resetImagePreview()
+        {
+
+            if (uploadContent) {
+
+                uploadContent.style.display =
+                    "block";
+            }
+
+
+            if (imagePreview) {
+
+                imagePreview.style.display =
+                    "none";
+            }
+
+
+            if (previewImage) {
+
+                previewImage.removeAttribute(
+                    "src"
+                );
+            }
+
+
+            if (previewName) {
+
+                previewName.textContent =
+                    "";
+            }
+
+
+            if (previewSize) {
+
+                previewSize.textContent =
+                    "";
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | IMAGE VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        function validateImage(file)
+        {
+
+            if (!file) {
+
+                return false;
+            }
+
+
+            if (
+                file.size >
+                5 * 1024 * 1024
+            ) {
+
+                alert(
+                    "Image size must be less than 5 MB."
+                );
+
+                return false;
+            }
+
+
+            const allowedTypes = [
+
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/gif"
+
+            ];
+
+
+            if (
+                !allowedTypes.includes(
+                    file.type
+                )
+            ) {
+
+                alert(
+                    "Only JPG, JPEG, PNG, WEBP and GIF images are allowed."
+                );
+
+                return false;
+            }
+
+
+            return true;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SHOW IMAGE PREVIEW
+        |--------------------------------------------------------------------------
+        */
+
+        function showImagePreview(file)
+        {
+
+            if (!file) {
+
+                resetImagePreview();
+
+                return;
+            }
+
+
+            if (
+                !validateImage(file)
+            ) {
+
+                if (imageInput) {
+
+                    imageInput.value =
+                        "";
+                }
+
+                resetImagePreview();
+
+                return;
+            }
+
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                function (event) {
+
+                    if (previewImage) {
+
+                        previewImage.src =
+                            event.target.result;
+                    }
+
+
+                    if (previewName) {
+
+                        previewName.textContent =
+                            file.name;
+                    }
+
+
+                    if (previewSize) {
+
+                        const sizeMB =
+                            (
+                                file.size /
+                                (
+                                    1024 *
+                                    1024
+                                )
+                            ).toFixed(2);
+
+
+                        previewSize.textContent =
+                            sizeMB +
+                            " MB";
+                    }
+
+
+                    if (uploadContent) {
+
+                        uploadContent.style.display =
+                            "none";
+                    }
+
+
+                    if (imagePreview) {
+
+                        imagePreview.style.display =
+                            "flex";
+                    }
+
+                };
+
+
+            reader.readAsDataURL(
+                file
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | IMAGE CHANGE
         |--------------------------------------------------------------------------
         */
 
@@ -3398,180 +4159,105 @@ document.addEventListener(
                             : null;
 
 
-                    if (!file) {
-
-                        if (uploadContent) {
-
-                            uploadContent.style.display =
-                                "block";
-
-                        }
-
-
-                        if (imagePreview) {
-
-                            imagePreview.style.display =
-                                "none";
-
-                        }
-
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | SIZE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        file.size >
-                        5 * 1024 * 1024
-                    ) {
-
-                        alert(
-                            "Image size must be less than 5 MB."
-                        );
-
-                        this.value = "";
-
-                        if (uploadContent) {
-
-                            uploadContent.style.display =
-                                "block";
-
-                        }
-
-                        if (imagePreview) {
-
-                            imagePreview.style.display =
-                                "none";
-
-                        }
-
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | TYPE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    const allowedTypes = [
-
-                        "image/jpeg",
-
-                        "image/png",
-
-                        "image/webp",
-
-                        "image/gif"
-
-                    ];
-
-
-                    if (
-                        !allowedTypes.includes(
-                            file.type
-                        )
-                    ) {
-
-                        alert(
-                            "Only JPG, JPEG, PNG, WEBP and GIF images are allowed."
-                        );
-
-                        this.value = "";
-
-                        if (uploadContent) {
-
-                            uploadContent.style.display =
-                                "block";
-
-                        }
-
-                        if (imagePreview) {
-
-                            imagePreview.style.display =
-                                "none";
-
-                        }
-
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | PREVIEW
-                    |--------------------------------------------------------------------------
-                    */
-
-                    const reader =
-                        new FileReader();
-
-
-                    reader.onload =
-                        function (event) {
-
-                            if (previewImage) {
-
-                                previewImage.src =
-                                    event.target.result;
-
-                            }
-
-
-                            if (previewName) {
-
-                                previewName.textContent =
-                                    file.name;
-
-                            }
-
-
-                            if (previewSize) {
-
-                                const sizeMB =
-                                    (
-                                        file.size /
-                                        (
-                                            1024 *
-                                            1024
-                                        )
-                                    ).toFixed(2);
-
-
-                                previewSize.textContent =
-                                    sizeMB +
-                                    " MB";
-
-                            }
-
-
-                            if (uploadContent) {
-
-                                uploadContent.style.display =
-                                    "none";
-
-                            }
-
-
-                            if (imagePreview) {
-
-                                imagePreview.style.display =
-                                    "flex";
-
-                            }
-
-                        };
-
-
-                    reader.readAsDataURL(
+                    showImagePreview(
                         file
                     );
+
+                }
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DRAG & DROP
+        |--------------------------------------------------------------------------
+        */
+
+        if (uploadBox) {
+
+            uploadBox.addEventListener(
+                "dragover",
+                function (event) {
+
+                    event.preventDefault();
+
+                    uploadBox.classList.add(
+                        "dragging"
+                    );
+
+                }
+            );
+
+
+            uploadBox.addEventListener(
+                "dragleave",
+                function () {
+
+                    uploadBox.classList.remove(
+                        "dragging"
+                    );
+
+                }
+            );
+
+
+            uploadBox.addEventListener(
+                "drop",
+                function (event) {
+
+                    event.preventDefault();
+
+                    uploadBox.classList.remove(
+                        "dragging"
+                    );
+
+
+                    const files =
+                        event.dataTransfer.files;
+
+
+                    if (
+                        files &&
+                        files.length > 0
+                    ) {
+
+                        const file =
+                            files[0];
+
+
+                        if (imageInput) {
+
+                            try {
+
+                                const dataTransfer =
+                                    new DataTransfer();
+
+                                dataTransfer.items.add(
+                                    file
+                                );
+
+                                imageInput.files =
+                                    dataTransfer.files;
+
+                            } catch (error) {
+
+                                /*
+                                | Fallback:
+                                | Browser may not allow assigning files.
+                                */
+
+                            }
+
+                        }
+
+
+                        showImagePreview(
+                            file
+                        );
+
+                    }
 
                 }
             );
@@ -3584,11 +4270,6 @@ document.addEventListener(
         | AUTO SLUG
         |--------------------------------------------------------------------------
         */
-
-        let slugManuallyChanged =
-            slugInput &&
-            slugInput.value.trim() !== "";
-
 
         if (slugInput) {
 
@@ -3695,9 +4376,37 @@ document.addEventListener(
 
         /*
         |--------------------------------------------------------------------------
+        | PARENT CATEGORY
+        |--------------------------------------------------------------------------
+        */
+
+        if (parentInput) {
+
+            parentInput.addEventListener(
+                "change",
+                function () {
+
+                    /*
+                    | The display order is calculated again
+                    | by PHP immediately before INSERT.
+                    |
+                    | No browser-side order is trusted.
+                    */
+
+                }
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
         | FORM SUBMIT
         |--------------------------------------------------------------------------
         */
+
+        let formSubmitting = false;
+
 
         if (
             form &&
@@ -3708,12 +4417,20 @@ document.addEventListener(
                 "submit",
                 function (event) {
 
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | CATEGORY NAME
+                    |--------------------------------------------------------------------------
+                    */
+
                     if (
                         !nameInput ||
                         nameInput.value.trim() === ""
                     ) {
 
                         event.preventDefault();
+
 
                         alert(
                             "Please enter category name."
@@ -3729,6 +4446,62 @@ document.addEventListener(
                         return;
 
                     }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PREVENT DOUBLE SUBMIT
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (formSubmitting) {
+
+                        event.preventDefault();
+
+                        return;
+
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | IMAGE CLIENT VALIDATION
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        imageInput &&
+                        imageInput.files &&
+                        imageInput.files.length > 0
+                    ) {
+
+                        const file =
+                            imageInput.files[0];
+
+
+                        if (
+                            !validateImage(file)
+                        ) {
+
+                            event.preventDefault();
+
+                            imageInput.focus();
+
+                            return;
+
+                        }
+
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | SUBMITTING
+                    |--------------------------------------------------------------------------
+                    */
+
+                    formSubmitting =
+                        true;
 
 
                     saveButton.disabled =
@@ -3776,10 +4549,10 @@ document.addEventListener(
 
         document.addEventListener(
             "keydown",
-            function (e) {
+            function (event) {
 
                 const key =
-                    e.key.toLowerCase();
+                    event.key.toLowerCase();
 
 
                 const activeElement =
@@ -3804,12 +4577,24 @@ document.addEventListener(
 
                 if (
                     key === "h" &&
-                    !e.ctrlKey &&
-                    !e.metaKey &&
-                    !e.altKey
+                    !event.ctrlKey &&
+                    !event.metaKey &&
+                    !event.altKey
                 ) {
 
-                    e.preventDefault();
+                    /*
+                    | Do not hide/show shortcuts while
+                    | the user is typing inside a text field.
+                    */
+
+                    if (isTyping) {
+
+                        return;
+
+                    }
+
+
+                    event.preventDefault();
 
 
                     if (shortcutBox) {
@@ -3826,6 +4611,7 @@ document.addEventListener(
                     }
 
                     return;
+
                 }
 
 
@@ -3836,7 +4622,7 @@ document.addEventListener(
                 */
 
                 if (
-                    e.key === "Escape"
+                    event.key === "Escape"
                 ) {
 
                     if (
@@ -3850,6 +4636,7 @@ document.addEventListener(
                     }
 
                     return;
+
                 }
 
 
@@ -3873,9 +4660,9 @@ document.addEventListener(
                 */
 
                 if (
-                    e.ctrlKey ||
-                    e.altKey ||
-                    e.metaKey
+                    event.ctrlKey ||
+                    event.altKey ||
+                    event.metaKey
                 ) {
 
                     return;
@@ -3893,7 +4680,7 @@ document.addEventListener(
                     key === "a"
                 ) {
 
-                    e.preventDefault();
+                    event.preventDefault();
 
 
                     if (form) {
@@ -3914,6 +4701,7 @@ document.addEventListener(
                     }
 
                     return;
+
                 }
 
 
@@ -3927,12 +4715,15 @@ document.addEventListener(
                     key === "b"
                 ) {
 
-                    e.preventDefault();
+                    event.preventDefault();
+
 
                     window.location.href =
                         "index.php";
 
+
                     return;
+
                 }
 
 
@@ -3946,12 +4737,15 @@ document.addEventListener(
                     key === "c"
                 ) {
 
-                    e.preventDefault();
+                    event.preventDefault();
+
 
                     window.location.href =
                         "index.php";
 
+
                     return;
+
                 }
 
 
@@ -3965,7 +4759,7 @@ document.addEventListener(
                     key === "n"
                 ) {
 
-                    e.preventDefault();
+                    event.preventDefault();
 
 
                     if (nameInput) {
@@ -3977,6 +4771,7 @@ document.addEventListener(
                     }
 
                     return;
+
                 }
 
 
@@ -3990,7 +4785,7 @@ document.addEventListener(
                     key === "g"
                 ) {
 
-                    e.preventDefault();
+                    event.preventDefault();
 
 
                     if (slugInput) {
@@ -4002,6 +4797,7 @@ document.addEventListener(
                     }
 
                     return;
+
                 }
 
 
@@ -4015,7 +4811,7 @@ document.addEventListener(
                     key === "i"
                 ) {
 
-                    e.preventDefault();
+                    event.preventDefault();
 
 
                     if (imageInput) {
@@ -4025,10 +4821,41 @@ document.addEventListener(
                     }
 
                     return;
+
                 }
 
             }
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | INITIAL FOCUS
+        |--------------------------------------------------------------------------
+        */
+
+        if (nameInput) {
+
+            /*
+            | Don't automatically focus on mobile.
+            */
+
+            if (
+                window.innerWidth > 700
+            ) {
+
+                setTimeout(
+                    function () {
+
+                        nameInput.focus();
+
+                    },
+                    150
+                );
+
+            }
+
+        }
 
     }
 );
@@ -4037,6 +4864,12 @@ document.addEventListener(
 
 
 <?php
+
+/*
+|--------------------------------------------------------------------------
+| FOOTER
+|--------------------------------------------------------------------------
+*/
 
 require_once __DIR__ . "/../includes/footer.php";
 

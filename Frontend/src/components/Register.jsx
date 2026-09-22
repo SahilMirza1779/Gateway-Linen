@@ -55,7 +55,7 @@ const Register = () => {
       };
 
       const response = await fetch(
-        "http://localhost/GatewayLinen/GatewayLinenadmin-main/users/api.php",
+        "http://localhost/Gateway-Linen/GatewayLinenadmin-main/users/api.php",
         {
           method: "POST",
           headers: {

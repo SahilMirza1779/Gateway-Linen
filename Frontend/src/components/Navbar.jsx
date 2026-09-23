@@ -14,6 +14,7 @@ import {
   FiMenu,
   FiLogIn,
   FiUserPlus,
+  FiAlertCircle,
 } from "react-icons/fi";
 import logo from "../assets/GatewayLinen-logo.png";
 import CartDrawer from "./CartDrawer";
@@ -95,6 +96,7 @@ const Navbar = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showAuthDropdown, setShowAuthDropdown] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLogoutConfirmModal, setShowLogoutConfirmModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,11 +133,16 @@ const Navbar = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowUserDropdown(false);
+    setShowLogoutConfirmModal(true);
+  };
+
+  const confirmLogout = () => {
     localStorage.removeItem("user");
     setCurrentUser(null);
-    setShowUserDropdown(false);
-    navigate("/login");
+    setShowLogoutConfirmModal(false);
+    navigate("/"); // Redirects to Home Page after logout
   };
 
   const filteredSearchProducts =
@@ -355,7 +362,7 @@ const Navbar = () => {
                     </Link>
 
                     <button
-                      onClick={handleLogout}
+                      onClick={handleLogoutClick}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-1 cursor-pointer"
                     >
                       <FiLogOut size={14} /> Logout
@@ -465,6 +472,39 @@ const Navbar = () => {
           </div>
         )}
       </header>
+
+      {/* CUSTOM LOGOUT CONFIRMATION MODAL */}
+      {showLogoutConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300 font-sans">
+          <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[28px] max-w-sm w-full p-6 sm:p-8 shadow-2xl text-center relative animate-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-red-100">
+              <FiAlertCircle size={32} />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+              Confirm Logout
+            </h3>
+            <p className="text-xs text-gray-600 font-light mb-6 leading-relaxed">
+              Are you sure you want to sign out from your Gateway Linen account?
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirmModal(false)}
+                className="w-1/2 py-3 bg-white border border-[#E5DCD0] hover:bg-gray-50 text-[#031D44] text-xs font-bold tracking-widest uppercase rounded-xl transition-all cursor-pointer shadow-2xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="w-1/2 py-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Login Required Modal */}
       {showLoginModal && (
@@ -631,7 +671,7 @@ const Navbar = () => {
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    handleLogout();
+                    setShowLogoutConfirmModal(true);
                   }}
                   className="w-full py-3 bg-red-50 text-red-600 border border-red-200 text-xs font-bold tracking-wider uppercase rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-red-100 transition-all"
                 >
@@ -721,7 +761,5 @@ const Navbar = () => {
     </>
   );
 };
-
-Navbar.displayName = "Navbar";
 
 export default Navbar;

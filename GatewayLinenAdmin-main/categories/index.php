@@ -160,13 +160,6 @@ function categoryImageUrl($value): string
     |----------------------------------------------------------------------
     | Application root
     |----------------------------------------------------------------------
-    |
-    | Current:
-    | /GatewayLinenadmin/categories/index.php
-    |
-    | Image:
-    | /GatewayLinenadmin/uploads/categories/file.jpg
-    |
     */
 
     $script = str_replace(
@@ -202,7 +195,7 @@ function categoryImageUrl($value): string
 
 /*
 |--------------------------------------------------------------------------
-| FETCH CATEGORIES
+| FETCH CATEGORIES (Parent-Child Hierarchy Support)
 |--------------------------------------------------------------------------
 */
 
@@ -216,15 +209,13 @@ $sql = "
         c.DisplayOrder,
         c.IsActive,
         c.CreatedAt,
-
+        ISNULL(c.ParentCategoryId, 0) AS ParentCategoryId,
         (
             SELECT COUNT(*)
             FROM dbo.Products pr
             WHERE pr.CategoryId = c.CategoryId
         ) AS ProductCount
-
     FROM dbo.Categories c
-
     ORDER BY
         c.DisplayOrder ASC,
         c.Name ASC,
@@ -236,25 +227,34 @@ $stmt = sqlsrv_query(
     $sql
 );
 
-$categories = [];
+$allCategories = [];
 $queryError = '';
 
 if ($stmt !== false) {
-
     while (
         $row = sqlsrv_fetch_array(
             $stmt,
             SQLSRV_FETCH_ASSOC
         )
     ) {
-        $categories[] = $row;
+        $allCategories[] = $row;
     }
-
     sqlsrv_free_stmt($stmt);
 } else {
+    $queryError = 'Unable to load categories right now.';
+}
 
-    $queryError =
-        'Unable to load categories right now.';
+// Group into Main Categories & Sub-Categories
+$parentCategories = [];
+$childCategoriesMap = [];
+
+foreach ($allCategories as $cat) {
+    $parentId = (int)($cat['ParentCategoryId'] ?? 0);
+    if ($parentId > 0) {
+        $childCategoriesMap[$parentId][] = $cat;
+    } else {
+        $parentCategories[] = $cat;
+    }
 }
 
 /*
@@ -263,13 +263,12 @@ if ($stmt !== false) {
 |--------------------------------------------------------------------------
 */
 
-$totalCategories   = count($categories);
+$totalCategories   = count($allCategories);
 $activeCategories  = 0;
 $inactiveCategories = 0;
 $totalProducts     = 0;
 
-foreach ($categories as $category) {
-
+foreach ($allCategories as $category) {
     if (!empty($category['IsActive'])) {
         $activeCategories++;
     } else {
@@ -299,6 +298,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
         --bg-header: #0d1620;
         --bg-hover: #16222e;
         --bg-input: #0d1620;
+        --bg-child: #0c141d;
 
         --border: #1e2d3d;
         --border-soft: #182636;
@@ -314,6 +314,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
         --red-soft: rgba(239, 68, 68, .12);
 
         --blue: #38bdf8;
+        --blue-soft: rgba(56, 189, 248, .15);
 
         --radius: 10px;
     }
@@ -741,6 +742,75 @@ require_once __DIR__ . '/../includes/sidebar.php';
         border-bottom: none;
     }
 
+    /* PARENT / CHILD ACCORDION STYLES */
+    .parent-row {
+        cursor: pointer;
+    }
+
+    .parent-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: var(--border-soft);
+        color: var(--text-hi);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        margin-right: 8px;
+        font-size: 10px;
+        transition: transform .2s ease, background .2s ease;
+    }
+
+    .parent-toggle-btn:hover {
+        background: var(--green-soft);
+        color: var(--green);
+        border-color: var(--green);
+    }
+
+    .parent-toggle-btn.expanded {
+        transform: rotate(90deg);
+        background: var(--green);
+        color: #fff;
+        border-color: var(--green);
+    }
+
+    .child-row {
+        display: none;
+        background: var(--bg-child) !important;
+    }
+
+    .child-row.show {
+        display: table-row;
+    }
+
+    .child-indent {
+        padding-left: 38px !important;
+    }
+
+    .sub-badge {
+        display: inline-block;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: var(--blue-soft);
+        color: var(--blue);
+        margin-left: 6px;
+        text-transform: uppercase;
+    }
+
+    .children-count-badge {
+        font-size: 10px;
+        color: var(--text-mute);
+        background: var(--bg-input);
+        padding: 2px 8px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        margin-left: 6px;
+    }
+
     /* ORDER */
 
     .order-box {
@@ -833,6 +903,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         font-size: 13px;
         font-weight: 700;
+        display: flex;
+        align-items: center;
     }
 
     .category-slug {
@@ -1416,10 +1488,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         <div class="category-page">
 
-            <!-- ============================================================
-         PAGE HEADER
-    ============================================================= -->
-
+            <!-- PAGE HEADER -->
             <div class="category-page-header">
 
                 <div>
@@ -1486,10 +1555,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             </div>
 
 
-            <!-- ============================================================
-         MESSAGES
-    ============================================================= -->
-
+            <!-- MESSAGES -->
             <?php if ($actionMessage !== ''): ?>
 
                 <div class="notice notice-success">
@@ -1517,10 +1583,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             <?php endif; ?>
 
 
-            <!-- ============================================================
-         STATISTICS
-    ============================================================= -->
-
+            <!-- STATISTICS -->
             <div class="category-stats">
 
                 <div class="category-stat-item">
@@ -1609,10 +1672,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             </div>
 
 
-            <!-- ============================================================
-         CATEGORY CONTENT
-    ============================================================= -->
-
+            <!-- CATEGORY CONTENT -->
             <div class="category-content">
 
                 <div class="category-content-header">
@@ -1673,10 +1733,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 </div>
 
 
-                <!-- ========================================================
-             EXPORT BAR
-        ========================================================= -->
-
+                <!-- EXPORT BAR -->
                 <div class="export-bar">
 
                     <span class="export-label">
@@ -1707,10 +1764,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 </div>
 
 
-                <!-- ========================================================
-             TABLE SUMMARY
-        ========================================================= -->
-
+                <!-- TABLE SUMMARY -->
                 <div class="category-table-summary">
 
                     <div class="category-result-text">
@@ -1718,10 +1772,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         Showing
 
                         <strong id="visibleCategoryCount">
-                            <?= $totalCategories ?>
+                            <?= count($parentCategories) ?>
                         </strong>
 
-                        categories
+                        main categories
 
                     </div>
 
@@ -1738,13 +1792,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 </div>
 
 
-                <!-- ========================================================
-             TABLE
-        ========================================================= -->
-
+                <!-- TABLE -->
                 <div class="category-table-wrapper">
 
-                    <?php if (empty($categories)): ?>
+                    <?php if (empty($parentCategories)): ?>
 
                         <div class="category-empty">
 
@@ -1780,33 +1831,13 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                                 <tr>
 
-                                    <th>
-                                        Order
-                                    </th>
-
-                                    <th>
-                                        Category
-                                    </th>
-
-                                    <th>
-                                        Description
-                                    </th>
-
-                                    <th>
-                                        Products
-                                    </th>
-
-                                    <th>
-                                        Status
-                                    </th>
-
-                                    <th>
-                                        Created
-                                    </th>
-
-                                    <th>
-                                        Actions
-                                    </th>
+                                    <th>Order</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Products</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
 
                                 </tr>
 
@@ -1815,292 +1846,163 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                             <tbody>
 
-                                <?php foreach ($categories as $category): ?>
+                                <?php foreach ($parentCategories as $category): ?>
 
                                     <?php
+                                    $categoryId = (int)($category['CategoryId'] ?? 0);
+                                    $categoryName = (string)($category['Name'] ?? '');
+                                    $slug = (string)($category['Slug'] ?? '');
+                                    $description = trim((string)($category['Description'] ?? ''));
+                                    $productCount = (int)($category['ProductCount'] ?? 0);
+                                    $displayOrder = (int)($category['DisplayOrder'] ?? 0);
+                                    $isActive = !empty($category['IsActive']);
+                                    $image = categoryImageUrl($category['ImageUrl'] ?? '');
+                                    $createdAt = dateValue($category['CreatedAt'] ?? '');
 
-                                    $categoryId =
-                                        (int)(
-                                            $category['CategoryId'] ??
-                                            0
-                                        );
-
-                                    $categoryName =
-                                        (string)(
-                                            $category['Name'] ??
-                                            ''
-                                        );
-
-                                    $slug =
-                                        (string)(
-                                            $category['Slug'] ??
-                                            ''
-                                        );
-
-                                    $description =
-                                        trim(
-                                            (string)(
-                                                $category['Description'] ??
-                                                ''
-                                            )
-                                        );
-
-                                    $productCount =
-                                        (int)(
-                                            $category['ProductCount'] ??
-                                            0
-                                        );
-
-                                    $displayOrder =
-                                        (int)(
-                                            $category['DisplayOrder'] ??
-                                            0
-                                        );
-
-                                    $isActive =
-                                        !empty($category['IsActive']);
-
-                                    $image =
-                                        categoryImageUrl(
-                                            $category['ImageUrl'] ??
-                                                ''
-                                        );
-
-                                    $createdAt =
-                                        dateValue(
-                                            $category['CreatedAt'] ??
-                                                ''
-                                        );
-
+                                    $hasChildren = isset($childCategoriesMap[$categoryId]) && count($childCategoriesMap[$categoryId]) > 0;
+                                    $childCount = $hasChildren ? count($childCategoriesMap[$categoryId]) : 0;
                                     ?>
 
+                                    <!-- MAIN CATEGORY ROW -->
                                     <tr
-                                        class="category-row"
-
+                                        class="category-row parent-row"
                                         data-id="<?= $categoryId ?>"
-
                                         data-order="<?= $displayOrder ?>"
-
                                         data-status="<?= $isActive ? 'active' : 'inactive' ?>"
-
                                         data-name="<?= e(strtolower($categoryName)) ?>"
-
                                         data-slug="<?= e(strtolower($slug)) ?>"
-
                                         data-description="<?= e(strtolower($description)) ?>">
 
                                         <!-- ORDER -->
-
                                         <td>
-
                                             <span class="order-box">
                                                 <?= $displayOrder ?>
                                             </span>
-
                                         </td>
 
-
                                         <!-- CATEGORY -->
-
                                         <td>
-
                                             <div class="category-main">
+                                                <?php if ($hasChildren): ?>
+                                                    <button type="button" class="parent-toggle-btn" id="toggle-btn-<?= $categoryId ?>" data-toggle-id="<?= $categoryId ?>" title="Expand / Collapse subcategories">▶</button>
+                                                <?php else: ?>
+                                                    <span style="display:inline-block; width:22px; margin-right:8px;"></span>
+                                                <?php endif; ?>
 
                                                 <div
                                                     class="category-image"
                                                     title="<?= e($categoryName) ?>">
 
                                                     <?php if ($image !== ''): ?>
-
                                                         <img
                                                             src="<?= e($image) ?>"
                                                             alt="<?= e($categoryName) ?>"
                                                             loading="lazy"
-
                                                             onerror="
-                                            this.onerror=null;
-                                            this.style.display='none';
-                                            this.parentElement.classList.add('image-missing');
-                                            this.parentElement.querySelector('.category-image-placeholder').style.display='flex';
-                                        ">
+                                                                this.onerror=null;
+                                                                this.style.display='none';
+                                                                this.parentElement.classList.add('image-missing');
+                                                                this.parentElement.querySelector('.category-image-placeholder').style.display='flex';
+                                                            ">
 
                                                         <span
                                                             class="category-image-placeholder"
                                                             style="display:none">
                                                             ◈
                                                         </span>
-
                                                     <?php else: ?>
-
                                                         <span class="category-image-placeholder">
                                                             ◈
                                                         </span>
-
                                                     <?php endif; ?>
 
                                                 </div>
 
-
                                                 <div>
-
                                                     <div class="category-name">
                                                         <?= e($categoryName) ?>
+                                                        <?php if ($hasChildren): ?>
+                                                            <span class="children-count-badge"><?= $childCount ?> sub</span>
+                                                        <?php endif; ?>
                                                     </div>
 
                                                     <?php if ($slug !== ''): ?>
-
                                                         <div class="category-slug">
-                                                            /
-                                                            <?= e($slug) ?>
+                                                            /<?= e($slug) ?>
                                                         </div>
-
                                                     <?php endif; ?>
-
                                                 </div>
 
                                             </div>
-
                                         </td>
-
 
                                         <!-- DESCRIPTION -->
-
                                         <td>
-
                                             <div class="category-description">
-
-                                                <?=
-                                                $description !== ''
-                                                    ? e($description)
-                                                    : '—'
-                                                ?>
-
+                                                <?= $description !== '' ? e($description) : '—' ?>
                                             </div>
-
                                         </td>
-
 
                                         <!-- PRODUCTS -->
-
                                         <td>
-
                                             <span class="product-count">
-
-                                                ▣
-
-                                                <?= $productCount ?>
-
+                                                ▣ <?= $productCount ?>
                                             </span>
-
                                         </td>
-
 
                                         <!-- STATUS -->
-
                                         <td>
-
                                             <?php if ($isActive): ?>
-
-                                                <span
-                                                    class="
-                                    category-status
-                                    category-status-active
-                                ">
-
-                                                    <span
-                                                        class="category-status-dot"></span>
-
+                                                <span class="category-status category-status-active">
+                                                    <span class="category-status-dot"></span>
                                                     Active
-
                                                 </span>
-
                                             <?php else: ?>
-
-                                                <span
-                                                    class="
-                                    category-status
-                                    category-status-inactive
-                                ">
-
-                                                    <span
-                                                        class="category-status-dot"></span>
-
+                                                <span class="category-status category-status-inactive">
+                                                    <span class="category-status-dot"></span>
                                                     Inactive
-
                                                 </span>
-
                                             <?php endif; ?>
-
                                         </td>
 
-
                                         <!-- CREATED -->
-
                                         <td>
-
                                             <div class="category-date">
                                                 <?= e($createdAt) ?>
                                             </div>
-
                                         </td>
 
-
                                         <!-- ACTIONS -->
-
                                         <td>
-
                                             <div class="category-actions">
 
                                                 <!-- VIEW -->
-
                                                 <button
                                                     type="button"
-
-                                                    class="
-                                        category-action
-                                        detail-btn
-                                    "
-
+                                                    class="category-action detail-btn"
                                                     title="View full details"
-
                                                     data-id="<?= $categoryId ?>"
-
                                                     data-name="<?= e($categoryName) ?>"
-
                                                     data-slug="<?= e($slug) ?>"
-
                                                     data-description="<?= e($description) ?>"
-
                                                     data-products="<?= $productCount ?>"
-
                                                     data-status="<?= $isActive ? 'Active' : 'Inactive' ?>"
-
                                                     data-created="<?= e($createdAt) ?>"
-
                                                     data-order="<?= $displayOrder ?>"
-
                                                     data-image="<?= e($image) ?>">
                                                     ◉
                                                 </button>
 
-
                                                 <!-- EDIT -->
-
                                                 <a
                                                     href="edit.php?id=<?= $categoryId ?>"
-                                                    class="
-                                        category-action
-                                        edit-btn
-                                    "
+                                                    class="category-action edit-btn"
                                                     title="Edit Category">
                                                     ✎
                                                 </a>
 
-
                                                 <!-- DELETE -->
-
-                                                <?php if ($productCount === 0): ?>
-
+                                                <?php if ($productCount === 0 && !$hasChildren): ?>
                                                     <form
                                                         method="POST"
                                                         action="delete.php"
@@ -2119,40 +2021,209 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                                                         <button
                                                             type="submit"
-                                                            class="
-                                                category-action
-                                                category-action-delete
-                                                delete-category-btn
-                                            "
+                                                            class="category-action category-action-delete delete-category-btn"
                                                             title="Delete Category">
                                                             ×
                                                         </button>
 
                                                     </form>
-
                                                 <?php else: ?>
-
                                                     <button
                                                         type="button"
-
-                                                        class="
-                                            category-action
-                                            category-action-delete
-                                        "
-
-                                                        title="Cannot delete: category has products"
-
-                                                        data-cannot-delete="<?= $productCount ?>">
+                                                        class="category-action category-action-delete"
+                                                        title="Cannot delete: category has products or subcategories"
+                                                        data-cannot-delete="<?= $productCount ?: 'sub-categories' ?>">
                                                         ×
                                                     </button>
-
                                                 <?php endif; ?>
 
                                             </div>
-
                                         </td>
 
                                     </tr>
+
+                                    <!-- CHILD SUB-CATEGORY ROWS (CLICK PAR HI KHULENGI) -->
+                                    <?php if ($hasChildren): ?>
+                                        <?php foreach ($childCategoriesMap[$categoryId] as $child): ?>
+                                            <?php
+                                            $childId = (int)($child['CategoryId'] ?? 0);
+                                            $childName = (string)($child['Name'] ?? '');
+                                            $childSlug = (string)($child['Slug'] ?? '');
+                                            $childDescription = trim((string)($child['Description'] ?? ''));
+                                            $childProdCount = (int)($child['ProductCount'] ?? 0);
+                                            $childDisplayOrder = (int)($child['DisplayOrder'] ?? 0);
+                                            $childIsActive = !empty($child['IsActive']);
+                                            $childImage = categoryImageUrl($child['ImageUrl'] ?? '');
+                                            $childCreatedAt = dateValue($child['CreatedAt'] ?? '');
+                                            ?>
+
+                                            <tr
+                                                class="category-row child-row child-of-<?= $categoryId ?>"
+                                                data-parent="<?= $categoryId ?>"
+                                                data-id="<?= $childId ?>"
+                                                data-order="<?= $childDisplayOrder ?>"
+                                                data-status="<?= $childIsActive ? 'active' : 'inactive' ?>"
+                                                data-name="<?= e(strtolower($childName)) ?>"
+                                                data-slug="<?= e(strtolower($childSlug)) ?>"
+                                                data-description="<?= e(strtolower($childDescription)) ?>">
+
+                                                <td>
+                                                    <span class="order-box" style="opacity:0.85;">
+                                                        <?= $childDisplayOrder ?>
+                                                    </span>
+                                                </td>
+
+                                                <td class="child-indent">
+                                                    <div class="category-main">
+                                                        <span style="color:var(--text-mute); font-family:monospace; margin-right:4px;">└─</span>
+                                                        <div
+                                                            class="category-image"
+                                                            style="width:46px; height:46px; flex:0 0 46px;"
+                                                            title="<?= e($childName) ?>">
+
+                                                            <?php if ($childImage !== ''): ?>
+                                                                <img
+                                                                    src="<?= e($childImage) ?>"
+                                                                    alt="<?= e($childName) ?>"
+                                                                    loading="lazy"
+                                                                    onerror="
+                                                                        this.onerror=null;
+                                                                        this.style.display='none';
+                                                                        this.parentElement.classList.add('image-missing');
+                                                                        this.parentElement.querySelector('.category-image-placeholder').style.display='flex';
+                                                                    ">
+
+                                                                <span
+                                                                    class="category-image-placeholder"
+                                                                    style="display:none">
+                                                                    ◈
+                                                                </span>
+                                                            <?php else: ?>
+                                                                <span class="category-image-placeholder">
+                                                                    ◈
+                                                                </span>
+                                                            <?php endif; ?>
+
+                                                        </div>
+
+                                                        <div>
+                                                            <div class="category-name">
+                                                                <?= e($childName) ?>
+                                                                <span class="sub-badge">Sub</span>
+                                                            </div>
+
+                                                            <?php if ($childSlug !== ''): ?>
+                                                                <div class="category-slug">
+                                                                    /<?= e($childSlug) ?>
+                                                                </div>
+                                                            <?php endif; ?>
+                                                        </div>
+
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    <div class="category-description">
+                                                        <?= $childDescription !== '' ? e($childDescription) : '—' ?>
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    <span class="product-count">
+                                                        ▣ <?= $childProdCount ?>
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    <?php if ($childIsActive): ?>
+                                                        <span class="category-status category-status-active">
+                                                            <span class="category-status-dot"></span>
+                                                            Active
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="category-status category-status-inactive">
+                                                            <span class="category-status-dot"></span>
+                                                            Inactive
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </td>
+
+                                                <td>
+                                                    <div class="category-date">
+                                                        <?= e($childCreatedAt) ?>
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    <div class="category-actions">
+
+                                                        <!-- VIEW -->
+                                                        <button
+                                                            type="button"
+                                                            class="category-action detail-btn"
+                                                            title="View full details"
+                                                            data-id="<?= $childId ?>"
+                                                            data-name="<?= e($childName) ?>"
+                                                            data-slug="<?= e($childSlug) ?>"
+                                                            data-description="<?= e($childDescription) ?>"
+                                                            data-products="<?= $childProdCount ?>"
+                                                            data-status="<?= $childIsActive ? 'Active' : 'Inactive' ?>"
+                                                            data-created="<?= e($childCreatedAt) ?>"
+                                                            data-order="<?= $childDisplayOrder ?>"
+                                                            data-image="<?= e($childImage) ?>">
+                                                            ◉
+                                                        </button>
+
+                                                        <!-- EDIT -->
+                                                        <a
+                                                            href="edit.php?id=<?= $childId ?>"
+                                                            class="category-action edit-btn"
+                                                            title="Edit Subcategory">
+                                                            ✎
+                                                        </a>
+
+                                                        <!-- DELETE -->
+                                                        <?php if ($childProdCount === 0): ?>
+                                                            <form
+                                                                method="POST"
+                                                                action="delete.php"
+                                                                class="delete-form"
+                                                                style="display:inline">
+
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="category_id"
+                                                                    value="<?= $childId ?>">
+
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="csrf_token"
+                                                                    value="<?= e($csrfToken) ?>">
+
+                                                                <button
+                                                                    type="submit"
+                                                                    class="category-action category-action-delete delete-category-btn"
+                                                                    title="Delete Subcategory">
+                                                                    ×
+                                                                </button>
+
+                                                            </form>
+                                                        <?php else: ?>
+                                                            <button
+                                                                type="button"
+                                                                class="category-action category-action-delete"
+                                                                title="Cannot delete: subcategory has products"
+                                                                data-cannot-delete="<?= $childProdCount ?>">
+                                                                ×
+                                                            </button>
+                                                        <?php endif; ?>
+
+                                                    </div>
+                                                </td>
+
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
 
                                 <?php endforeach; ?>
 
@@ -2160,9 +2231,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                         </table>
 
-
                         <!-- NO SEARCH RESULT -->
-
                         <div
                             id="categoryNoResult"
                             class="category-no-result"
@@ -2189,10 +2258,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             </div>
 
 
-            <!-- ============================================================
-         SHORTCUTS
-    ============================================================= -->
-
+            <!-- SHORTCUTS -->
             <div
                 class="shortcut-help-box"
                 id="shortcutHelpBox">
@@ -2295,10 +2361,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 </main>
 
 
-<!-- ================================================================
-     DETAILS MODAL
-================================================================ -->
-
+<!-- DETAILS MODAL -->
 <div
     class="modal-backdrop"
     id="categoryModal"
@@ -2476,14 +2539,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
 </div>
 
 
-<!-- ================================================================
-     PDF / EXCEL LIBRARIES
-================================================================ -->
-
+<!-- PDF / EXCEL LIBRARIES -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
@@ -2491,7 +2549,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
     (function() {
 
         'use strict';
-
 
         document.addEventListener(
             'DOMContentLoaded',
@@ -2540,28 +2597,53 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 */
 
                 function rows() {
-
                     return table ?
                         Array.from(
                             table.querySelectorAll(
                                 'tbody .category-row'
                             )
                         ) : [];
-
                 }
-
 
                 function visibleRows() {
-
                     return rows().filter(
                         function(row) {
-
                             return row.style.display !== 'none';
-
                         }
                     );
-
                 }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | SUB-CATEGORY ACCORDION TOGGLE
+                |--------------------------------------------------------------------------
+                */
+
+                window.toggleCategoryAccordion = function(parentId) {
+                    const childRows = document.querySelectorAll('.child-of-' + parentId);
+                    const toggleBtn = document.getElementById('toggle-btn-' + parentId);
+
+                    if (!childRows.length) return;
+
+                    const isExpanded = childRows[0].classList.contains('show');
+
+                    childRows.forEach(function(row) {
+                        if (isExpanded) {
+                            row.classList.remove('show');
+                        } else {
+                            row.classList.add('show');
+                        }
+                    });
+
+                    if (toggleBtn) {
+                        if (isExpanded) {
+                            toggleBtn.classList.remove('expanded');
+                        } else {
+                            toggleBtn.classList.add('expanded');
+                        }
+                    }
+                };
 
 
                 /*
@@ -2570,131 +2652,112 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 |--------------------------------------------------------------------------
                 */
 
-                function selectFirstVisible(
-                    scroll
-                ) {
-
+                function selectFirstVisible(scroll) {
                     const all = rows();
 
                     all.forEach(
                         function(row) {
-
                             row.classList.remove(
                                 'keyboard-selected'
                             );
-
                         }
                     );
 
-                    const first =
-                        visibleRows()[0];
+                    const first = visibleRows()[0];
 
                     if (first) {
-
                         first.classList.add(
                             'keyboard-selected'
                         );
 
                         if (scroll) {
-
                             first.scrollIntoView({
                                 block: 'nearest'
                             });
-
                         }
-
                     }
-
                 }
 
 
                 /*
                 |--------------------------------------------------------------------------
-                | FILTER
+                | FILTER (Main + Child Hierarchy Aware)
                 |--------------------------------------------------------------------------
                 */
 
                 function filterCategories() {
-
                     if (!table) {
                         return;
                     }
 
-                    const q =
-                        (
-                            searchInput?.value ||
-                            ''
-                        )
-                        .toLowerCase()
-                        .trim();
+                    const q = (searchInput?.value || '').toLowerCase().trim();
+                    const status = statusFilter?.value || 'all';
 
-                    const status =
-                        statusFilter?.value ||
-                        'all';
+                    let visibleCount = 0;
 
-                    let visible = 0;
+                    document.querySelectorAll('.parent-row').forEach(function(parentRow) {
+                        const pId = parentRow.dataset.id;
+                        const childRows = document.querySelectorAll('.child-of-' + pId);
 
+                        const pText = [
+                            parentRow.dataset.name,
+                            parentRow.dataset.slug,
+                            parentRow.dataset.description,
+                            parentRow.innerText
+                        ].join(' ').toLowerCase();
 
-                    rows().forEach(
-                        function(row) {
+                        const pStatusMatch = (status === 'all' || parentRow.dataset.status === status);
+                        const pQueryMatch = (!q || pText.includes(q));
 
-                            const text = [
+                        let anyChildMatched = false;
 
-                                    row.dataset.name,
+                        childRows.forEach(function(cRow) {
+                            const cText = [
+                                cRow.dataset.name,
+                                cRow.dataset.slug,
+                                cRow.dataset.description,
+                                cRow.innerText
+                            ].join(' ').toLowerCase();
 
-                                    row.dataset.slug,
+                            const cStatusMatch = (status === 'all' || cRow.dataset.status === status);
+                            const cQueryMatch = (!q || cText.includes(q));
 
-                                    row.dataset.description,
-
-                                    row.innerText
-
-                                ]
-                                .join(' ')
-                                .toLowerCase();
-
-
-                            const show =
-                                (!q || text.includes(q)) &&
-                                (
-                                    status === 'all' ||
-                                    row.dataset.status === status
-                                );
-
-
-                            row.style.display =
-                                show ?
-                                '' :
-                                'none';
-
-
-                            if (show) {
-                                visible++;
+                            if (q !== '' && cQueryMatch && cStatusMatch) {
+                                anyChildMatched = true;
+                                cRow.style.display = '';
+                                cRow.classList.add('show');
+                            } else if (q === '') {
+                                cRow.style.display = '';
+                                cRow.classList.remove('show');
+                            } else {
+                                cRow.style.display = 'none';
                             }
+                        });
 
+                        const toggleBtn = document.getElementById('toggle-btn-' + pId);
+
+                        if (pQueryMatch && pStatusMatch) {
+                            parentRow.style.display = '';
+                            visibleCount++;
+                        } else if (anyChildMatched) {
+                            parentRow.style.display = '';
+                            visibleCount++;
+                            if (toggleBtn) toggleBtn.classList.add('expanded');
+                        } else {
+                            parentRow.style.display = 'none';
+                            if (toggleBtn && q !== '') toggleBtn.classList.remove('expanded');
                         }
-                    );
-
+                    });
 
                     if (countElement) {
-
-                        countElement.textContent =
-                            visible;
-
+                        countElement.textContent = visibleCount;
                     }
-
 
                     if (noResult) {
-
-                        noResult.style.display =
-                            visible === 0 ?
-                            'block' :
-                            'none';
-
+                        noResult.style.display = visibleCount === 0 ? 'block' : 'none';
                     }
 
-
                     selectFirstVisible(false);
-
                 }
 
 
@@ -2705,9 +2768,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 */
 
                 function printCategories() {
-
                     window.print();
-
                 }
 
 
@@ -2718,108 +2779,43 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 */
 
                 function excelCategories() {
-
                     const data =
                         visibleRows().map(
                             function(row) {
-
                                 return {
-
-                                    'Order': row.querySelector(
-                                            '.order-box'
-                                        )?.innerText.trim() ||
-                                        '',
-
-                                    'Category': row.querySelector(
-                                            '.category-name'
-                                        )?.innerText.trim() ||
-                                        '',
-
-                                    'Slug': row.dataset.slug ||
-                                        '',
-
-                                    'Description': row.dataset.description ||
-                                        '',
-
-                                    'Products': row.querySelector(
-                                            '.product-count'
-                                        )?.innerText
-                                        .replace(
-                                            /[^\d]/g,
-                                            ''
-                                        ) ||
-                                        '0',
-
-                                    'Status': row.dataset.status === 'active' ?
-                                        'Active' : 'Inactive',
-
-                                    'Created': row.querySelector(
-                                            '.category-date'
-                                        )?.innerText.trim() ||
-                                        ''
-
+                                    'Order': row.querySelector('.order-box')?.innerText.trim() || '',
+                                    'Category': row.querySelector('.category-name')?.innerText.trim() || '',
+                                    'Slug': row.dataset.slug || '',
+                                    'Description': row.dataset.description || '',
+                                    'Products': row.querySelector('.product-count')?.innerText.replace(/[^\d]/g, '') || '0',
+                                    'Status': row.dataset.status === 'active' ? 'Active' : 'Inactive',
+                                    'Created': row.querySelector('.category-date')?.innerText.trim() || ''
                                 };
-
                             }
                         );
-
 
                     if (window.XLSX) {
-
-                        const ws =
-                            XLSX.utils.json_to_sheet(
-                                data
-                            );
-
+                        const ws = XLSX.utils.json_to_sheet(data);
                         ws['!cols'] = [
-
-                            {
-                                wch: 10
-                            },
-                            {
-                                wch: 28
-                            },
-                            {
-                                wch: 30
-                            },
-                            {
-                                wch: 50
-                            },
-                            {
-                                wch: 12
-                            },
-                            {
-                                wch: 14
-                            },
-                            {
-                                wch: 24
-                            }
-
+                            { wch: 10 },
+                            { wch: 28 },
+                            { wch: 30 },
+                            { wch: 50 },
+                            { wch: 12 },
+                            { wch: 14 },
+                            { wch: 24 }
                         ];
 
-
-                        const wb =
-                            XLSX.utils.book_new();
-
-
-                        XLSX.utils.book_append_sheet(
-                            wb,
-                            ws,
-                            'Categories'
-                        );
-
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, 'Categories');
 
                         XLSX.writeFile(
                             wb,
                             'categories-' +
-                            new Date()
-                            .toISOString()
-                            .slice(0, 10) +
+                            new Date().toISOString().slice(0, 10) +
                             '.xlsx'
                         );
-
                     }
-
                 }
 
 
@@ -2830,98 +2826,41 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 */
 
                 function pdfCategories() {
-
-                    if (
-                        !window.jspdf ||
-                        !window.jspdf.jsPDF
-                    ) {
-
-                        alert(
-                            'PDF library is not loaded. Use Print and choose Save as PDF.'
-                        );
-
+                    if (!window.jspdf || !window.jspdf.jsPDF) {
+                        alert('PDF library is not loaded. Use Print and choose Save as PDF.');
                         return;
                     }
-
 
                     const body =
                         visibleRows().map(
                             function(row) {
-
                                 return [
-
-                                    row.querySelector(
-                                        '.order-box'
-                                    )?.innerText.trim() ||
-                                    '',
-
-                                    row.querySelector(
-                                        '.category-name'
-                                    )?.innerText.trim() ||
-                                    '',
-
-                                    row.dataset.slug ||
-                                    '',
-
-                                    row.dataset.description ||
-                                    '—',
-
-                                    row.querySelector(
-                                        '.product-count'
-                                    )?.innerText.trim() ||
-                                    '0',
-
-                                    row.dataset.status === 'active' ?
-                                    'Active' :
-                                    'Inactive',
-
-                                    row.querySelector(
-                                        '.category-date'
-                                    )?.innerText.trim() ||
-                                    ''
-
+                                    row.querySelector('.order-box')?.innerText.trim() || '',
+                                    row.querySelector('.category-name')?.innerText.trim() || '',
+                                    row.dataset.slug || '',
+                                    row.dataset.description || '—',
+                                    row.querySelector('.product-count')?.innerText.trim() || '0',
+                                    row.dataset.status === 'active' ? 'Active' : 'Inactive',
+                                    row.querySelector('.category-date')?.innerText.trim() || ''
                                 ];
-
                             }
                         );
 
-
-                    const doc =
-                        new jspdf.jsPDF({
-                            orientation: 'landscape',
-                            unit: 'mm',
-                            format: 'a4'
-                        });
-
+                    const doc = new jspdf.jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
 
                     doc.setFontSize(16);
-
-                    doc.text(
-                        'GatewayLinen - Categories',
-                        14,
-                        14
-                    );
-
+                    doc.text('GatewayLinen - Categories', 14, 14);
 
                     doc.setFontSize(9);
+                    doc.text('Generated: ' + new Date().toLocaleString(), 14, 20);
 
-                    doc.text(
-                        'Generated: ' +
-                        new Date().toLocaleString(),
-                        14,
-                        20
-                    );
-
-
-                    if (
-                        typeof doc.autoTable ===
-                        'function'
-                    ) {
-
+                    if (typeof doc.autoTable === 'function') {
                         doc.autoTable({
-
                             startY: 26,
-
                             head: [
                                 [
                                     'Order',
@@ -2933,31 +2872,22 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     'Created'
                                 ]
                             ],
-
                             body: body,
-
                             styles: {
                                 fontSize: 7,
                                 cellPadding: 2
                             },
-
                             headStyles: {
                                 fontSize: 7
                             }
-
                         });
-
                     }
-
 
                     doc.save(
                         'categories-' +
-                        new Date()
-                        .toISOString()
-                        .slice(0, 10) +
+                        new Date().toISOString().slice(0, 10) +
                         '.pdf'
                     );
-
                 }
 
 
@@ -2967,66 +2897,15 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 |--------------------------------------------------------------------------
                 */
 
-                document
-                    .getElementById('printBtn')
-                    ?.addEventListener(
-                        'click',
-                        printCategories
-                    );
+                document.getElementById('printBtn')?.addEventListener('click', printCategories);
+                document.getElementById('printBtn2')?.addEventListener('click', printCategories);
+                document.getElementById('pdfBtn')?.addEventListener('click', pdfCategories);
+                document.getElementById('pdfBtn2')?.addEventListener('click', pdfCategories);
+                document.getElementById('excelBtn')?.addEventListener('click', excelCategories);
+                document.getElementById('excelBtn2')?.addEventListener('click', excelCategories);
 
-
-                document
-                    .getElementById('printBtn2')
-                    ?.addEventListener(
-                        'click',
-                        printCategories
-                    );
-
-
-                document
-                    .getElementById('pdfBtn')
-                    ?.addEventListener(
-                        'click',
-                        pdfCategories
-                    );
-
-
-                document
-                    .getElementById('pdfBtn2')
-                    ?.addEventListener(
-                        'click',
-                        pdfCategories
-                    );
-
-
-                document
-                    .getElementById('excelBtn')
-                    ?.addEventListener(
-                        'click',
-                        excelCategories
-                    );
-
-
-                document
-                    .getElementById('excelBtn2')
-                    ?.addEventListener(
-                        'click',
-                        excelCategories
-                    );
-
-
-                searchInput
-                    ?.addEventListener(
-                        'input',
-                        filterCategories
-                    );
-
-
-                statusFilter
-                    ?.addEventListener(
-                        'change',
-                        filterCategories
-                    );
+                searchInput?.addEventListener('input', filterCategories);
+                statusFilter?.addEventListener('change', filterCategories);
 
 
                 /*
@@ -3036,128 +2915,39 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 */
 
                 function openDetails(btn) {
+                    document.getElementById('detailName').textContent = btn.dataset.name || '—';
+                    document.getElementById('detailSlug').textContent = btn.dataset.slug ? '/' + btn.dataset.slug : '—';
+                    document.getElementById('detailStatus').textContent = btn.dataset.status || '—';
+                    document.getElementById('detailOrder').textContent = btn.dataset.order || '—';
+                    document.getElementById('detailProducts').textContent = btn.dataset.products || '0';
+                    document.getElementById('detailCreated').textContent = btn.dataset.created || '—';
+                    document.getElementById('detailDescription').textContent = btn.dataset.description || 'No description available.';
 
-                    document.getElementById(
-                            'detailName'
-                        ).textContent =
-                        btn.dataset.name ||
-                        '—';
-
-
-                    document.getElementById(
-                            'detailSlug'
-                        ).textContent =
-                        btn.dataset.slug ?
-                        '/' + btn.dataset.slug :
-                        '—';
-
-
-                    document.getElementById(
-                            'detailStatus'
-                        ).textContent =
-                        btn.dataset.status ||
-                        '—';
-
-
-                    document.getElementById(
-                            'detailOrder'
-                        ).textContent =
-                        btn.dataset.order ||
-                        '—';
-
-
-                    document.getElementById(
-                            'detailProducts'
-                        ).textContent =
-                        btn.dataset.products ||
-                        '0';
-
-
-                    document.getElementById(
-                            'detailCreated'
-                        ).textContent =
-                        btn.dataset.created ||
-                        '—';
-
-
-                    document.getElementById(
-                            'detailDescription'
-                        ).textContent =
-                        btn.dataset.description ||
-                        'No description available.';
-
-
-                    const box =
-                        document.getElementById(
-                            'detailImageBox'
-                        );
-
-
+                    const box = document.getElementById('detailImageBox');
                     box.innerHTML = '';
 
-
                     if (btn.dataset.image) {
-
-                        const img =
-                            document.createElement(
-                                'img'
-                            );
-
-                        img.src =
-                            btn.dataset.image;
-
-                        img.alt =
-                            btn.dataset.name ||
-                            'Category';
-
-
-                        img.onerror =
-                            function() {
-
-                                box.textContent =
-                                    '◈';
-
-                            };
-
-
+                        const img = document.createElement('img');
+                        img.src = btn.dataset.image;
+                        img.alt = btn.dataset.name || 'Category';
+                        img.onerror = function() {
+                            box.textContent = '◈';
+                        };
                         box.appendChild(img);
-
                     } else {
-
-                        box.textContent =
-                            '◈';
-
+                        box.textContent = '◈';
                     }
 
-
                     modal.classList.add('show');
-
-                    modal.setAttribute(
-                        'aria-hidden',
-                        'false'
-                    );
-
+                    modal.setAttribute('aria-hidden', 'false');
                 }
 
-
-                document
-                    .querySelectorAll('.detail-btn')
-                    .forEach(
-                        function(btn) {
-
-                            btn.addEventListener(
-                                'click',
-                                function() {
-
-                                    openDetails(
-                                        this
-                                    );
-
-                                }
-                            );
-
-                        }
-                    );
+                document.querySelectorAll('.detail-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        openDetails(this);
+                    });
+                });
 
 
                 /*
@@ -3167,51 +2957,19 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 */
 
                 function closeModal() {
-
-                    if (!modal) {
-                        return;
-                    }
-
-                    modal.classList.remove(
-                        'show'
-                    );
-
-                    modal.setAttribute(
-                        'aria-hidden',
-                        'true'
-                    );
-
+                    if (!modal) return;
+                    modal.classList.remove('show');
+                    modal.setAttribute('aria-hidden', 'true');
                 }
 
+                document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
+                document.getElementById('modalCloseBtn2')?.addEventListener('click', closeModal);
 
-                document
-                    .getElementById('modalCloseBtn')
-                    ?.addEventListener(
-                        'click',
-                        closeModal
-                    );
-
-
-                document
-                    .getElementById('modalCloseBtn2')
-                    ?.addEventListener(
-                        'click',
-                        closeModal
-                    );
-
-
-                modal?.addEventListener(
-                    'click',
-                    function(e) {
-
-                        if (e.target === modal) {
-
-                            closeModal();
-
-                        }
-
+                modal?.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeModal();
                     }
-                );
+                });
 
 
                 /*
@@ -3220,63 +2978,25 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 |--------------------------------------------------------------------------
                 */
 
-                document
-                    .querySelectorAll(
-                        '.delete-category-btn'
-                    )
-                    .forEach(
-                        function(btn) {
+                document.querySelectorAll('.delete-category-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        const form = btn.closest('.delete-form');
+                        if (!form) return;
 
-                            btn.addEventListener(
-                                'click',
-                                function(e) {
+                        const categoryName = btn.closest('.category-row')?.querySelector('.category-name')?.innerText.trim() || 'this category';
 
-                                    const form =
-                                        btn.closest(
-                                            '.delete-form'
-                                        );
+                        const confirmed = confirm(
+                            'Delete "' + categoryName + '"?\n\n' +
+                            'This action cannot be undone.\n\n' +
+                            'Remaining category numbers will automatically become 1, 2, 3...'
+                        );
 
-                                    if (!form) {
-                                        return;
-                                    }
-
-
-                                    const categoryName =
-                                        btn
-                                        .closest(
-                                            '.category-row'
-                                        )
-                                        ?.querySelector(
-                                            '.category-name'
-                                        )
-                                        ?.innerText
-                                        .trim() ||
-                                        'this category';
-
-
-                                    const confirmed =
-                                        confirm(
-                                            'Delete "' +
-                                            categoryName +
-                                            '"?\n\n' +
-                                            'This action cannot be undone.\n\n' +
-                                            'Remaining category numbers will automatically become 1, 2, 3...'
-                                        );
-
-
-                                    if (!confirmed) {
-
-                                        e.preventDefault();
-
-                                        return;
-
-                                    }
-
-                                }
-                            );
-
+                        if (!confirmed) {
+                            e.preventDefault();
+                            return;
                         }
-                    );
+                    });
+                });
 
 
                 /*
@@ -3285,29 +3005,17 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 |--------------------------------------------------------------------------
                 */
 
-                document
-                    .querySelectorAll(
-                        '[data-cannot-delete]'
-                    )
-                    .forEach(
-                        function(btn) {
-
-                            btn.addEventListener(
-                                'click',
-                                function() {
-
-                                    alert(
-                                        'This category has ' +
-                                        btn.dataset.cannotDelete +
-                                        ' product(s).\n\n' +
-                                        'Move or remove those products first.'
-                                    );
-
-                                }
-                            );
-
-                        }
-                    );
+                document.querySelectorAll('[data-cannot-delete]').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        alert(
+                            'This category has ' +
+                            btn.dataset.cannotDelete +
+                            ' attached.\n\n' +
+                            'Move or remove items first.'
+                        );
+                    });
+                });
 
 
                 /*
@@ -3319,289 +3027,104 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 document.addEventListener(
                     'keydown',
                     function(e) {
+                        const tag = (e.target?.tagName || '').toLowerCase();
+                        const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
 
-                        const tag =
-                            (
-                                e.target?.tagName ||
-                                ''
-                            ).toLowerCase();
+                        if (typing) return;
 
+                        const key = (e.key || '').toUpperCase();
 
-                        const typing =
-                            tag === 'input' ||
-                            tag === 'textarea' ||
-                            tag === 'select' ||
-                            e.target?.isContentEditable;
-
-
-                        if (typing) {
-                            return;
-                        }
-
-
-                        const key =
-                            (
-                                e.key ||
-                                ''
-                            ).toUpperCase();
-
-
-                        if (
-                            [
-                                'A',
-                                'B',
-                                'C',
-                                'D',
-                                'E',
-                                'P',
-                                'V',
-                                'X',
-                                'H'
-                            ].includes(key)
-                        ) {
-
+                        if (['A', 'B', 'C', 'D', 'E', 'P', 'V', 'X', 'H'].includes(key)) {
                             e.preventDefault();
-
                             e.stopPropagation();
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | A = ADD
-                        |--------------------------------------------------------------
-                        */
-
+                        // A = ADD
                         if (key === 'A') {
-
-                            document
-                                .getElementById(
-                                    'addCategoryBtn'
-                                )
-                                ?.click();
-
+                            document.getElementById('addCategoryBtn')?.click();
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | B = SEARCH
-                        |--------------------------------------------------------------
-                        */
-
+                        // B = SEARCH
                         if (key === 'B') {
-
                             searchInput?.focus();
-
                             searchInput?.select();
-
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | C = STATUS
-                        |--------------------------------------------------------------
-                        */
-
+                        // C = STATUS
                         if (key === 'C') {
-
                             statusFilter?.focus();
-
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | D = EDIT
-                        |--------------------------------------------------------------
-                        */
-
+                        // D = EDIT
                         if (key === 'D') {
-
-                            const selected =
-                                document.querySelector(
-                                    '.category-row.keyboard-selected'
-                                ) ||
-                                visibleRows()[0];
-
-
-                            const edit =
-                                selected?.querySelector(
-                                    '.edit-btn'
-                                );
-
+                            const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
+                            const edit = selected?.querySelector('.edit-btn');
 
                             if (edit) {
-
                                 edit.click();
-
                             } else {
-
-                                alert(
-                                    'No category available to edit.'
-                                );
-
+                                alert('No category available to edit.');
                             }
-
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | E = DELETE
-                        |--------------------------------------------------------------
-                        */
-
+                        // E = DELETE
                         if (key === 'E') {
-
-                            const selected =
-                                document.querySelector(
-                                    '.category-row.keyboard-selected'
-                                ) ||
-                                visibleRows()[0];
-
-
-                            const del =
-                                selected?.querySelector(
-                                    '.delete-category-btn'
-                                );
-
+                            const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
+                            const del = selected?.querySelector('.delete-category-btn');
 
                             if (del) {
-
                                 del.click();
-
                             } else if (selected) {
-
-                                alert(
-                                    'This category cannot be deleted because it contains products.'
-                                );
-
+                                alert('This category cannot be deleted because it contains products or sub-categories.');
                             } else {
-
-                                alert(
-                                    'No category available to delete.'
-                                );
-
+                                alert('No category available to delete.');
                             }
-
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | P = PRINT
-                        |--------------------------------------------------------------
-                        */
-
+                        // P = PRINT
                         if (key === 'P') {
-
                             printCategories();
-
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | V = PDF
-                        |--------------------------------------------------------------
-                        */
-
+                        // V = PDF
                         if (key === 'V') {
-
                             pdfCategories();
-
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | X = EXCEL
-                        |--------------------------------------------------------------
-                        */
-
+                        // X = EXCEL
                         if (key === 'X') {
-
                             excelCategories();
-
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | H = HELP
-                        |--------------------------------------------------------------
-                        */
-
+                        // H = HELP
                         if (key === 'H') {
-
-                            shortcutBox
-                                ?.classList.toggle(
-                                    'hidden'
-                                );
-
+                            shortcutBox?.classList.toggle('hidden');
                             return;
-
                         }
 
-
-                        /*
-                        |--------------------------------------------------------------
-                        | ESC
-                        |--------------------------------------------------------------
-                        */
-
+                        // ESC
                         if (key === 'ESCAPE') {
-
-                            if (
-                                modal?.classList.contains(
-                                    'show'
-                                )
-                            ) {
-
+                            if (modal?.classList.contains('show')) {
                                 closeModal();
-
                                 return;
-
                             }
 
-
-                            if (
-                                searchInput?.value
-                            ) {
-
-                                searchInput.value =
-                                    '';
-
+                            if (searchInput?.value) {
+                                searchInput.value = '';
                                 filterCategories();
-
                             }
-
 
                             searchInput?.blur();
-
                             statusFilter?.blur();
-
                         }
-
                     },
                     true
                 );
@@ -3609,48 +3132,36 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                 /*
                 |--------------------------------------------------------------------------
-                | CLICK ROW = SELECT
+                | CLICK ROW = SELECT & TOGGLE ACCORDION
                 |--------------------------------------------------------------------------
                 */
 
-                rows().forEach(
-                    function(row) {
+                rows().forEach(function(row) {
+                    row.addEventListener('click', function(e) {
+                        if (e.target.closest('button, a, form')) {
+                            return;
+                        }
 
-                        row.addEventListener(
-                            'click',
-                            function(e) {
+                        // Keyboard selection highlight
+                        rows().forEach(r => r.classList.remove('keyboard-selected'));
+                        row.classList.add('keyboard-selected');
 
-                                if (
-                                    e.target.closest(
-                                        'button,a,form'
-                                    )
-                                ) {
+                        // Toggle accordion if it's a parent row
+                        if (row.classList.contains('parent-row')) {
+                            const parentId = row.dataset.id;
+                            window.toggleCategoryAccordion(parentId);
+                        }
+                    });
+                });
 
-                                    return;
-
-                                }
-
-
-                                rows().forEach(
-                                    function(r) {
-
-                                        r.classList.remove(
-                                            'keyboard-selected'
-                                        );
-
-                                    }
-                                );
-
-
-                                row.classList.add(
-                                    'keyboard-selected'
-                                );
-
-                            }
-                        );
-
-                    }
-                );
+                // Toggle Button Event Listener
+                document.querySelectorAll('.parent-toggle-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const pId = this.dataset.toggleId;
+                        window.toggleCategoryAccordion(pId);
+                    });
+                });
 
 
                 /*
@@ -3662,12 +3173,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 filterCategories();
 
             }
-
         );
 
     })();
 </script>
-
 
 <?php
 

@@ -1,35 +1,39 @@
 <?php
+class Database
+{
+    private $serverName   = "TR-HYFFVT2\SQLEXPRESS";
+    private $databaseName = "GatewayLinenDB";
+    private $username     = "gateway_admin";
+    private $password     = "Gateway@2026#Admin";
 
-/*
-|--------------------------------------------------------------------------
-| GatewayLinen Database Connection
-|--------------------------------------------------------------------------
-| This file ONLY creates the SQL Server connection.
-| Do not put HTML/CSS here.
-|--------------------------------------------------------------------------
-*/
+    /** @var mixed */
+    public $conn;
 
-// 👇 Yahan apna actual SQL Server name dalo (Jaise: 'localhost\SQLEXPRESS' ya tumhare PC ka naam)
-$serverName   = "TR-HYFFVT2\SQLEXPRESS";
-$databaseName = "GatewayLinenDB";
-$username     = "gateway_admin";
-$password     = "Gateway@2026#Admin";
+    public function getConnection()
+    {
+        $this->conn = null;
+        $connectionOptions = [
+            "Database" => $this->databaseName,
+            "UID" => $this->username,
+            "PWD" => $this->password,
+            "TrustServerCertificate" => true,
+            "CharacterSet" => "UTF-8"
+        ];
 
-$connectionOptions = [
-    "Database" => $databaseName,
-    "UID" => $username,
-    "PWD" => $password,
-    "TrustServerCertificate" => true,
-    "CharacterSet" => "UTF-8",
-    "LoginTimeout" => 10
-];
+        $this->conn = sqlsrv_connect($this->serverName, $connectionOptions);
 
-$conn = sqlsrv_connect(
-    $serverName,
-    $connectionOptions
-);
-
-if ($conn === false) {
-    // Yeh line exact SQL Server ki error screen par print kar degi
-    die("<pre>" . print_r(sqlsrv_errors(), true) . "</pre>");
+        if ($this->conn === false) {
+            die(json_encode([
+                "success" => false,
+                "message" => "Database connection failed",
+                "errors" => sqlsrv_errors()
+            ]));
+        }
+        return $this->conn;
+    }
 }
+
+// ---- YAHAN HAI ASLI FIX ----
+// Class ka object banakar $conn variable ko initialize karna zaroori tha
+$database = new Database();
+$conn = $database->getConnection();

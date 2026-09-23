@@ -7,23 +7,24 @@ import {
   FiX,
   FiUser,
   FiHeart,
-} from "react-icons/fi"; // FiHeart import kiya
+  FiArrowLeft,
+} from "react-icons/fi";
 import { useCart } from "../context/CartContext";
-import { useWishlist } from "../context/WishlistContext"; // Naya Import
+import { useWishlist } from "../context/WishlistContext";
 
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
 import egyptianCottonKingSheet from "../assets/newImages/egyptianCottonKingSheet.jpg";
-import commercialGradeWhiteFittedSheet from "../assets/newImages/CommercialGradeWhiteFittedSheet.jpg";
-import waterproofHospitalityMattressPad from "../assets/newImages/Waterproof Hospitality Mattress Pad.jpg";
-import plushPillowTopMattressProtector from "../assets/newImages/Plush Pillow-Top Mattress Protector.jpg";
-import downAlternativeHotelPillow from "../assets/newImages/Down-Alternative Hotel Pillow.jpg";
-import firmSupportGussetedPillow from "../assets/newImages/Firm Support Gusseted Pillow.jpg";
-import thermalWaffleWeaveBlanket from "../assets/newImages/Thermal Waffle Weave Blanket.jpg";
-import plushFleeceHospitalityBlanket from "../assets/newImages/Plush Fleece Hospitality Blanket.jpg";
-import luxuryBathMatSet from "../assets/newImages/Luxury Bath Mat Set.jpg";
-import waterproofShowerCurtain from "../assets/newImages/Waterproof Shower Curtain.jpg";
+import commercialGradeWhiteFittedSheet from "../assets/newImages/commercialGradeWhiteFittedSheet.jpg";
+import waterproofHospitalityMattressPad from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
+import plushPillowTopMattressProtector from "../assets/newImages/plushPillowTopMattressProtector.jpg";
+import downAlternativeHotelPillow from "../assets/newImages/downAlternativeHotelPillow.jpg";
+import firmSupportGussetedPillow from "../assets/newImages/firmSupportGussetedPillow.jpg";
+import thermalWaffleWeaveBlanket from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
+import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospitalityBlanket.jpg";
+import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
+import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
 
 const productsData = {
   1: {
@@ -215,7 +216,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
 
   const { addToCart } = useCart();
-  const { toggleWishlistItem, isInWishlist } = useWishlist(); // Wishlist context laya gaya
+  const { toggleWishlistItem, isInWishlist } = useWishlist();
 
   const productId = Number(id) || 1;
   const product = productsData[productId] || productsData[1];
@@ -234,6 +235,10 @@ export default function ProductDetail() {
   const unitPrice = sizePricing[selectedSize];
   const totalPrice = Number((unitPrice * quantity).toFixed(2));
   const sizes = ["Standard", "Queen Size", "King Size"];
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [productId]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -259,6 +264,7 @@ export default function ProductDetail() {
         selectedSize,
         unitPrice,
       );
+      alert(`Added ${product.name} to cart!`);
     });
   };
 
@@ -276,30 +282,31 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-white py-10 px-4 md:px-10 font-sans text-gray-800 relative">
+    <div className="w-full min-h-screen bg-[#F0EAE1] py-4 md:py-6 px-3 md:px-8 font-sans text-gray-800 relative">
       <div className="max-w-[1300px] mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="mb-8 px-4 py-2 border border-gray-200 text-xs font-semibold uppercase tracking-wider rounded-xl text-[#031D44] hover:bg-gray-50 transition-all"
+          className="mb-3 inline-flex items-center gap-2 px-3 py-1.5 bg-[#F7F2EB] border border-[#E5DCD0] text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl text-[#031D44] hover:border-[#B58E58] transition-all cursor-pointer shadow-2xs"
         >
-          &larr; Back to Products
+          <FiArrowLeft size={13} /> Back to Products
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div className="flex flex-col gap-4">
-            {/* NAYA: Image ke upar relative div me button */}
-            <div className="relative w-full h-[420px] bg-[#F4F4F5] rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex items-center justify-center">
+        {/* Compact & Screen-Fit Card */}
+        <div className="bg-[#F7F2EB] p-4 md:p-8 rounded-[24px] md:rounded-[28px] border border-[#E5DCD0] shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
+          {/* Left Gallery Section (Span 5) */}
+          <div className="lg:col-span-5 flex flex-col gap-3">
+            <div className="relative w-full h-[260px] sm:h-[320px] md:h-[360px] bg-[#FAF7F2] rounded-2xl overflow-hidden border border-[#E5DCD0] shadow-sm flex items-center justify-center">
               <button
                 onClick={() =>
                   handleAuthAction(() =>
                     toggleWishlistItem({ ...product, id: productId }),
                   )
                 }
-                className="absolute top-4 right-4 z-10 p-3 bg-white rounded-full shadow-md hover:scale-110 transition-transform"
+                className="absolute top-3 right-3 z-10 p-2.5 bg-white rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
                 title="Add to Wishlist"
               >
                 <FiHeart
-                  size={22}
+                  size={16}
                   className={
                     isInWishlist(productId)
                       ? "fill-red-500 text-red-500"
@@ -315,12 +322,13 @@ export default function ProductDetail() {
               />
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+            {/* Thumbnails */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
               {product.gallery.map((img, index) => (
                 <div
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`min-w-[80px] h-20 bg-[#F4F4F5] rounded-xl overflow-hidden border-2 cursor-pointer transition-all flex-shrink-0 ${currentIndex === index ? "border-[#B58E58]" : "border-transparent hover:border-gray-300"}`}
+                  className={`min-w-[55px] h-12 md:min-w-[65px] md:h-14 bg-[#FAF7F2] rounded-xl overflow-hidden border-2 cursor-pointer transition-all flex-shrink-0 shadow-2xs ${currentIndex === index ? "border-[#B58E58] scale-105" : "border-[#E5DCD0] hover:border-[#B58E58]"}`}
                 >
                   <img
                     src={img}
@@ -332,125 +340,139 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-[#B58E58] tracking-[0.2em] uppercase">
-              {product.category}
-            </span>
-
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#031D44] mt-2 mb-3">
-              {product.name}
-            </h1>
-
-            <div className="text-2xl font-bold text-gray-900 mb-6 flex items-baseline gap-3">
-              <span>CAD ${totalPrice}</span>
-              <span className="text-xs font-normal text-gray-400">
-                ({quantity} x ${unitPrice} - {selectedSize})
-              </span>
-            </div>
-
-            <p className="text-sm text-gray-600 leading-relaxed mb-6 border-b border-gray-100 pb-6">
-              Premium quality hospitality linen crafted for superior comfort,
-              durability, and luxury feel. Designed specifically for hotels,
-              resorts, and high-end residential use.
-            </p>
-
-            <div className="mb-6">
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                Select Size
-              </label>
-              <div className="flex gap-3">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-5 py-2.5 rounded-xl text-xs font-semibold border transition-all ${selectedSize === size ? "bg-[#031D44] text-white border-[#031D44]" : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"}`}
-                  >
-                    {size}
-                  </button>
-                ))}
+          {/* Right Product Info Section (Span 7) */}
+          <div className="lg:col-span-7 flex flex-col justify-between">
+            <div>
+              <div className="inline-flex items-center gap-1.5 bg-[#B58E58]/15 px-2.5 py-0.5 rounded-full mb-1.5 border border-[#B58E58]/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B58E58]"></span>
+                <span className="text-[9px] md:text-[9.5px] font-bold text-[#B58E58] tracking-[0.2em] uppercase">
+                  {product.category}
+                </span>
               </div>
-            </div>
 
-            <div className="mb-8">
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                Quantity
-              </label>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                  <button
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-200 font-bold transition-all"
-                  >
-                    -
-                  </button>
-                  <span className="w-12 text-center text-sm font-bold text-[#031D44]">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-200 font-bold transition-all"
-                  >
-                    +
-                  </button>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#031D44] tracking-tight mb-1.5">
+                {product.name}
+              </h1>
+
+              <div className="text-lg md:text-2xl font-bold text-[#031D44] mb-2.5 flex items-baseline gap-2.5">
+                <span>CAD ${totalPrice}</span>
+                <span className="text-[10px] md:text-[11px] font-normal text-gray-500">
+                  ({quantity} item{quantity > 1 ? "s" : ""} &bull;{" "}
+                  {selectedSize})
+                </span>
+              </div>
+
+              <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed mb-3.5 border-b border-[#E5DCD0] pb-3.5 font-light">
+                Premium hospitality linen crafted for superior comfort,
+                durability, and luxury feel. Designed specifically for elite
+                hotels and resorts.
+              </p>
+
+              {/* Size Selector */}
+              <div className="mb-3.5">
+                <label className="block text-[10px] md:text-[10.5px] font-bold text-[#031D44] uppercase tracking-wider mb-1.5">
+                  Select Size Option
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-3.5 py-1.5 md:px-4 md:py-2 rounded-xl text-[10px] md:text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${selectedSize === size ? "bg-[#031D44] text-white shadow-md border border-[#031D44]" : "bg-white text-gray-700 border border-[#E5DCD0] hover:border-[#B58E58]"}`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quantity Selector */}
+              <div className="mb-4">
+                <label className="block text-[10px] md:text-[10.5px] font-bold text-[#031D44] uppercase tracking-wider mb-1.5">
+                  Quantity
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border border-[#E5DCD0] rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <button
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold transition-all cursor-pointer text-xs"
+                    >
+                      -
+                    </button>
+                    <span className="w-8 md:w-10 text-center text-xs font-bold text-[#031D44]">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity((q) => q + 1)}
+                      className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold transition-all cursor-pointer text-xs"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <button
-                onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 py-4 border border-[#031D44] rounded-xl text-xs font-bold tracking-widest uppercase text-[#031D44] hover:bg-gray-50 transition-all"
-              >
-                <FiShoppingCart size={16} />
-                <span>Add to Cart</span>
-              </button>
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 py-4 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all"
-              >
-                Buy Now
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-100 text-xs text-gray-500">
-              <div className="flex items-center gap-2">
-                <FiTruck className="text-[#B58E58]" size={18} />
-                <span>Fast Shipping Across Canada</span>
+            <div>
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 md:py-3 bg-white border border-[#031D44] rounded-xl text-[10px] md:text-[11px] font-bold tracking-widest uppercase text-[#031D44] hover:bg-[#031D44] hover:text-white transition-all shadow-2xs cursor-pointer"
+                >
+                  <FiShoppingCart size={14} />
+                  <span>Add to Cart</span>
+                </button>
+                <button
+                  onClick={handleBuyNow}
+                  className="flex-1 py-2.5 md:py-3 bg-[#031D44] text-white rounded-xl text-[10px] md:text-[11px] font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
+                >
+                  Buy Now
+                </button>
               </div>
-              <div className="flex items-center gap-2">
-                <FiShield className="text-[#B58E58]" size={18} />
-                <span>Hospital Grade Quality Guarantee</span>
+
+              {/* Trust Perks */}
+              <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-[#E5DCD0] text-[10px] md:text-[11px] text-gray-600 font-light">
+                <div className="flex items-center gap-1.5 bg-white/50 p-2 rounded-lg border border-gray-200/30">
+                  <FiTruck className="text-[#B58E58] shrink-0" size={15} />
+                  <span>Fast Shipping Across Canada</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/50 p-2 rounded-lg border border-gray-200/30">
+                  <FiShield className="text-[#B58E58] shrink-0" size={15} />
+                  <span>Hospital Grade Quality</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Login Modal */}
       {showLoginModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center relative transform transition-all scale-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity p-4">
+          <div className="bg-[#F7F2EB] border border-[#E5DCD0] p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center relative">
             <button
               onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
             >
-              <FiX size={18} />
+              <FiX size={16} />
             </button>
 
-            <div className="w-16 h-16 bg-blue-50 text-[#031D44] rounded-full flex items-center justify-center mx-auto mb-5">
-              <FiUser size={30} />
+            <div className="w-14 h-14 bg-[#031D44] text-[#B58E58] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
+              <FiUser size={24} />
             </div>
 
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+            <h3 className="text-lg font-serif font-bold text-[#031D44] mb-1">
               Login Required
             </h3>
-            <p className="text-sm text-gray-500 mb-8 px-2">
+            <p className="text-[11px] text-gray-600 mb-6 font-light leading-relaxed px-2">
               Please login first to add items to your cart, wishlist, or proceed
               to checkout.
             </p>
 
             <button
               onClick={() => navigate("/login")}
-              className="w-full py-3.5 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all"
+              className="w-full py-3 bg-[#031D44] text-white rounded-xl text-[11px] font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
             >
               Login Now
             </button>

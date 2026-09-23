@@ -1,243 +1,257 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiShoppingCart, FiHeart, FiX, FiUser } from "react-icons/fi";
+import { FiShoppingCart, FiHeart, FiX, FiUser, FiCheck } from "react-icons/fi";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 
-// Saare images import kar liye taaki load more chal sake
+// Saare images import kar liye without spaces
 import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
 import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
 import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
 import egyptianCottonKingSheet from "../assets/newImages/egyptianCottonKingSheet.jpg";
-import commercialGradeWhiteFittedSheet from "../assets/newImages/CommercialGradeWhiteFittedSheet.jpg";
-import waterproofHospitalityMattressPad from "../assets/newImages/Waterproof Hospitality Mattress Pad.jpg";
-import plushPillowTopMattressProtector from "../assets/newImages/Plush Pillow-Top Mattress Protector.jpg";
-import downAlternativeHotelPillow from "../assets/newImages/Down-Alternative Hotel Pillow.jpg";
-import firmSupportGussetedPillow from "../assets/newImages/Firm Support Gusseted Pillow.jpg";
-import thermalWaffleWeaveBlanket from "../assets/newImages/Thermal Waffle Weave Blanket.jpg";
-import plushFleeceHospitalityBlanket from "../assets/newImages/Plush Fleece Hospitality Blanket.jpg";
-import luxuryBathMatSet from "../assets/newImages/Luxury Bath Mat Set.jpg";
-import waterproofShowerCurtain from "../assets/newImages/Waterproof Shower Curtain.jpg";
+import commercialGradeWhiteFittedSheet from "../assets/newImages/commercialGradeWhiteFittedSheet.jpg";
+import waterproofHospitalityMattressPad from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
+import plushPillowTopMattressProtector from "../assets/newImages/plushPillowTopMattressProtector.jpg";
+import downAlternativeHotelPillow from "../assets/newImages/downAlternativeHotelPillow.jpg";
+import firmSupportGussetedPillow from "../assets/newImages/firmSupportGussetedPillow.jpg";
+import thermalWaffleWeaveBlanket from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
+import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospitalityBlanket.jpg";
+import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
+import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
 
-const products = [
+const allFeaturedItems = [
   {
     id: 1,
-    name: "Luxury Hotel Bath Towel",
     category: "TOWELS",
-    price: 24.99,
-    image: luxuryhotelbathtowel,
+    name: "Luxury Hotel Bath Towel",
+    price: "CAD 24.99",
     tag: "BEST SELLER",
+    image: luxuryhotelbathtowel,
   },
   {
     id: 2,
-    name: "Premium Spa Pool Towel",
     category: "TOWELS",
-    price: 29.99,
-    image: premiumspapooltowel,
+    name: "Premium Spa Pool Towel",
+    price: "CAD 29.99",
     tag: "POPULAR",
+    image: premiumspapooltowel,
   },
   {
     id: 3,
-    name: "Ultra-Plush Hand Towel",
     category: "TOWELS",
-    price: 12.99,
-    image: ultraPlushHandTowel,
+    name: "Ultra-Plush Hand Towel",
+    price: "CAD 12.99",
     tag: "TOP RATED",
+    image: ultraPlushHandTowel,
   },
   {
     id: 4,
-    name: "Egyptian Cotton King Sheet Set",
     category: "BED SHEETS",
-    price: 89.99,
-    image: egyptianCottonKingSheet,
+    name: "Egyptian Cotton King Sheet Set",
+    price: "CAD 89.99",
     tag: "NEW ARRIVAL",
+    image: egyptianCottonKingSheet,
   },
   {
     id: 5,
-    name: "Commercial Grade White Fitted Sheet",
     category: "BED SHEETS",
-    price: 45.0,
+    name: "Commercial Grade White Fitted Sheet",
+    price: "CAD 45.00",
+    tag: "FEATURED",
     image: commercialGradeWhiteFittedSheet,
-    tag: "HOT SALE",
   },
   {
     id: 6,
-    name: "Waterproof Hospitality Mattress Pad",
     category: "MATTRESS PADS",
-    price: 54.99,
-    image: waterproofHospitalityMattressPad,
+    name: "Waterproof Hospitality Mattress Pad",
+    price: "CAD 54.99",
     tag: "POPULAR",
+    image: waterproofHospitalityMattressPad,
   },
   {
     id: 7,
-    name: "Plush Pillow-Top Mattress Protector",
     category: "MATTRESS PADS",
-    price: 69.99,
+    name: "Plush Pillow-Top Mattress Protector",
+    price: "CAD 69.99",
+    tag: "PREMIUM",
     image: plushPillowTopMattressProtector,
-    tag: "BEST SELLER",
   },
   {
     id: 8,
-    name: "Down-Alternative Hotel Pillow",
     category: "PILLOWS",
-    price: 34.99,
+    name: "Down-Alternative Hotel Pillow",
+    price: "CAD 34.99",
+    tag: "TOP RATED",
     image: downAlternativeHotelPillow,
-    tag: "NEW",
   },
   {
     id: 9,
-    name: "Firm Support Gusseted Pillow",
     category: "PILLOWS",
-    price: 39.99,
+    name: "Firm Support Gusseted Pillow",
+    price: "CAD 39.99",
+    tag: "BEST SELLER",
     image: firmSupportGussetedPillow,
-    tag: "TOP RATED",
   },
   {
     id: 10,
-    name: "Thermal Waffle Weave Blanket",
     category: "BLANKETS",
-    price: 49.99,
-    image: thermalWaffleWeaveBlanket,
+    name: "Thermal Waffle Weave Blanket",
+    price: "CAD 49.99",
     tag: "TRENDING",
+    image: thermalWaffleWeaveBlanket,
   },
   {
     id: 11,
-    name: "Plush Fleece Hospitality Blanket",
     category: "BLANKETS",
-    price: 59.99,
+    name: "Plush Fleece Hospitality Blanket",
+    price: "CAD 59.99",
+    tag: "HOT DEAL",
     image: plushFleeceHospitalityBlanket,
-    tag: "HOT SALE",
   },
   {
     id: 12,
-    name: "Luxury Bath Mat Set",
     category: "OTHERS",
-    price: 19.99,
-    image: luxuryBathMatSet,
+    name: "Luxury Bath Mat Set",
+    price: "CAD 19.99",
     tag: "POPULAR",
+    image: luxuryBathMatSet,
   },
   {
     id: 13,
-    name: "Waterproof Shower Curtain",
     category: "OTHERS",
-    price: 22.99,
+    name: "Waterproof Shower Curtain",
+    price: "CAD 22.99",
+    tag: "NEW",
     image: waterproofShowerCurtain,
-    tag: "NEW ARRIVAL",
   },
 ];
 
-export default function FeaturedProducts() {
+const FeaturedProducts = () => {
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const navigate = useNavigate();
   const { toggleWishlistItem, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(6); // Default 6 products dikhenge
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage("");
+    }, 2500);
+  };
+
+  const handleAuthAction = (actionCallback) => {
+    const loggedInUser = localStorage.getItem("user");
+    if (!loggedInUser) {
+      setShowLoginModal(true);
+    } else {
+      actionCallback();
+    }
+  };
 
   const handleLoadMore = () => {
-    setVisibleCount((prevCount) => prevCount + 6); // Load more par 6 aur add honge
+    setVisibleCount((prevCount) =>
+      Math.min(prevCount + 5, allFeaturedItems.length),
+    );
   };
 
-  const handleWishlistClick = (e, product) => {
-    e.stopPropagation();
-    const user = localStorage.getItem("user");
-    if (!user) {
-      setShowLoginModal(true);
-    } else {
-      toggleWishlistItem(product);
-    }
-  };
-
-  const handleAddToCartClick = (e, product) => {
-    e.stopPropagation();
-    const user = localStorage.getItem("user");
-    if (!user) {
-      setShowLoginModal(true);
-    } else {
-      addToCart(product, 1, "Standard", product.price);
-    }
-  };
+  const displayedItems = allFeaturedItems.slice(0, visibleCount);
 
   return (
-    <section className="py-16 bg-white px-2 md:px-10 w-full overflow-hidden">
+    <section className="w-full py-12 md:py-16 px-3 md:px-10 bg-[#F0EAE1] font-sans relative">
       <div className="max-w-[1536px] mx-auto">
-        {/* Section Heading */}
-        <div className="text-center mb-12">
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#B58E58] uppercase">
+        {/* Header Title */}
+        <div className="text-center mb-8 md:mb-12">
+          <span className="text-[10px] md:text-[11px] font-bold text-[#B58E58] tracking-[0.25em] uppercase">
             Top Picks For You
           </span>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#031D44] mt-2">
+          <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] mt-1">
             Featured Products
           </h2>
-          <div className="w-16 h-0.5 bg-[#B58E58] mx-auto mt-4"></div>
+          <div className="w-12 h-0.5 bg-[#B58E58] mx-auto mt-2 md:mt-3"></div>
         </div>
 
-        {/* Product Grid - Updated to lg:grid-cols-6 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
-          {products.slice(0, visibleCount).map((product) => (
+        {/* Product Grid - Mobile par 2 columns, Laptop par 5 columns */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3.5 md:gap-6">
+          {displayedItems.map((item) => (
             <div
-              key={product.id}
-              onClick={() => navigate(`/product/${product.id}`)}
-              className="group cursor-pointer flex flex-col bg-white border border-transparent hover:border-gray-100 hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden p-2"
+              key={item.id}
+              onClick={() => navigate(`/product/${item.id}`)}
+              className="group flex flex-col bg-[#F7F2EB] rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer p-3 relative"
             >
-              <div className="relative h-48 sm:h-56 bg-[#F4F4F5] rounded-xl overflow-hidden mb-3">
-                <span className="absolute top-2 left-2 z-10 bg-[#031D44] text-white text-[8px] font-bold tracking-wider px-2 py-1 rounded">
-                  {product.tag}
+              {/* Wishlist Heart Icon Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAuthAction(() => toggleWishlistItem(item));
+                }}
+                className="absolute top-4 right-4 z-20 p-2 bg-white/95 backdrop-blur-xs rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
+                title="Wishlist"
+              >
+                <FiHeart
+                  size={14}
+                  className={
+                    isInWishlist(item.id)
+                      ? "fill-red-500 text-red-500"
+                      : "text-gray-400 hover:text-gray-600"
+                  }
+                />
+              </button>
+
+              {/* Image Container */}
+              <div className="relative h-36 sm:h-44 md:h-52 bg-[#FAF7F2] rounded-xl overflow-hidden mb-3 border border-gray-100">
+                <span className="absolute top-2 left-2 z-10 bg-[#031D44] text-white text-[8px] md:text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-md shadow-md">
+                  {item.tag}
                 </span>
-
-                <button
-                  onClick={(e) => handleWishlistClick(e, product)}
-                  className="absolute top-2 right-2 z-10 p-1.5 bg-white rounded-full shadow hover:scale-110 transition-transform"
-                  title="Add to Wishlist"
-                >
-                  <FiHeart
-                    size={14}
-                    className={
-                      isInWishlist(product.id)
-                        ? "fill-red-500 text-red-500"
-                        : "text-gray-400"
-                    }
-                  />
-                </button>
-
                 <img
-                  src={product.image}
-                  alt={product.name}
+                  src={item.image}
+                  alt={item.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              <div className="flex flex-col flex-1 px-1 pb-1">
-                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  {product.category}
-                </span>
-                <h3
-                  className="font-bold text-xs text-[#031D44] line-clamp-1 mb-1.5 group-hover:text-[#B58E58] transition-colors"
-                  title={product.name}
-                >
-                  {product.name}
-                </h3>
-                <p className="text-xs font-bold text-gray-900 mb-3">
-                  CAD {product.price}
-                </p>
+              {/* Details */}
+              <div className="flex flex-col flex-grow justify-between">
+                <div>
+                  <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
+                    {item.category}
+                  </span>
+                  <h3 className="text-xs font-serif font-bold text-[#031D44] mt-1 line-clamp-1">
+                    {item.name}
+                  </h3>
+                  <div className="text-xs font-bold text-gray-900 mt-1">
+                    {item.price}
+                  </div>
+                </div>
 
                 <button
-                  onClick={(e) => handleAddToCartClick(e, product)}
-                  className="mt-auto w-full py-2 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg text-[10px] font-bold hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAuthAction(() => {
+                      const numericPrice = Number(
+                        item.price.replace(/[^0-9.]/g, ""),
+                      );
+                      addToCart(item, 1, "Standard", numericPrice);
+                      showToast(`Added ${item.name} to cart!`);
+                    });
+                  }}
+                  className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 md:py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-[10px] md:text-[11px] font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all shadow-2xs cursor-pointer"
                 >
-                  <FiShoppingCart size={12} /> Add to Cart
+                  <FiShoppingCart size={12} />
+                  <span>Add to Cart</span>
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Load More Button Logic */}
-        {visibleCount < products.length && (
-          <div className="flex justify-center mt-10">
+        {/* Load More Button */}
+        {visibleCount < allFeaturedItems.length && (
+          <div className="text-center mt-10 md:mt-12">
             <button
               onClick={handleLoadMore}
-              className="px-8 py-3 bg-[#031D44] text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-md hover:bg-[#B58E58] transition-all"
+              className="px-6 py-3 md:px-8 md:py-3.5 bg-[#031D44] text-white text-xs font-semibold tracking-widest uppercase rounded-xl shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
             >
               Load More Products
             </button>
@@ -245,37 +259,44 @@ export default function FeaturedProducts() {
         )}
       </div>
 
-      {/* Login Modal */}
+      {/* Custom Theme-Matched Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#031D44] text-white px-5 py-3 rounded-2xl shadow-2xl border border-[#B58E58]/40 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="w-6 h-6 bg-[#B58E58] text-white rounded-full flex items-center justify-center shrink-0">
+            <FiCheck size={14} />
+          </div>
+          <span className="text-xs font-bold tracking-wide">
+            {toastMessage}
+          </span>
+        </div>
+      )}
+
+      {/* Login Required Modal */}
       {showLoginModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center relative transform transition-all scale-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity p-4">
+          <div className="bg-[#F7F2EB] border border-[#E5DCD0] p-8 rounded-[28px] shadow-2xl w-full max-w-sm text-center relative">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowLoginModal(false);
-              }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors"
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
             >
               <FiX size={18} />
             </button>
 
-            <div className="w-16 h-16 bg-blue-50 text-[#031D44] rounded-full flex items-center justify-center mx-auto mb-5">
-              <FiUser size={30} />
+            <div className="w-16 h-16 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
+              <FiUser size={28} />
             </div>
 
             <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
               Login Required
             </h3>
-            <p className="text-sm text-gray-500 mb-8 px-2">
-              Please login first to add items to your cart or wishlist.
+            <p className="text-xs text-gray-600 mb-8 font-light leading-relaxed px-2">
+              Please login first to add items to your cart, wishlist, or proceed
+              to checkout.
             </p>
 
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate("/login");
-              }}
-              className="w-full py-3.5 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all"
+              onClick={() => navigate("/login")}
+              className="w-full py-3.5 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
             >
               Login Now
             </button>
@@ -284,4 +305,6 @@ export default function FeaturedProducts() {
       )}
     </section>
   );
-}
+};
+
+export default FeaturedProducts;

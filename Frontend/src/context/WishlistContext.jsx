@@ -1,42 +1,64 @@
-/* eslint-disable react-refresh/only-export-components, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+/* eslint-disable react-refresh/only-export-components, react-hooks/set-state-in-effect */
 import { createContext, useState, useContext, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const WishlistContext = createContext();
 
 export const WishlistProvider = ({ children }) => {
-  const [wishlistItems, setWishlistItems] = useState([]);
-  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const location = useLocation();
 
-  // 1. Har baar page badalne par (Login/Logout) current user ki wishlist load karna
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      const parsedUser = JSON.parse(user);
-      // User ki specific email se wishlist dhundho
-      const savedWishlist = localStorage.getItem(
-        `wishlist_${parsedUser.email}`,
-      );
-      if (savedWishlist) {
-        setWishlistItems(JSON.parse(savedWishlist));
-      } else {
-        setWishlistItems([]); // Naye user ki empty wishlist
+  const [wishlistItems, setWishlistItems] = useState(() => {
+    try {
+      const user = localStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        const email = parsedUser.email || parsedUser.Email;
+        if (email) {
+          const savedWishlist = localStorage.getItem(`wishlist_${email}`);
+          return savedWishlist ? JSON.parse(savedWishlist) : [];
+        }
       }
-    } else {
-      setWishlistItems([]); // Bina login wale ki empty wishlist
+    } catch {
+      // fallback
+    }
+    return [];
+  });
+
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const user = localStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        const email = parsedUser.email || parsedUser.Email;
+        if (email) {
+          const savedWishlist = localStorage.getItem(`wishlist_${email}`);
+          setWishlistItems(savedWishlist ? JSON.parse(savedWishlist) : []);
+          return;
+        }
+      }
+      setWishlistItems([]);
+    } catch {
+      setWishlistItems([]);
     }
   }, [location.pathname]);
 
-  // 2. Jaise hi wishlist update ho, use current user ke email ke sath save karna
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      const parsedUser = JSON.parse(user);
-      localStorage.setItem(
-        `wishlist_${parsedUser.email}`,
-        JSON.stringify(wishlistItems),
-      );
+    try {
+      const user = localStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        const email = parsedUser.email || parsedUser.Email;
+        if (email) {
+          localStorage.setItem(
+            `wishlist_${email}`,
+            JSON.stringify(wishlistItems),
+          );
+        }
+      }
+    } catch {
+      // error handling
     }
   }, [wishlistItems]);
 
@@ -54,7 +76,8 @@ export const WishlistProvider = ({ children }) => {
     setWishlistItems((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  const toggleWishlist = () => setIsWishlistOpen(!isWishlistOpen);
+  const toggleWishlist = () => setIsWishlistOpen((prev) => !prev);
+  const toggleWishlistDrawer = () => setIsWishlistOpen((prev) => !prev);
 
   const isInWishlist = (productId) => {
     return wishlistItems.some((item) => item.id === productId);
@@ -68,6 +91,7 @@ export const WishlistProvider = ({ children }) => {
         removeFromWishlist,
         isWishlistOpen,
         toggleWishlist,
+        toggleWishlistDrawer,
         setIsWishlistOpen,
         isInWishlist,
       }}

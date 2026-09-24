@@ -112,12 +112,6 @@ function categoryImageUrl($value): string
         return '';
     }
 
-    /*
-    |----------------------------------------------------------------------
-    | External image
-    |----------------------------------------------------------------------
-    */
-
     if (
         preg_match(
             '~^(https?:)?//|^data:image/~i',
@@ -126,12 +120,6 @@ function categoryImageUrl($value): string
     ) {
         return $value;
     }
-
-    /*
-    |----------------------------------------------------------------------
-    | Normalize path
-    |----------------------------------------------------------------------
-    */
 
     $value = str_replace(
         '\\',
@@ -155,12 +143,6 @@ function categoryImageUrl($value): string
     ) {
         return '';
     }
-
-    /*
-    |----------------------------------------------------------------------
-    | Application root
-    |----------------------------------------------------------------------
-    */
 
     $script = str_replace(
         '\\',
@@ -399,24 +381,16 @@ require_once __DIR__ . '/../includes/sidebar.php';
         align-items: center;
         justify-content: center;
         gap: 7px;
-
         min-height: 38px;
-
         padding: 0 13px;
-
         border: 1px solid var(--border);
         border-radius: 8px;
-
         background: var(--bg-input);
         color: var(--text-body) !important;
-
         font-size: 11px;
         font-weight: 800;
-
         text-decoration: none;
-
         cursor: pointer;
-
         transition: .18s;
     }
 
@@ -428,16 +402,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .btn-primary {
         border-color: transparent;
-
-        background:
-            linear-gradient(135deg,
-                #059669,
-                #10b981);
-
+        background: linear-gradient(135deg, #059669, #10b981);
         color: #fff !important;
-
-        box-shadow:
-            0 6px 16px rgba(16, 185, 129, .2);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, .2);
     }
 
     .btn-blue {
@@ -452,11 +419,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .category-stats {
         display: grid;
-        grid-template-columns:
-            repeat(4, minmax(0, 1fr));
-
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 12px;
-
         margin-bottom: 20px;
     }
 
@@ -464,13 +428,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
         display: flex;
         align-items: center;
         gap: 12px;
-
         padding: 15px 17px;
-
         background: var(--bg-card);
-
         border: 1px solid var(--border);
-
         border-radius: var(--radius);
     }
 
@@ -478,33 +438,25 @@ require_once __DIR__ . '/../includes/sidebar.php';
         display: flex;
         align-items: center;
         justify-content: center;
-
         width: 38px;
         height: 38px;
-
         border-radius: 9px;
-
         background: var(--green-soft);
         color: var(--green);
-
         font-size: 15px;
         font-weight: 800;
     }
 
     .category-stat-label {
         color: var(--text-mute);
-
         font-size: 10px;
         font-weight: 700;
-
         text-transform: uppercase;
     }
 
     .category-stat-value {
         margin-top: 2px;
-
         color: var(--text-hi);
-
         font-size: 20px;
         font-weight: 800;
     }
@@ -513,11 +465,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .notice {
         margin-bottom: 14px;
-
         padding: 12px 14px;
-
         border-radius: 8px;
-
         font-size: 12px;
         font-weight: 700;
     }
@@ -538,11 +487,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .category-content {
         background: var(--bg-card);
-
         border: 1px solid var(--border);
-
         border-radius: 12px;
-
         overflow: hidden;
     }
 
@@ -550,27 +496,20 @@ require_once __DIR__ . '/../includes/sidebar.php';
         display: flex;
         align-items: center;
         justify-content: space-between;
-
         gap: 20px;
-
         padding: 17px 20px;
-
         border-bottom: 1px solid var(--border);
     }
 
     .category-content-title h2 {
         margin: 0;
-
         color: var(--text-hi);
-
         font-size: 16px;
     }
 
     .category-content-title p {
         margin: 4px 0 0;
-
         color: var(--text-mute);
-
         font-size: 11px;
     }
 
@@ -583,31 +522,21 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .category-search-icon {
         position: absolute;
-
         left: 12px;
         top: 50%;
-
         transform: translateY(-50%);
-
         color: var(--text-mute);
-
         pointer-events: none;
     }
 
     .category-search,
     .category-status-filter {
         height: 36px;
-
         border: 1px solid var(--border);
-
         border-radius: 8px;
-
         outline: none;
-
         background: var(--bg-input);
-
         color: var(--text-hi);
-
         font-size: 12px;
     }
 
@@ -624,31 +553,23 @@ require_once __DIR__ . '/../includes/sidebar.php';
     .category-search:focus,
     .category-status-filter:focus {
         border-color: var(--green);
-
-        box-shadow:
-            0 0 0 3px rgba(16, 185, 129, .1);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, .1);
     }
 
     /* EXPORT */
 
     .export-bar {
         padding: 10px 20px;
-
         border-bottom: 1px solid var(--border);
-
         background: var(--bg-card-alt);
     }
 
     .export-label {
         margin-right: auto;
-
         color: var(--text-mute);
-
         font-size: 10px;
         font-weight: 800;
-
         text-transform: uppercase;
-
         letter-spacing: .5px;
     }
 
@@ -658,15 +579,12 @@ require_once __DIR__ . '/../includes/sidebar.php';
         display: flex;
         align-items: center;
         justify-content: space-between;
-
         padding: 11px 20px;
-
         border-bottom: 1px solid var(--border);
     }
 
     .category-result-text {
         color: var(--text-mute);
-
         font-size: 11px;
         font-weight: 600;
     }
@@ -685,44 +603,29 @@ require_once __DIR__ . '/../includes/sidebar.php';
     .category-table {
         width: 100%;
         min-width: 1200px;
-
         border-collapse: collapse;
     }
 
     .category-table th {
         height: 44px;
-
         padding: 0 16px;
-
         background: var(--bg-header);
-
         border-bottom: 1px solid var(--border);
-
         color: var(--text-mute);
-
         font-size: 10px;
         font-weight: 800;
-
         text-align: left;
-
         text-transform: uppercase;
-
         letter-spacing: .5px;
-
         white-space: nowrap;
     }
 
     .category-table td {
         padding: 12px 16px;
-
         background: transparent;
-
         border-bottom: 1px solid var(--border-soft);
-
         color: var(--text-body);
-
         font-size: 12px;
-
         vertical-align: middle;
     }
 
@@ -732,9 +635,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .category-table tbody tr.keyboard-selected {
         outline: 2px solid var(--green);
-
         outline-offset: -2px;
-
         background: var(--green-soft);
     }
 
@@ -811,72 +712,53 @@ require_once __DIR__ . '/../includes/sidebar.php';
         margin-left: 6px;
     }
 
-    /* ORDER */
-
+    /* ORDER BOX */
     .order-box {
         display: inline-flex;
-
         align-items: center;
         justify-content: center;
-
         min-width: 42px;
         height: 28px;
-
         padding: 0 9px;
-
         border-radius: 7px;
-
         background: var(--bg-input);
-
         border: 1px solid var(--border);
-
         color: var(--green);
-
         font-size: 11px;
         font-weight: 800;
     }
 
-    /* CATEGORY */
+    .order-box.child-order-box {
+        color: var(--blue);
+        border-color: rgba(56, 189, 248, 0.3);
+        background: rgba(56, 189, 248, 0.06);
+    }
 
+    /* CATEGORY MAIN */
     .category-main {
         display: flex;
-
         align-items: center;
-
         gap: 11px;
-
         min-width: 330px;
     }
 
     .category-image {
         display: flex;
-
         align-items: center;
         justify-content: center;
-
         width: 58px;
         height: 58px;
-
         flex: 0 0 58px;
-
         overflow: hidden;
-
         border: 1px solid var(--border);
-
         border-radius: 9px;
-
-        background:
-            linear-gradient(135deg,
-                #16222e,
-                #0f1823);
+        background: linear-gradient(135deg, #16222e, #0f1823);
     }
 
     .category-image img {
         width: 100%;
         height: 100%;
-
         display: block;
-
         object-fit: cover;
     }
 
@@ -886,21 +768,16 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .category-image-placeholder {
         display: flex;
-
         align-items: center;
         justify-content: center;
-
         width: 100%;
         height: 100%;
-
         color: var(--text-mute);
-
         font-size: 18px;
     }
 
     .category-name {
         color: var(--text-hi);
-
         font-size: 13px;
         font-weight: 700;
         display: flex;
@@ -909,81 +786,54 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .category-slug {
         margin-top: 3px;
-
         color: var(--text-mute);
-
         font-size: 10px;
-
         font-family: monospace;
     }
 
     .category-description {
         max-width: 310px;
-
         white-space: normal;
-
         line-height: 1.4;
-
         color: var(--text-body);
     }
 
     .category-date {
         color: var(--text-mute);
-
         font-size: 10px;
-
         line-height: 1.4;
     }
 
     /* PRODUCT COUNT */
-
     .product-count {
         display: inline-flex;
-
         align-items: center;
-
         gap: 6px;
-
         min-width: 40px;
         height: 28px;
-
         padding: 0 9px;
-
         border-radius: 7px;
-
         background: var(--green-soft);
-
         color: var(--green);
-
         font-size: 11px;
-
         font-weight: 800;
     }
 
     /* STATUS */
-
     .category-status {
         display: inline-flex;
-
         align-items: center;
-
         gap: 7px;
-
         min-height: 25px;
-
         padding: 0 10px;
-
         border-radius: 20px;
-
         font-size: 10px;
-
         font-weight: 700;
     }
 
     .category-status-dot {
         width: 6px;
         height: 6px;
-
         border-radius: 50%;
     }
 
@@ -994,14 +844,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .category-status-active .category-status-dot {
         background: var(--green);
-
-        box-shadow:
-            0 0 6px var(--green);
+        box-shadow: 0 0 6px var(--green);
     }
 
     .category-status-inactive {
         background: var(--red-soft);
-
         color: #f87171;
     }
 
@@ -1010,827 +857,349 @@ require_once __DIR__ . '/../includes/sidebar.php';
     }
 
     /* ACTION */
-
     .category-action {
         display: inline-flex;
-
         align-items: center;
         justify-content: center;
-
         width: 34px;
         height: 34px;
-
         border: 1px solid var(--border);
-
         border-radius: 8px;
-
         background: var(--bg-input);
-
         color: var(--text-body) !important;
-
         text-decoration: none;
-
         cursor: pointer;
     }
 
     .category-action:hover {
         border-color: var(--green);
-
         background: var(--green-soft);
-
         color: var(--green) !important;
     }
 
     .category-action-delete:hover {
-        border-color:
-            rgba(239, 68, 68, .5);
-
+        border-color: rgba(239, 68, 68, .5);
         background: var(--red-soft);
-
         color: var(--red) !important;
     }
 
     /* EMPTY */
-
     .category-empty,
     .category-no-result {
         padding: 65px 20px;
-
         text-align: center;
     }
 
     .category-empty-icon,
     .category-no-result-icon {
         margin-bottom: 12px;
-
         color: var(--green);
-
         font-size: 28px;
     }
 
     .category-empty h3,
     .category-no-result h3 {
         margin: 0;
-
         color: var(--text-hi);
-
         font-size: 16px;
     }
 
     .category-empty p,
     .category-no-result p {
         margin: 6px 0 0;
-
         color: var(--text-mute);
-
         font-size: 12px;
     }
 
     /* SHORTCUT */
-
     .shortcut-help-box {
         margin-top: 16px;
-
         padding: 16px 20px;
-
         border: 1px solid var(--border);
-
         border-radius: 12px;
-
         background: var(--bg-card);
     }
 
-    .shortcut-help-box.hidden {
-        display: none;
-    }
+    .shortcut-help-box.hidden { display: none; }
 
     .shortcut-help-title {
         display: flex;
-
         align-items: center;
-
         gap: 9px;
-
         margin-bottom: 12px;
-
         color: var(--text-hi);
-
         font-size: 13px;
-
         font-weight: 800;
     }
 
     .shortcut-help-title small {
         margin-left: auto;
-
         color: var(--text-mute);
-
         font: 600 10px monospace;
     }
 
     .shortcut-grid {
         display: grid;
-
-        grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
     }
 
     .shortcut-item {
         display: flex;
-
         align-items: center;
-
         gap: 9px;
-
         padding: 8px 10px;
-
         border: 1px solid var(--border-soft);
-
         border-radius: 8px;
-
         background: var(--bg-input);
     }
 
     .shortcut-key {
         display: inline-flex;
-
         align-items: center;
         justify-content: center;
-
         min-width: 36px;
         height: 25px;
-
         padding: 0 7px;
-
         border-radius: 5px;
-
         background: #0a1119;
-
         border: 1px solid var(--border);
-
         color: var(--green);
-
         font: 800 10px monospace;
     }
 
     .shortcut-desc {
         color: var(--text-body);
-
         font-size: 11px;
-
         font-weight: 600;
     }
 
     /* MODAL */
-
     .modal-backdrop {
         position: fixed;
-
         inset: 0;
-
         z-index: 9999;
-
         display: none;
-
         align-items: center;
         justify-content: center;
-
         padding: 20px;
-
         background: rgba(0, 0, 0, .72);
     }
 
-    .modal-backdrop.show {
-        display: flex;
-    }
+    .modal-backdrop.show { display: flex; }
 
     .category-modal {
         width: min(760px, 100%);
-
         max-height: 90vh;
-
         overflow: auto;
-
         background: var(--bg-card);
-
         border: 1px solid var(--border);
-
         border-radius: 14px;
-
-        box-shadow:
-            0 24px 80px rgba(0, 0, 0, .5);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
     }
 
     .modal-header {
         display: flex;
-
         align-items: center;
         justify-content: space-between;
-
         padding: 15px 18px;
-
         border-bottom: 1px solid var(--border);
     }
 
-    .modal-header h3 {
-        margin: 0;
-
-        color: var(--text-hi);
-
-        font-size: 15px;
-    }
-
-    .modal-close {
-        border: 0;
-
-        background: transparent;
-
-        color: var(--text-mute);
-
-        font-size: 22px;
-
-        cursor: pointer;
-    }
-
-    .modal-body {
-        padding: 18px;
-    }
+    .modal-header h3 { margin: 0; color: var(--text-hi); font-size: 15px; }
+    .modal-close { border: 0; background: transparent; color: var(--text-mute); font-size: 22px; cursor: pointer; }
+    .modal-body { padding: 18px; }
 
     .detail-grid {
         display: grid;
-
         grid-template-columns: 180px 1fr;
-
         gap: 16px;
     }
 
     .detail-image {
         width: 180px;
         height: 180px;
-
         border-radius: 10px;
-
         overflow: hidden;
-
         border: 1px solid var(--border);
-
         background: var(--bg-input);
-
         display: flex;
-
         align-items: center;
         justify-content: center;
-
         color: var(--text-mute);
-
         font-size: 30px;
     }
 
-    .detail-image img {
-        width: 100%;
-        height: 100%;
-
-        object-fit: cover;
-    }
-
-    .detail-item label {
-        display: block;
-
-        margin-bottom: 4px;
-
-        color: var(--text-mute);
-
-        font-size: 9px;
-
-        font-weight: 800;
-
-        text-transform: uppercase;
-    }
-
-    .detail-item div {
-        color: var(--text-hi);
-
-        font-size: 12px;
-
-        line-height: 1.5;
-    }
-
-    .detail-full {
-        grid-column: 1/-1;
-    }
-
-    .detail-meta {
-        display: grid;
-
-        grid-template-columns:
-            repeat(3, 1fr);
-
-        gap: 12px;
-
-        margin-top: 14px;
-    }
-
-    .detail-card {
-        padding: 12px;
-
-        border: 1px solid var(--border-soft);
-
-        border-radius: 8px;
-
-        background: var(--bg-input);
-    }
-
-    .modal-footer {
-        display: flex;
-
-        justify-content: flex-end;
-
-        gap: 8px;
-
-        padding: 14px 18px;
-
-        border-top: 1px solid var(--border);
-    }
-
-    /* RESPONSIVE */
+    .detail-image img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-item label { display: block; margin-bottom: 4px; color: var(--text-mute); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+    .detail-item div { color: var(--text-hi); font-size: 12px; line-height: 1.5; }
+    .detail-full { grid-column: 1/-1; }
+    .detail-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .detail-card { padding: 12px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-input); }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--border); }
 
     @media(max-width:1100px) {
-
-        .category-stats {
-            grid-template-columns:
-                repeat(2, 1fr);
-        }
-
-        .category-content-header {
-            flex-direction: column;
-
-            align-items: stretch;
-        }
-
-        .category-filters {
-            width: 100%;
-        }
-
-        .category-search-wrap {
-            width: 100%;
-        }
-
-        .shortcut-grid {
-            grid-template-columns:
-                repeat(2, 1fr);
-        }
+        .category-stats { grid-template-columns: repeat(2, 1fr); }
+        .category-content-header { flex-direction: column; align-items: stretch; }
+        .category-filters { width: 100%; }
+        .category-search-wrap { width: 100%; }
+        .shortcut-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media(max-width:700px) {
-
-        .category-page-header {
-            flex-direction: column;
-
-            align-items: flex-start;
-        }
-
-        .header-actions {
-            width: 100%;
-
-            justify-content: flex-start;
-        }
-
-        .category-stats {
-            grid-template-columns:
-                1fr 1fr;
-        }
-
-        .category-filters {
-            display: grid;
-
-            grid-template-columns: 1fr;
-        }
-
-        .category-status-filter {
-            width: 100%;
-        }
-
-        .shortcut-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .detail-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .detail-image {
-            width: 100%;
-            height: 220px;
-        }
-
-        .detail-meta {
-            grid-template-columns: 1fr;
-        }
+        .category-page-header { flex-direction: column; align-items: flex-start; }
+        .header-actions { width: 100%; justify-content: flex-start; }
+        .category-stats { grid-template-columns: 1fr 1fr; }
+        .category-filters { display: grid; grid-template-columns: 1fr; }
+        .category-status-filter { width: 100%; }
+        .shortcut-grid { grid-template-columns: 1fr; }
+        .detail-grid { grid-template-columns: 1fr; }
+        .detail-image { width: 100%; height: 220px; }
+        .detail-meta { grid-template-columns: 1fr; }
     }
 
-    /* PRINT */
-
     @media print {
-
-        html,
-        body,
-        .main,
-        .content {
-            background: #fff !important;
-
-            color: #111 !important;
-        }
-
-        .category-page {
-            max-width: none;
-        }
-
-        .category-page-header,
-        .category-stats,
-        .category-filters,
-        .export-bar,
-        .category-actions,
-        .shortcut-help-box,
-        .notice,
-        .modal-backdrop,
-        .no-print {
-            display: none !important;
-        }
-
-        .category-content {
-            border: 0;
-        }
-
-        .category-table {
-            min-width: 0;
-        }
-
-        .category-table th,
-        .category-table td {
-            color: #111 !important;
-
-            background: #fff !important;
-
-            border-color: #ccc !important;
-        }
-
-        .category-image {
-            border-color: #ccc;
-        }
+        html, body, .main, .content { background: #fff !important; color: #111 !important; }
+        .category-page { max-width: none; }
+        .category-page-header, .category-stats, .category-filters, .export-bar, .category-actions,
+        .shortcut-help-box, .notice, .modal-backdrop, .no-print { display: none !important; }
+        .category-content { border: 0; }
+        .category-table { min-width: 0; }
+        .category-table th, .category-table td { color: #111 !important; background: #fff !important; border-color: #ccc !important; }
+        .category-image { border-color: #ccc; }
     }
 </style>
 
 <main class="main">
-
     <section class="content">
-
         <div class="category-page">
 
             <!-- PAGE HEADER -->
             <div class="category-page-header">
-
                 <div>
-
                     <div class="category-breadcrumb">
-
                         <span>Products</span>
-
                         <span>/</span>
-
-                        <span class="current">
-                            Categories
-                        </span>
-
+                        <span class="current">Categories</span>
                     </div>
-
-                    <h1>
-                        Categories
-                    </h1>
-
-                    <p>
-                        Manage category image, details, products,
-                        status, reports and keyboard shortcuts.
-                    </p>
-
+                    <h1>Categories</h1>
+                    <p>Manage category image, details, products, status, reports and keyboard shortcuts.</p>
                 </div>
 
                 <div class="header-actions">
-
-                    <button
-                        type="button"
-                        class="btn btn-blue"
-                        id="printBtn">
-                        🖨 Print
-                        <small>P</small>
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn"
-                        id="pdfBtn">
-                        ↓ PDF
-                        <small>V</small>
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn"
-                        id="excelBtn">
-                        ↓ Excel
-                        <small>X</small>
-                    </button>
-
-                    <a
-                        href="add.php"
-                        class="btn btn-primary"
-                        id="addCategoryBtn">
-                        ＋ Add Category
-                        <small>A</small>
-                    </a>
-
+                    <button type="button" class="btn btn-blue" id="printBtn">🖨 Print <small>P</small></button>
+                    <button type="button" class="btn" id="pdfBtn">↓ PDF <small>V</small></button>
+                    <button type="button" class="btn" id="excelBtn">↓ Excel <small>X</small></button>
+                    <a href="add.php" class="btn btn-primary" id="addCategoryBtn">＋ Add Category <small>A</small></a>
                 </div>
-
             </div>
-
 
             <!-- MESSAGES -->
             <?php if ($actionMessage !== ''): ?>
-
-                <div class="notice notice-success">
-                    <?= e($actionMessage) ?>
-                </div>
-
+                <div class="notice notice-success"><?= e($actionMessage) ?></div>
             <?php endif; ?>
-
 
             <?php if ($actionError !== ''): ?>
-
-                <div class="notice notice-error">
-                    <?= e($actionError) ?>
-                </div>
-
+                <div class="notice notice-error"><?= e($actionError) ?></div>
             <?php endif; ?>
-
 
             <?php if ($queryError !== ''): ?>
-
-                <div class="notice notice-error">
-                    <?= e($queryError) ?>
-                </div>
-
+                <div class="notice notice-error"><?= e($queryError) ?></div>
             <?php endif; ?>
-
 
             <!-- STATISTICS -->
             <div class="category-stats">
-
                 <div class="category-stat-item">
-
-                    <div class="category-stat-icon">
-                        #
-                    </div>
-
+                    <div class="category-stat-icon">#</div>
                     <div>
-
-                        <div class="category-stat-label">
-                            Total Categories
-                        </div>
-
-                        <div class="category-stat-value">
-                            <?= $totalCategories ?>
-                        </div>
-
+                        <div class="category-stat-label">Total Categories</div>
+                        <div class="category-stat-value"><?= $totalCategories ?></div>
                     </div>
-
                 </div>
 
-
                 <div class="category-stat-item">
-
-                    <div class="category-stat-icon">
-                        ✓
-                    </div>
-
+                    <div class="category-stat-icon">✓</div>
                     <div>
-
-                        <div class="category-stat-label">
-                            Active
-                        </div>
-
-                        <div class="category-stat-value">
-                            <?= $activeCategories ?>
-                        </div>
-
+                        <div class="category-stat-label">Active</div>
+                        <div class="category-stat-value"><?= $activeCategories ?></div>
                     </div>
-
                 </div>
 
-
                 <div class="category-stat-item">
-
-                    <div class="category-stat-icon">
-                        ○
-                    </div>
-
+                    <div class="category-stat-icon">○</div>
                     <div>
-
-                        <div class="category-stat-label">
-                            Inactive
-                        </div>
-
-                        <div class="category-stat-value">
-                            <?= $inactiveCategories ?>
-                        </div>
-
+                        <div class="category-stat-label">Inactive</div>
+                        <div class="category-stat-value"><?= $inactiveCategories ?></div>
                     </div>
-
                 </div>
 
-
                 <div class="category-stat-item">
-
-                    <div class="category-stat-icon">
-                        P
-                    </div>
-
+                    <div class="category-stat-icon">P</div>
                     <div>
-
-                        <div class="category-stat-label">
-                            Products
-                        </div>
-
-                        <div class="category-stat-value">
-                            <?= $totalProducts ?>
-                        </div>
-
+                        <div class="category-stat-label">Products</div>
+                        <div class="category-stat-value"><?= $totalProducts ?></div>
                     </div>
-
                 </div>
-
             </div>
-
 
             <!-- CATEGORY CONTENT -->
             <div class="category-content">
-
                 <div class="category-content-header">
-
                     <div class="category-content-title">
-
-                        <h2>
-                            Category List
-                        </h2>
-
-                        <p>
-                            Image, name, slug, description,
-                            product count, status and created date
-                            are visible here.
-                        </p>
-
+                        <h2>Category List</h2>
+                        <p>Image, name, slug, description, product count, status and created date are visible here.</p>
                     </div>
 
-
                     <div class="category-filters">
-
                         <div class="category-search-wrap">
-
-                            <span class="category-search-icon">
-                                ⌕
-                            </span>
-
+                            <span class="category-search-icon">⌕</span>
                             <input
                                 type="search"
                                 id="categorySearch"
                                 class="category-search"
                                 placeholder="Search category, slug, description..."
                                 autocomplete="off">
-
                         </div>
 
-
-                        <select
-                            id="categoryStatusFilter"
-                            class="category-status-filter">
-
-                            <option value="all">
-                                All Status
-                            </option>
-
-                            <option value="active">
-                                Active
-                            </option>
-
-                            <option value="inactive">
-                                Inactive
-                            </option>
-
+                        <select id="categoryStatusFilter" class="category-status-filter">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
                         </select>
-
                     </div>
-
                 </div>
-
 
                 <!-- EXPORT BAR -->
                 <div class="export-bar">
-
-                    <span class="export-label">
-                        Reports & Export
-                    </span>
-
-                    <button
-                        type="button"
-                        class="btn"
-                        id="printBtn2">
-                        🖨 Print
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn"
-                        id="pdfBtn2">
-                        ↓ PDF
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn"
-                        id="excelBtn2">
-                        ↓ Excel
-                    </button>
-
+                    <span class="export-label">Reports & Export</span>
+                    <button type="button" class="btn" id="printBtn2">🖨 Print</button>
+                    <button type="button" class="btn" id="pdfBtn2">↓ PDF</button>
+                    <button type="button" class="btn" id="excelBtn2">↓ Excel</button>
                 </div>
-
 
                 <!-- TABLE SUMMARY -->
                 <div class="category-table-summary">
-
                     <div class="category-result-text">
-
-                        Showing
-
-                        <strong id="visibleCategoryCount">
-                            <?= count($parentCategories) ?>
-                        </strong>
-
-                        main categories
-
+                        Showing <strong id="visibleCategoryCount"><?= count($parentCategories) ?></strong> main categories
                     </div>
-
                     <div class="category-result-text">
-
-                        Total:
-
-                        <strong>
-                            <?= $totalCategories ?>
-                        </strong>
-
+                        Total: <strong><?= $totalCategories ?></strong>
                     </div>
-
                 </div>
-
 
                 <!-- TABLE -->
                 <div class="category-table-wrapper">
-
                     <?php if (empty($parentCategories)): ?>
-
                         <div class="category-empty">
-
-                            <div class="category-empty-icon">
-                                ◈
-                            </div>
-
-                            <h3>
-                                No Categories Found
-                            </h3>
-
-                            <p>
-                                Create your first product category
-                                to start organizing products.
-                            </p>
-
-                            <a
-                                href="add.php"
-                                class="btn btn-primary"
-                                style="margin-top:16px">
-                                ＋ Add First Category
-                            </a>
-
+                            <div class="category-empty-icon">◈</div>
+                            <h3>No Categories Found</h3>
+                            <p>Create your first product category to start organizing products.</p>
+                            <a href="add.php" class="btn btn-primary" style="margin-top:16px">＋ Add First Category</a>
                         </div>
-
                     <?php else: ?>
-
-                        <table
-                            class="category-table"
-                            id="categoryTable">
-
+                        <table class="category-table" id="categoryTable">
                             <thead>
-
                                 <tr>
-
                                     <th>Order</th>
                                     <th>Category</th>
                                     <th>Description</th>
@@ -1838,23 +1207,20 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     <th>Status</th>
                                     <th>Created</th>
                                     <th>Actions</th>
-
                                 </tr>
-
                             </thead>
-
-
                             <tbody>
-
-                                <?php foreach ($parentCategories as $category): ?>
-
+                                <?php 
+                                $mainOrderNo = 1; // Main categories ke liye counter
+                                foreach ($parentCategories as $category): 
+                                ?>
                                     <?php
                                     $categoryId = (int)($category['CategoryId'] ?? 0);
                                     $categoryName = (string)($category['Name'] ?? '');
                                     $slug = (string)($category['Slug'] ?? '');
                                     $description = trim((string)($category['Description'] ?? ''));
                                     $productCount = (int)($category['ProductCount'] ?? 0);
-                                    $displayOrder = (int)($category['DisplayOrder'] ?? 0);
+                                    $currentMainOrder = $mainOrderNo++; // 1, 2, 3...
                                     $isActive = !empty($category['IsActive']);
                                     $image = categoryImageUrl($category['ImageUrl'] ?? '');
                                     $createdAt = dateValue($category['CreatedAt'] ?? '');
@@ -1867,20 +1233,20 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     <tr
                                         class="category-row parent-row"
                                         data-id="<?= $categoryId ?>"
-                                        data-order="<?= $displayOrder ?>"
+                                        data-order="<?= $currentMainOrder ?>"
                                         data-status="<?= $isActive ? 'active' : 'inactive' ?>"
                                         data-name="<?= e(strtolower($categoryName)) ?>"
                                         data-slug="<?= e(strtolower($slug)) ?>"
                                         data-description="<?= e(strtolower($description)) ?>">
 
-                                        <!-- ORDER -->
+                                        <!-- MAIN CATEGORY CONTINUOUS ORDER (1, 2, 3...) -->
                                         <td>
                                             <span class="order-box">
-                                                <?= $displayOrder ?>
+                                                <?= $currentMainOrder ?>
                                             </span>
                                         </td>
 
-                                        <!-- CATEGORY -->
+                                        <!-- CATEGORY NAME & IMAGE -->
                                         <td>
                                             <div class="category-main">
                                                 <?php if ($hasChildren): ?>
@@ -1889,10 +1255,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     <span style="display:inline-block; width:22px; margin-right:8px;"></span>
                                                 <?php endif; ?>
 
-                                                <div
-                                                    class="category-image"
-                                                    title="<?= e($categoryName) ?>">
-
+                                                <div class="category-image" title="<?= e($categoryName) ?>">
                                                     <?php if ($image !== ''): ?>
                                                         <img
                                                             src="<?= e($image) ?>"
@@ -1904,18 +1267,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                                 this.parentElement.classList.add('image-missing');
                                                                 this.parentElement.querySelector('.category-image-placeholder').style.display='flex';
                                                             ">
-
-                                                        <span
-                                                            class="category-image-placeholder"
-                                                            style="display:none">
-                                                            ◈
-                                                        </span>
+                                                        <span class="category-image-placeholder" style="display:none">◈</span>
                                                     <?php else: ?>
-                                                        <span class="category-image-placeholder">
-                                                            ◈
-                                                        </span>
+                                                        <span class="category-image-placeholder">◈</span>
                                                     <?php endif; ?>
-
                                                 </div>
 
                                                 <div>
@@ -1927,12 +1282,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     </div>
 
                                                     <?php if ($slug !== ''): ?>
-                                                        <div class="category-slug">
-                                                            /<?= e($slug) ?>
-                                                        </div>
+                                                        <div class="category-slug">/<?= e($slug) ?></div>
                                                     <?php endif; ?>
                                                 </div>
-
                                             </div>
                                         </td>
 
@@ -1954,28 +1306,23 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                         <td>
                                             <?php if ($isActive): ?>
                                                 <span class="category-status category-status-active">
-                                                    <span class="category-status-dot"></span>
-                                                    Active
+                                                    <span class="category-status-dot"></span> Active
                                                 </span>
                                             <?php else: ?>
                                                 <span class="category-status category-status-inactive">
-                                                    <span class="category-status-dot"></span>
-                                                    Inactive
+                                                    <span class="category-status-dot"></span> Inactive
                                                 </span>
                                             <?php endif; ?>
                                         </td>
 
                                         <!-- CREATED -->
                                         <td>
-                                            <div class="category-date">
-                                                <?= e($createdAt) ?>
-                                            </div>
+                                            <div class="category-date"><?= e($createdAt) ?></div>
                                         </td>
 
                                         <!-- ACTIONS -->
                                         <td>
                                             <div class="category-actions">
-
                                                 <!-- VIEW -->
                                                 <button
                                                     type="button"
@@ -1988,70 +1335,41 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     data-products="<?= $productCount ?>"
                                                     data-status="<?= $isActive ? 'Active' : 'Inactive' ?>"
                                                     data-created="<?= e($createdAt) ?>"
-                                                    data-order="<?= $displayOrder ?>"
+                                                    data-order="<?= $currentMainOrder ?>"
                                                     data-image="<?= e($image) ?>">
                                                     ◉
                                                 </button>
 
                                                 <!-- EDIT -->
-                                                <a
-                                                    href="edit.php?id=<?= $categoryId ?>"
-                                                    class="category-action edit-btn"
-                                                    title="Edit Category">
-                                                    ✎
-                                                </a>
+                                                <a href="edit.php?id=<?= $categoryId ?>" class="category-action edit-btn" title="Edit Category">✎</a>
 
                                                 <!-- DELETE -->
                                                 <?php if ($productCount === 0 && !$hasChildren): ?>
-                                                    <form
-                                                        method="POST"
-                                                        action="delete.php"
-                                                        class="delete-form"
-                                                        style="display:inline">
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="category_id"
-                                                            value="<?= $categoryId ?>">
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="csrf_token"
-                                                            value="<?= e($csrfToken) ?>">
-
-                                                        <button
-                                                            type="submit"
-                                                            class="category-action category-action-delete delete-category-btn"
-                                                            title="Delete Category">
-                                                            ×
-                                                        </button>
-
+                                                    <form method="POST" action="delete.php" class="delete-form" style="display:inline">
+                                                        <input type="hidden" name="category_id" value="<?= $categoryId ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                                        <button type="submit" class="category-action category-action-delete delete-category-btn" title="Delete Category">×</button>
                                                     </form>
                                                 <?php else: ?>
-                                                    <button
-                                                        type="button"
-                                                        class="category-action category-action-delete"
-                                                        title="Cannot delete: category has products or subcategories"
-                                                        data-cannot-delete="<?= $productCount ?: 'sub-categories' ?>">
-                                                        ×
-                                                    </button>
+                                                    <button type="button" class="category-action category-action-delete" title="Cannot delete: category has products or subcategories" data-cannot-delete="<?= $productCount ?: 'sub-categories' ?>">×</button>
                                                 <?php endif; ?>
-
                                             </div>
                                         </td>
-
                                     </tr>
 
-                                    <!-- CHILD SUB-CATEGORY ROWS (CLICK PAR HI KHULENGI) -->
+                                    <!-- CHILD SUB-CATEGORY ROWS (1, 2, 3... RESET PER PARENT) -->
                                     <?php if ($hasChildren): ?>
-                                        <?php foreach ($childCategoriesMap[$categoryId] as $child): ?>
+                                        <?php 
+                                        $childOrderNo = 1; // Har parent ke andar child counter 1 se shuru hoga
+                                        foreach ($childCategoriesMap[$categoryId] as $child): 
+                                        ?>
                                             <?php
                                             $childId = (int)($child['CategoryId'] ?? 0);
                                             $childName = (string)($child['Name'] ?? '');
                                             $childSlug = (string)($child['Slug'] ?? '');
                                             $childDescription = trim((string)($child['Description'] ?? ''));
                                             $childProdCount = (int)($child['ProductCount'] ?? 0);
-                                            $childDisplayOrder = (int)($child['DisplayOrder'] ?? 0);
+                                            $currentChildOrder = $childOrderNo++; // 1, 2, 3...
                                             $childIsActive = !empty($child['IsActive']);
                                             $childImage = categoryImageUrl($child['ImageUrl'] ?? '');
                                             $childCreatedAt = dateValue($child['CreatedAt'] ?? '');
@@ -2061,26 +1379,23 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                 class="category-row child-row child-of-<?= $categoryId ?>"
                                                 data-parent="<?= $categoryId ?>"
                                                 data-id="<?= $childId ?>"
-                                                data-order="<?= $childDisplayOrder ?>"
+                                                data-order="<?= $currentChildOrder ?>"
                                                 data-status="<?= $childIsActive ? 'active' : 'inactive' ?>"
                                                 data-name="<?= e(strtolower($childName)) ?>"
                                                 data-slug="<?= e(strtolower($childSlug)) ?>"
                                                 data-description="<?= e(strtolower($childDescription)) ?>">
 
+                                                <!-- CHILD CONTINUOUS ORDER (1, 2, 3...) -->
                                                 <td>
-                                                    <span class="order-box" style="opacity:0.85;">
-                                                        <?= $childDisplayOrder ?>
+                                                    <span class="order-box child-order-box" title="Subcategory #<?= $currentChildOrder ?>">
+                                                        <?= $currentChildOrder ?>
                                                     </span>
                                                 </td>
 
                                                 <td class="child-indent">
                                                     <div class="category-main">
                                                         <span style="color:var(--text-mute); font-family:monospace; margin-right:4px;">└─</span>
-                                                        <div
-                                                            class="category-image"
-                                                            style="width:46px; height:46px; flex:0 0 46px;"
-                                                            title="<?= e($childName) ?>">
-
+                                                        <div class="category-image" style="width:46px; height:46px; flex:0 0 46px;" title="<?= e($childName) ?>">
                                                             <?php if ($childImage !== ''): ?>
                                                                 <img
                                                                     src="<?= e($childImage) ?>"
@@ -2092,18 +1407,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                                         this.parentElement.classList.add('image-missing');
                                                                         this.parentElement.querySelector('.category-image-placeholder').style.display='flex';
                                                                     ">
-
-                                                                <span
-                                                                    class="category-image-placeholder"
-                                                                    style="display:none">
-                                                                    ◈
-                                                                </span>
+                                                                <span class="category-image-placeholder" style="display:none">◈</span>
                                                             <?php else: ?>
-                                                                <span class="category-image-placeholder">
-                                                                    ◈
-                                                                </span>
+                                                                <span class="category-image-placeholder">◈</span>
                                                             <?php endif; ?>
-
                                                         </div>
 
                                                         <div>
@@ -2111,14 +1418,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                                 <?= e($childName) ?>
                                                                 <span class="sub-badge">Sub</span>
                                                             </div>
-
                                                             <?php if ($childSlug !== ''): ?>
-                                                                <div class="category-slug">
-                                                                    /<?= e($childSlug) ?>
-                                                                </div>
+                                                                <div class="category-slug">/<?= e($childSlug) ?></div>
                                                             <?php endif; ?>
                                                         </div>
-
                                                     </div>
                                                 </td>
 
@@ -2129,34 +1432,27 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                 </td>
 
                                                 <td>
-                                                    <span class="product-count">
-                                                        ▣ <?= $childProdCount ?>
-                                                    </span>
+                                                    <span class="product-count">▣ <?= $childProdCount ?></span>
                                                 </td>
 
                                                 <td>
                                                     <?php if ($childIsActive): ?>
                                                         <span class="category-status category-status-active">
-                                                            <span class="category-status-dot"></span>
-                                                            Active
+                                                            <span class="category-status-dot"></span> Active
                                                         </span>
                                                     <?php else: ?>
                                                         <span class="category-status category-status-inactive">
-                                                            <span class="category-status-dot"></span>
-                                                            Inactive
+                                                            <span class="category-status-dot"></span> Inactive
                                                         </span>
                                                     <?php endif; ?>
                                                 </td>
 
                                                 <td>
-                                                    <div class="category-date">
-                                                        <?= e($childCreatedAt) ?>
-                                                    </div>
+                                                    <div class="category-date"><?= e($childCreatedAt) ?></div>
                                                 </td>
 
                                                 <td>
                                                     <div class="category-actions">
-
                                                         <!-- VIEW -->
                                                         <button
                                                             type="button"
@@ -2169,1017 +1465,471 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                             data-products="<?= $childProdCount ?>"
                                                             data-status="<?= $childIsActive ? 'Active' : 'Inactive' ?>"
                                                             data-created="<?= e($childCreatedAt) ?>"
-                                                            data-order="<?= $childDisplayOrder ?>"
+                                                            data-order="<?= $currentChildOrder ?>"
                                                             data-image="<?= e($childImage) ?>">
                                                             ◉
                                                         </button>
 
                                                         <!-- EDIT -->
-                                                        <a
-                                                            href="edit.php?id=<?= $childId ?>"
-                                                            class="category-action edit-btn"
-                                                            title="Edit Subcategory">
-                                                            ✎
-                                                        </a>
+                                                        <a href="edit.php?id=<?= $childId ?>" class="category-action edit-btn" title="Edit Subcategory">✎</a>
 
                                                         <!-- DELETE -->
                                                         <?php if ($childProdCount === 0): ?>
-                                                            <form
-                                                                method="POST"
-                                                                action="delete.php"
-                                                                class="delete-form"
-                                                                style="display:inline">
-
-                                                                <input
-                                                                    type="hidden"
-                                                                    name="category_id"
-                                                                    value="<?= $childId ?>">
-
-                                                                <input
-                                                                    type="hidden"
-                                                                    name="csrf_token"
-                                                                    value="<?= e($csrfToken) ?>">
-
-                                                                <button
-                                                                    type="submit"
-                                                                    class="category-action category-action-delete delete-category-btn"
-                                                                    title="Delete Subcategory">
-                                                                    ×
-                                                                </button>
-
+                                                            <form method="POST" action="delete.php" class="delete-form" style="display:inline">
+                                                                <input type="hidden" name="category_id" value="<?= $childId ?>">
+                                                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                                                <button type="submit" class="category-action category-action-delete delete-category-btn" title="Delete Subcategory">×</button>
                                                             </form>
                                                         <?php else: ?>
-                                                            <button
-                                                                type="button"
-                                                                class="category-action category-action-delete"
-                                                                title="Cannot delete: subcategory has products"
-                                                                data-cannot-delete="<?= $childProdCount ?>">
-                                                                ×
-                                                            </button>
+                                                            <button type="button" class="category-action category-action-delete" title="Cannot delete: subcategory has products" data-cannot-delete="<?= $childProdCount ?>">×</button>
                                                         <?php endif; ?>
-
                                                     </div>
                                                 </td>
-
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
 
                                 <?php endforeach; ?>
-
                             </tbody>
-
                         </table>
 
-                        <!-- NO SEARCH RESULT -->
-                        <div
-                            id="categoryNoResult"
-                            class="category-no-result"
-                            style="display:none">
-
-                            <div class="category-no-result-icon">
-                                ⌕
-                            </div>
-
-                            <h3>
-                                No matching categories
-                            </h3>
-
-                            <p>
-                                Try changing your search or status filter.
-                            </p>
-
+                        <div id="categoryNoResult" class="category-no-result" style="display:none">
+                            <div class="category-no-result-icon">⌕</div>
+                            <h3>No matching categories</h3>
+                            <p>Try changing your search or status filter.</p>
                         </div>
-
                     <?php endif; ?>
-
                 </div>
-
             </div>
 
-
-            <!-- SHORTCUTS -->
-            <div
-                class="shortcut-help-box"
-                id="shortcutHelpBox">
-
+            <!-- SHORTCUTS (D = DELETE, E = EDIT) -->
+            <div class="shortcut-help-box" id="shortcutHelpBox">
                 <div class="shortcut-help-title">
-
                     <span>⌨</span>
-
-                    <span>
-                        Keyboard Shortcuts
-                    </span>
-
-                    <small>
-                        A B C D E P V X H • Esc
-                    </small>
-
+                    <span>Keyboard Shortcuts</span>
+                    <small>A B C D E P V X H • Esc</small>
                 </div>
-
 
                 <div class="shortcut-grid">
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">A</span>
-                        <span class="shortcut-desc">
-                            Add Category
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">B</span>
-                        <span class="shortcut-desc">
-                            Search / focus search
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">C</span>
-                        <span class="shortcut-desc">
-                            Status filter
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">D</span>
-                        <span class="shortcut-desc">
-                            Edit selected category
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">E</span>
-                        <span class="shortcut-desc">
-                            Delete selected category
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">P</span>
-                        <span class="shortcut-desc">
-                            Print
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">V</span>
-                        <span class="shortcut-desc">
-                            Download PDF
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">X</span>
-                        <span class="shortcut-desc">
-                            Download Excel
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">H</span>
-                        <span class="shortcut-desc">
-                            Show / hide shortcuts
-                        </span>
-                    </div>
-
-                    <div class="shortcut-item">
-                        <span class="shortcut-key">Esc</span>
-                        <span class="shortcut-desc">
-                            Close details / clear search
-                        </span>
-                    </div>
-
+                    <div class="shortcut-item"><span class="shortcut-key">A</span><span class="shortcut-desc">Add Category</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">B</span><span class="shortcut-desc">Search / focus search</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">C</span><span class="shortcut-desc">Status filter</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">D</span><span class="shortcut-desc">Delete selected category</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">E</span><span class="shortcut-desc">Edit selected category</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">P</span><span class="shortcut-desc">Print</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">V</span><span class="shortcut-desc">Download PDF</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">X</span><span class="shortcut-desc">Download Excel</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">H</span><span class="shortcut-desc">Show / hide shortcuts</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">Esc</span><span class="shortcut-desc">Close details / clear search</span></div>
                 </div>
-
             </div>
 
         </div>
-
     </section>
-
 </main>
 
-
 <!-- DETAILS MODAL -->
-<div
-    class="modal-backdrop"
-    id="categoryModal"
-    aria-hidden="true">
-
-    <div
-        class="category-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="categoryModalTitle">
-
+<div class="modal-backdrop" id="categoryModal" aria-hidden="true">
+    <div class="category-modal" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
         <div class="modal-header">
-
-            <h3 id="categoryModalTitle">
-                Category Details
-            </h3>
-
-            <button
-                type="button"
-                class="modal-close"
-                id="modalCloseBtn">
-                ×
-            </button>
-
+            <h3 id="categoryModalTitle">Category Details</h3>
+            <button type="button" class="modal-close" id="modalCloseBtn">×</button>
         </div>
-
 
         <div class="modal-body">
-
             <div class="detail-grid">
-
-                <div
-                    class="detail-image"
-                    id="detailImageBox">
-                    ◈
-                </div>
-
+                <div class="detail-image" id="detailImageBox">◈</div>
 
                 <div>
-
                     <div class="detail-item">
-
-                        <label>
-                            Name
-                        </label>
-
-                        <div id="detailName">
-                            —
-                        </div>
-
+                        <label>Name</label>
+                        <div id="detailName">—</div>
                     </div>
 
-
-                    <div
-                        class="detail-item"
-                        style="margin-top:13px">
-
-                        <label>
-                            Slug
-                        </label>
-
-                        <div id="detailSlug">
-                            —
-                        </div>
-
+                    <div class="detail-item" style="margin-top:13px">
+                        <label>Slug</label>
+                        <div id="detailSlug">—</div>
                     </div>
 
-
-                    <div
-                        class="detail-item"
-                        style="margin-top:13px">
-
-                        <label>
-                            Status
-                        </label>
-
-                        <div id="detailStatus">
-                            —
-                        </div>
-
+                    <div class="detail-item" style="margin-top:13px">
+                        <label>Status</label>
+                        <div id="detailStatus">—</div>
                     </div>
-
 
                     <div class="detail-meta">
-
                         <div class="detail-card">
-
                             <div class="detail-item">
-
-                                <label>
-                                    Category No.
-                                </label>
-
-                                <div id="detailOrder">
-                                    —
-                                </div>
-
+                                <label>Category No.</label>
+                                <div id="detailOrder">—</div>
                             </div>
-
                         </div>
 
-
                         <div class="detail-card">
-
                             <div class="detail-item">
-
-                                <label>
-                                    Products
-                                </label>
-
-                                <div id="detailProducts">
-                                    —
-                                </div>
-
+                                <label>Products</label>
+                                <div id="detailProducts">—</div>
                             </div>
-
                         </div>
 
-
                         <div class="detail-card">
-
                             <div class="detail-item">
-
-                                <label>
-                                    Created
-                                </label>
-
-                                <div id="detailCreated">
-                                    —
-                                </div>
-
+                                <label>Created</label>
+                                <div id="detailCreated">—</div>
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
-                <div
-                    class="
-                        detail-item
-                        detail-full
-                    ">
-
-                    <label>
-                        Description
-                    </label>
-
-                    <div id="detailDescription">
-                        —
-                    </div>
-
+                <div class="detail-item detail-full">
+                    <label>Description</label>
+                    <div id="detailDescription">—</div>
                 </div>
-
             </div>
-
         </div>
-
 
         <div class="modal-footer">
-
-            <button
-                type="button"
-                class="btn"
-                id="modalCloseBtn2">
-                Close
-            </button>
-
+            <button type="button" class="btn" id="modalCloseBtn2">Close</button>
         </div>
-
     </div>
-
 </div>
-
 
 <!-- PDF / EXCEL LIBRARIES -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-
 <script>
     (function() {
-
         'use strict';
 
-        document.addEventListener(
-            'DOMContentLoaded',
-            function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput  = document.getElementById('categorySearch');
+            const statusFilter = document.getElementById('categoryStatusFilter');
+            const table        = document.getElementById('categoryTable');
+            const countElement = document.getElementById('visibleCategoryCount');
+            const noResult     = document.getElementById('categoryNoResult');
+            const shortcutBox  = document.getElementById('shortcutHelpBox');
+            const modal        = document.getElementById('categoryModal');
 
-                const searchInput =
-                    document.getElementById(
-                        'categorySearch'
-                    );
+            function rows() {
+                return table ? Array.from(table.querySelectorAll('tbody .category-row')) : [];
+            }
 
-                const statusFilter =
-                    document.getElementById(
-                        'categoryStatusFilter'
-                    );
+            function visibleRows() {
+                return rows().filter(row => row.style.display !== 'none');
+            }
 
-                const table =
-                    document.getElementById(
-                        'categoryTable'
-                    );
+            window.toggleCategoryAccordion = function(parentId) {
+                const childRows = document.querySelectorAll('.child-of-' + parentId);
+                const toggleBtn = document.getElementById('toggle-btn-' + parentId);
 
-                const countElement =
-                    document.getElementById(
-                        'visibleCategoryCount'
-                    );
+                if (!childRows.length) return;
 
-                const noResult =
-                    document.getElementById(
-                        'categoryNoResult'
-                    );
+                const isExpanded = childRows[0].classList.contains('show');
 
-                const shortcutBox =
-                    document.getElementById(
-                        'shortcutHelpBox'
-                    );
-
-                const modal =
-                    document.getElementById(
-                        'categoryModal'
-                    );
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | ROWS
-                |--------------------------------------------------------------------------
-                */
-
-                function rows() {
-                    return table ?
-                        Array.from(
-                            table.querySelectorAll(
-                                'tbody .category-row'
-                            )
-                        ) : [];
-                }
-
-                function visibleRows() {
-                    return rows().filter(
-                        function(row) {
-                            return row.style.display !== 'none';
-                        }
-                    );
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | SUB-CATEGORY ACCORDION TOGGLE
-                |--------------------------------------------------------------------------
-                */
-
-                window.toggleCategoryAccordion = function(parentId) {
-                    const childRows = document.querySelectorAll('.child-of-' + parentId);
-                    const toggleBtn = document.getElementById('toggle-btn-' + parentId);
-
-                    if (!childRows.length) return;
-
-                    const isExpanded = childRows[0].classList.contains('show');
-
-                    childRows.forEach(function(row) {
-                        if (isExpanded) {
-                            row.classList.remove('show');
-                        } else {
-                            row.classList.add('show');
-                        }
-                    });
-
-                    if (toggleBtn) {
-                        if (isExpanded) {
-                            toggleBtn.classList.remove('expanded');
-                        } else {
-                            toggleBtn.classList.add('expanded');
-                        }
+                childRows.forEach(function(row) {
+                    if (isExpanded) {
+                        row.classList.remove('show');
+                    } else {
+                        row.classList.add('show');
                     }
-                };
+                });
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | FIRST SELECTED ROW
-                |--------------------------------------------------------------------------
-                */
-
-                function selectFirstVisible(scroll) {
-                    const all = rows();
-
-                    all.forEach(
-                        function(row) {
-                            row.classList.remove(
-                                'keyboard-selected'
-                            );
-                        }
-                    );
-
-                    const first = visibleRows()[0];
-
-                    if (first) {
-                        first.classList.add(
-                            'keyboard-selected'
-                        );
-
-                        if (scroll) {
-                            first.scrollIntoView({
-                                block: 'nearest'
-                            });
-                        }
+                if (toggleBtn) {
+                    if (isExpanded) {
+                        toggleBtn.classList.remove('expanded');
+                    } else {
+                        toggleBtn.classList.add('expanded');
                     }
                 }
+            };
 
+            function selectFirstVisible(scroll) {
+                rows().forEach(r => r.classList.remove('keyboard-selected'));
+                const first = visibleRows()[0];
+                if (first) {
+                    first.classList.add('keyboard-selected');
+                    if (scroll) first.scrollIntoView({ block: 'nearest' });
+                }
+            }
 
-                /*
-                |--------------------------------------------------------------------------
-                | FILTER (Main + Child Hierarchy Aware)
-                |--------------------------------------------------------------------------
-                */
+            function filterCategories() {
+                if (!table) return;
 
-                function filterCategories() {
-                    if (!table) {
-                        return;
-                    }
+                const q = (searchInput?.value || '').toLowerCase().trim();
+                const status = statusFilter?.value || 'all';
 
-                    const q = (searchInput?.value || '').toLowerCase().trim();
-                    const status = statusFilter?.value || 'all';
+                let visibleCount = 0;
 
-                    let visibleCount = 0;
+                document.querySelectorAll('.parent-row').forEach(function(parentRow) {
+                    const pId = parentRow.dataset.id;
+                    const childRows = document.querySelectorAll('.child-of-' + pId);
 
-                    document.querySelectorAll('.parent-row').forEach(function(parentRow) {
-                        const pId = parentRow.dataset.id;
-                        const childRows = document.querySelectorAll('.child-of-' + pId);
+                    const pText = [
+                        parentRow.dataset.name,
+                        parentRow.dataset.slug,
+                        parentRow.dataset.description,
+                        parentRow.innerText
+                    ].join(' ').toLowerCase();
 
-                        const pText = [
-                            parentRow.dataset.name,
-                            parentRow.dataset.slug,
-                            parentRow.dataset.description,
-                            parentRow.innerText
+                    const pStatusMatch = (status === 'all' || parentRow.dataset.status === status);
+                    const pQueryMatch = (!q || pText.includes(q));
+
+                    let anyChildMatched = false;
+
+                    childRows.forEach(function(cRow) {
+                        const cText = [
+                            cRow.dataset.name,
+                            cRow.dataset.slug,
+                            cRow.dataset.description,
+                            cRow.innerText
                         ].join(' ').toLowerCase();
 
-                        const pStatusMatch = (status === 'all' || parentRow.dataset.status === status);
-                        const pQueryMatch = (!q || pText.includes(q));
+                        const cStatusMatch = (status === 'all' || cRow.dataset.status === status);
+                        const cQueryMatch = (!q || cText.includes(q));
 
-                        let anyChildMatched = false;
-
-                        childRows.forEach(function(cRow) {
-                            const cText = [
-                                cRow.dataset.name,
-                                cRow.dataset.slug,
-                                cRow.dataset.description,
-                                cRow.innerText
-                            ].join(' ').toLowerCase();
-
-                            const cStatusMatch = (status === 'all' || cRow.dataset.status === status);
-                            const cQueryMatch = (!q || cText.includes(q));
-
-                            if (q !== '' && cQueryMatch && cStatusMatch) {
-                                anyChildMatched = true;
-                                cRow.style.display = '';
-                                cRow.classList.add('show');
-                            } else if (q === '') {
-                                cRow.style.display = '';
-                                cRow.classList.remove('show');
-                            } else {
-                                cRow.style.display = 'none';
-                            }
-                        });
-
-                        const toggleBtn = document.getElementById('toggle-btn-' + pId);
-
-                        if (pQueryMatch && pStatusMatch) {
-                            parentRow.style.display = '';
-                            visibleCount++;
-                        } else if (anyChildMatched) {
-                            parentRow.style.display = '';
-                            visibleCount++;
-                            if (toggleBtn) toggleBtn.classList.add('expanded');
+                        if (q !== '' && cQueryMatch && cStatusMatch) {
+                            anyChildMatched = true;
+                            cRow.style.display = '';
+                            cRow.classList.add('show');
+                        } else if (q === '') {
+                            cRow.style.display = '';
+                            cRow.classList.remove('show');
                         } else {
-                            parentRow.style.display = 'none';
-                            if (toggleBtn && q !== '') toggleBtn.classList.remove('expanded');
+                            cRow.style.display = 'none';
                         }
                     });
 
-                    if (countElement) {
-                        countElement.textContent = visibleCount;
-                    }
+                    const toggleBtn = document.getElementById('toggle-btn-' + pId);
 
-                    if (noResult) {
-                        noResult.style.display = visibleCount === 0 ? 'block' : 'none';
-                    }
-
-                    selectFirstVisible(false);
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | PRINT
-                |--------------------------------------------------------------------------
-                */
-
-                function printCategories() {
-                    window.print();
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | EXCEL
-                |--------------------------------------------------------------------------
-                */
-
-                function excelCategories() {
-                    const data =
-                        visibleRows().map(
-                            function(row) {
-                                return {
-                                    'Order': row.querySelector('.order-box')?.innerText.trim() || '',
-                                    'Category': row.querySelector('.category-name')?.innerText.trim() || '',
-                                    'Slug': row.dataset.slug || '',
-                                    'Description': row.dataset.description || '',
-                                    'Products': row.querySelector('.product-count')?.innerText.replace(/[^\d]/g, '') || '0',
-                                    'Status': row.dataset.status === 'active' ? 'Active' : 'Inactive',
-                                    'Created': row.querySelector('.category-date')?.innerText.trim() || ''
-                                };
-                            }
-                        );
-
-                    if (window.XLSX) {
-                        const ws = XLSX.utils.json_to_sheet(data);
-                        ws['!cols'] = [
-                            { wch: 10 },
-                            { wch: 28 },
-                            { wch: 30 },
-                            { wch: 50 },
-                            { wch: 12 },
-                            { wch: 14 },
-                            { wch: 24 }
-                        ];
-
-                        const wb = XLSX.utils.book_new();
-                        XLSX.utils.book_append_sheet(wb, ws, 'Categories');
-
-                        XLSX.writeFile(
-                            wb,
-                            'categories-' +
-                            new Date().toISOString().slice(0, 10) +
-                            '.xlsx'
-                        );
-                    }
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | PDF
-                |--------------------------------------------------------------------------
-                */
-
-                function pdfCategories() {
-                    if (!window.jspdf || !window.jspdf.jsPDF) {
-                        alert('PDF library is not loaded. Use Print and choose Save as PDF.');
-                        return;
-                    }
-
-                    const body =
-                        visibleRows().map(
-                            function(row) {
-                                return [
-                                    row.querySelector('.order-box')?.innerText.trim() || '',
-                                    row.querySelector('.category-name')?.innerText.trim() || '',
-                                    row.dataset.slug || '',
-                                    row.dataset.description || '—',
-                                    row.querySelector('.product-count')?.innerText.trim() || '0',
-                                    row.dataset.status === 'active' ? 'Active' : 'Inactive',
-                                    row.querySelector('.category-date')?.innerText.trim() || ''
-                                ];
-                            }
-                        );
-
-                    const doc = new jspdf.jsPDF({
-                        orientation: 'landscape',
-                        unit: 'mm',
-                        format: 'a4'
-                    });
-
-                    doc.setFontSize(16);
-                    doc.text('GatewayLinen - Categories', 14, 14);
-
-                    doc.setFontSize(9);
-                    doc.text('Generated: ' + new Date().toLocaleString(), 14, 20);
-
-                    if (typeof doc.autoTable === 'function') {
-                        doc.autoTable({
-                            startY: 26,
-                            head: [
-                                [
-                                    'Order',
-                                    'Category',
-                                    'Slug',
-                                    'Description',
-                                    'Products',
-                                    'Status',
-                                    'Created'
-                                ]
-                            ],
-                            body: body,
-                            styles: {
-                                fontSize: 7,
-                                cellPadding: 2
-                            },
-                            headStyles: {
-                                fontSize: 7
-                            }
-                        });
-                    }
-
-                    doc.save(
-                        'categories-' +
-                        new Date().toISOString().slice(0, 10) +
-                        '.pdf'
-                    );
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | BUTTON EVENTS
-                |--------------------------------------------------------------------------
-                */
-
-                document.getElementById('printBtn')?.addEventListener('click', printCategories);
-                document.getElementById('printBtn2')?.addEventListener('click', printCategories);
-                document.getElementById('pdfBtn')?.addEventListener('click', pdfCategories);
-                document.getElementById('pdfBtn2')?.addEventListener('click', pdfCategories);
-                document.getElementById('excelBtn')?.addEventListener('click', excelCategories);
-                document.getElementById('excelBtn2')?.addEventListener('click', excelCategories);
-
-                searchInput?.addEventListener('input', filterCategories);
-                statusFilter?.addEventListener('change', filterCategories);
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | DETAILS MODAL
-                |--------------------------------------------------------------------------
-                */
-
-                function openDetails(btn) {
-                    document.getElementById('detailName').textContent = btn.dataset.name || '—';
-                    document.getElementById('detailSlug').textContent = btn.dataset.slug ? '/' + btn.dataset.slug : '—';
-                    document.getElementById('detailStatus').textContent = btn.dataset.status || '—';
-                    document.getElementById('detailOrder').textContent = btn.dataset.order || '—';
-                    document.getElementById('detailProducts').textContent = btn.dataset.products || '0';
-                    document.getElementById('detailCreated').textContent = btn.dataset.created || '—';
-                    document.getElementById('detailDescription').textContent = btn.dataset.description || 'No description available.';
-
-                    const box = document.getElementById('detailImageBox');
-                    box.innerHTML = '';
-
-                    if (btn.dataset.image) {
-                        const img = document.createElement('img');
-                        img.src = btn.dataset.image;
-                        img.alt = btn.dataset.name || 'Category';
-                        img.onerror = function() {
-                            box.textContent = '◈';
-                        };
-                        box.appendChild(img);
+                    if (pQueryMatch && pStatusMatch) {
+                        parentRow.style.display = '';
+                        visibleCount++;
+                    } else if (anyChildMatched) {
+                        parentRow.style.display = '';
+                        visibleCount++;
+                        if (toggleBtn) toggleBtn.classList.add('expanded');
                     } else {
-                        box.textContent = '◈';
-                    }
-
-                    modal.classList.add('show');
-                    modal.setAttribute('aria-hidden', 'false');
-                }
-
-                document.querySelectorAll('.detail-btn').forEach(function(btn) {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        openDetails(this);
-                    });
-                });
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | CLOSE MODAL
-                |--------------------------------------------------------------------------
-                */
-
-                function closeModal() {
-                    if (!modal) return;
-                    modal.classList.remove('show');
-                    modal.setAttribute('aria-hidden', 'true');
-                }
-
-                document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
-                document.getElementById('modalCloseBtn2')?.addEventListener('click', closeModal);
-
-                modal?.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        closeModal();
+                        parentRow.style.display = 'none';
+                        if (toggleBtn && q !== '') toggleBtn.classList.remove('expanded');
                     }
                 });
 
+                if (countElement) countElement.textContent = visibleCount;
+                if (noResult) noResult.style.display = visibleCount === 0 ? 'block' : 'none';
 
-                /*
-                |--------------------------------------------------------------------------
-                | DELETE CONFIRMATION
-                |--------------------------------------------------------------------------
-                */
-
-                document.querySelectorAll('.delete-category-btn').forEach(function(btn) {
-                    btn.addEventListener('click', function(e) {
-                        const form = btn.closest('.delete-form');
-                        if (!form) return;
-
-                        const categoryName = btn.closest('.category-row')?.querySelector('.category-name')?.innerText.trim() || 'this category';
-
-                        const confirmed = confirm(
-                            'Delete "' + categoryName + '"?\n\n' +
-                            'This action cannot be undone.\n\n' +
-                            'Remaining category numbers will automatically become 1, 2, 3...'
-                        );
-
-                        if (!confirmed) {
-                            e.preventDefault();
-                            return;
-                        }
-                    });
-                });
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | CANNOT DELETE
-                |--------------------------------------------------------------------------
-                */
-
-                document.querySelectorAll('[data-cannot-delete]').forEach(function(btn) {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        alert(
-                            'This category has ' +
-                            btn.dataset.cannotDelete +
-                            ' attached.\n\n' +
-                            'Move or remove items first.'
-                        );
-                    });
-                });
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | KEYBOARD SHORTCUTS
-                |--------------------------------------------------------------------------
-                */
-
-                document.addEventListener(
-                    'keydown',
-                    function(e) {
-                        const tag = (e.target?.tagName || '').toLowerCase();
-                        const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
-
-                        if (typing) return;
-
-                        const key = (e.key || '').toUpperCase();
-
-                        if (['A', 'B', 'C', 'D', 'E', 'P', 'V', 'X', 'H'].includes(key)) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }
-
-                        // A = ADD
-                        if (key === 'A') {
-                            document.getElementById('addCategoryBtn')?.click();
-                            return;
-                        }
-
-                        // B = SEARCH
-                        if (key === 'B') {
-                            searchInput?.focus();
-                            searchInput?.select();
-                            return;
-                        }
-
-                        // C = STATUS
-                        if (key === 'C') {
-                            statusFilter?.focus();
-                            return;
-                        }
-
-                        // D = EDIT
-                        if (key === 'D') {
-                            const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
-                            const edit = selected?.querySelector('.edit-btn');
-
-                            if (edit) {
-                                edit.click();
-                            } else {
-                                alert('No category available to edit.');
-                            }
-                            return;
-                        }
-
-                        // E = DELETE
-                        if (key === 'E') {
-                            const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
-                            const del = selected?.querySelector('.delete-category-btn');
-
-                            if (del) {
-                                del.click();
-                            } else if (selected) {
-                                alert('This category cannot be deleted because it contains products or sub-categories.');
-                            } else {
-                                alert('No category available to delete.');
-                            }
-                            return;
-                        }
-
-                        // P = PRINT
-                        if (key === 'P') {
-                            printCategories();
-                            return;
-                        }
-
-                        // V = PDF
-                        if (key === 'V') {
-                            pdfCategories();
-                            return;
-                        }
-
-                        // X = EXCEL
-                        if (key === 'X') {
-                            excelCategories();
-                            return;
-                        }
-
-                        // H = HELP
-                        if (key === 'H') {
-                            shortcutBox?.classList.toggle('hidden');
-                            return;
-                        }
-
-                        // ESC
-                        if (key === 'ESCAPE') {
-                            if (modal?.classList.contains('show')) {
-                                closeModal();
-                                return;
-                            }
-
-                            if (searchInput?.value) {
-                                searchInput.value = '';
-                                filterCategories();
-                            }
-
-                            searchInput?.blur();
-                            statusFilter?.blur();
-                        }
-                    },
-                    true
-                );
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | CLICK ROW = SELECT & TOGGLE ACCORDION
-                |--------------------------------------------------------------------------
-                */
-
-                rows().forEach(function(row) {
-                    row.addEventListener('click', function(e) {
-                        if (e.target.closest('button, a, form')) {
-                            return;
-                        }
-
-                        // Keyboard selection highlight
-                        rows().forEach(r => r.classList.remove('keyboard-selected'));
-                        row.classList.add('keyboard-selected');
-
-                        // Toggle accordion if it's a parent row
-                        if (row.classList.contains('parent-row')) {
-                            const parentId = row.dataset.id;
-                            window.toggleCategoryAccordion(parentId);
-                        }
-                    });
-                });
-
-                // Toggle Button Event Listener
-                document.querySelectorAll('.parent-toggle-btn').forEach(function(btn) {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const pId = this.dataset.toggleId;
-                        window.toggleCategoryAccordion(pId);
-                    });
-                });
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | INITIAL FILTER
-                |--------------------------------------------------------------------------
-                */
-
-                filterCategories();
-
+                selectFirstVisible(false);
             }
-        );
 
+            function printCategories() { window.print(); }
+
+            function excelCategories() {
+                const data = visibleRows().map(function(row) {
+                    return {
+                        'Order': row.querySelector('.order-box')?.innerText.trim() || '',
+                        'Category': row.querySelector('.category-name')?.innerText.trim() || '',
+                        'Slug': row.dataset.slug || '',
+                        'Description': row.dataset.description || '',
+                        'Products': row.querySelector('.product-count')?.innerText.replace(/[^\d]/g, '') || '0',
+                        'Status': row.dataset.status === 'active' ? 'Active' : 'Inactive',
+                        'Created': row.querySelector('.category-date')?.innerText.trim() || ''
+                    };
+                });
+
+                if (window.XLSX) {
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    ws['!cols'] = [{ wch: 10 }, { wch: 28 }, { wch: 30 }, { wch: 50 }, { wch: 12 }, { wch: 14 }, { wch: 24 }];
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Categories');
+                    XLSX.writeFile(wb, 'categories-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+                }
+            }
+
+            function pdfCategories() {
+                if (!window.jspdf || !window.jspdf.jsPDF) {
+                    alert('PDF library is not loaded. Use Print and choose Save as PDF.');
+                    return;
+                }
+
+                const body = visibleRows().map(function(row) {
+                    return [
+                        row.querySelector('.order-box')?.innerText.trim() || '',
+                        row.querySelector('.category-name')?.innerText.trim() || '',
+                        row.dataset.slug || '',
+                        row.dataset.description || '—',
+                        row.querySelector('.product-count')?.innerText.trim() || '0',
+                        row.dataset.status === 'active' ? 'Active' : 'Inactive',
+                        row.querySelector('.category-date')?.innerText.trim() || ''
+                    ];
+                });
+
+                const doc = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                doc.setFontSize(16);
+                doc.text('GatewayLinen - Categories', 14, 14);
+                doc.setFontSize(9);
+                doc.text('Generated: ' + new Date().toLocaleString(), 14, 20);
+
+                if (typeof doc.autoTable === 'function') {
+                    doc.autoTable({
+                        startY: 26,
+                        head: [['Order', 'Category', 'Slug', 'Description', 'Products', 'Status', 'Created']],
+                        body: body,
+                        styles: { fontSize: 7, cellPadding: 2 },
+                        headStyles: { fontSize: 7 }
+                    });
+                }
+
+                doc.save('categories-' + new Date().toISOString().slice(0, 10) + '.pdf');
+            }
+
+            document.getElementById('printBtn')?.addEventListener('click', printCategories);
+            document.getElementById('printBtn2')?.addEventListener('click', printCategories);
+            document.getElementById('pdfBtn')?.addEventListener('click', pdfCategories);
+            document.getElementById('pdfBtn2')?.addEventListener('click', pdfCategories);
+            document.getElementById('excelBtn')?.addEventListener('click', excelCategories);
+            document.getElementById('excelBtn2')?.addEventListener('click', excelCategories);
+
+            searchInput?.addEventListener('input', filterCategories);
+            statusFilter?.addEventListener('change', filterCategories);
+
+            function openDetails(btn) {
+                document.getElementById('detailName').textContent = btn.dataset.name || '—';
+                document.getElementById('detailSlug').textContent = btn.dataset.slug ? '/' + btn.dataset.slug : '—';
+                document.getElementById('detailStatus').textContent = btn.dataset.status || '—';
+                document.getElementById('detailOrder').textContent = btn.dataset.order || '—';
+                document.getElementById('detailProducts').textContent = btn.dataset.products || '0';
+                document.getElementById('detailCreated').textContent = btn.dataset.created || '—';
+                document.getElementById('detailDescription').textContent = btn.dataset.description || 'No description available.';
+
+                const box = document.getElementById('detailImageBox');
+                box.innerHTML = '';
+
+                if (btn.dataset.image) {
+                    const img = document.createElement('img');
+                    img.src = btn.dataset.image;
+                    img.alt = btn.dataset.name || 'Category';
+                    img.onerror = function() { box.textContent = '◈'; };
+                    box.appendChild(img);
+                } else {
+                    box.textContent = '◈';
+                }
+
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+            }
+
+            document.querySelectorAll('.detail-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openDetails(this);
+                });
+            });
+
+            function closeModal() {
+                if (!modal) return;
+                modal.classList.remove('show');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+
+            document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
+            document.getElementById('modalCloseBtn2')?.addEventListener('click', closeModal);
+
+            modal?.addEventListener('click', function(e) {
+                if (e.target === modal) closeModal();
+            });
+
+            document.querySelectorAll('.delete-category-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    const form = btn.closest('.delete-form');
+                    if (!form) return;
+                    const categoryName = btn.closest('.category-row')?.querySelector('.category-name')?.innerText.trim() || 'this category';
+                    const confirmed = confirm('Delete "' + categoryName + '"?\n\nThis action cannot be undone.');
+                    if (!confirmed) e.preventDefault();
+                });
+            });
+
+            document.querySelectorAll('[data-cannot-delete]').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    alert('This category has ' + btn.dataset.cannotDelete + ' attached.\n\nMove or remove items first.');
+                });
+            });
+
+            /* KEYBOARD SHORTCUTS: D = DELETE, E = EDIT */
+            document.addEventListener('keydown', function(e) {
+                const tag = (e.target?.tagName || '').toLowerCase();
+                const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
+
+                if (typing) return;
+
+                const key = (e.key || '').toUpperCase();
+
+                if (['A', 'B', 'C', 'D', 'E', 'P', 'V', 'X', 'H'].includes(key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                if (key === 'A') {
+                    document.getElementById('addCategoryBtn')?.click();
+                } else if (key === 'B') {
+                    searchInput?.focus();
+                    searchInput?.select();
+                } else if (key === 'C') {
+                    statusFilter?.focus();
+                } else if (key === 'D') { // D = DELETE
+                    const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
+                    const del = selected?.querySelector('.delete-category-btn');
+                    if (del) {
+                        del.click();
+                    } else if (selected) {
+                        alert('This category cannot be deleted because it contains products or sub-categories.');
+                    }
+                } else if (key === 'E') { // E = EDIT
+                    const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
+                    selected?.querySelector('.edit-btn')?.click();
+                } else if (key === 'P') {
+                    printCategories();
+                } else if (key === 'V') {
+                    pdfCategories();
+                } else if (key === 'X') {
+                    excelCategories();
+                } else if (key === 'H') {
+                    shortcutBox?.classList.toggle('hidden');
+                } else if (key === 'ESCAPE') {
+                    if (modal?.classList.contains('show')) {
+                        closeModal();
+                    } else if (searchInput?.value) {
+                        searchInput.value = '';
+                        filterCategories();
+                    }
+                    searchInput?.blur();
+                    statusFilter?.blur();
+                }
+            }, true);
+
+            rows().forEach(function(row) {
+                row.addEventListener('click', function(e) {
+                    if (e.target.closest('button, a, form')) return;
+                    rows().forEach(r => r.classList.remove('keyboard-selected'));
+                    row.classList.add('keyboard-selected');
+                    if (row.classList.contains('parent-row')) {
+                        window.toggleCategoryAccordion(row.dataset.id);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.parent-toggle-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    window.toggleCategoryAccordion(this.dataset.toggleId);
+                });
+            });
+
+            filterCategories();
+        });
     })();
 </script>
 
 <?php
-
 require_once __DIR__ . '/../includes/footer.php';
-
 ?>

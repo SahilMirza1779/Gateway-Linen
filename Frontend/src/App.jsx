@@ -25,6 +25,7 @@ import CartDrawer from "./components/CartDrawer";
 import { WishlistProvider } from "./context/WishlistContext";
 import WishlistDrawer from "./components/WishlistDrawer";
 import ProductsPage from "./components/ProductsPage";
+import QuoteBuilder from "./components/QuoteBuilder"; // Naya QuoteBuilder import kiya
 import {
   FiArrowRight,
   FiTruck,
@@ -504,6 +505,7 @@ const AppLayout = () => {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/products" element={<ProductsPage />} />
+              <Route path="/quote-builder" element={<QuoteBuilder />} />
             </Routes>
           </div>
           {!isAuthPage && <Footer />}

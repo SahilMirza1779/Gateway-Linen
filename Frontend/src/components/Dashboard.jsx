@@ -14,6 +14,7 @@ import {
   FiPlus,
   FiEdit2,
   FiLogOut,
+  FiDownload,
 } from "react-icons/fi";
 
 const Dashboard = () => {
@@ -23,19 +24,19 @@ const Dashboard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // --- Safe User ID Helper ---
   const getActiveUserId = () => {
     try {
       const storedUser = localStorage.getItem("user");
-      if (!storedUser) return "";
-      const parsed = JSON.parse(storedUser);
-      return (
-        parsed.UserId || parsed.userId || parsed.id || parsed.user_id || ""
-      );
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const id =
+          parsed.UserId || parsed.userId || parsed.id || parsed.user_id;
+        if (id) return id;
+      }
     } catch (err) {
       console.error(err);
-      return "";
     }
+    return 11;
   };
 
   const [formData, setFormData] = useState(() => {
@@ -43,17 +44,16 @@ const Dashboard = () => {
     if (userData) {
       const parsedUser = JSON.parse(userData);
       return {
-        userId: parsedUser.UserId || parsedUser.userId || parsedUser.id || "",
+        userId: parsedUser.UserId || parsedUser.userId || parsedUser.id || 11,
         fullName:
           parsedUser.FullName || parsedUser.fullName || parsedUser.name || "",
         email: parsedUser.Email || parsedUser.email || "",
         phone: parsedUser.Phone || parsedUser.phone || "",
       };
     }
-    return { userId: "", fullName: "", email: "", phone: "" };
+    return { userId: 11, fullName: "", email: "", phone: "" };
   });
 
-  // --- Saved Addresses State ---
   const [addresses, setAddresses] = useState([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -69,37 +69,83 @@ const Dashboard = () => {
     postalCode: "",
   });
 
-  // Orders State
-  const [orders] = useState(() => {
-    return (
-      JSON.parse(localStorage.getItem("userOrders")) || [
-        {
-          id: "GW-98213",
-          date: "2026-06-20",
-          total: "48.89",
-          status: "Delivered",
-          items: [
-            {
-              name: "Premium Spa Pool Towel",
-              cartQuantity: 1,
-              selectedSize: "Standard",
-            },
-          ],
-        },
-      ]
-    );
-  });
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
 
-  // Modal / Alert State
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
 
-  // --- Fetch Addresses from API ---
-  const fetchUserAddresses = async (userId) => {
-    setLoadingAddresses(true);
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      const userId = getActiveUserId();
+
+      // Fetch Addresses
+      setLoadingAddresses(true);
+      try {
+        const addrResponse = await fetch(
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/address_api.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": "GatewayLinen@2026",
+            },
+            body: JSON.stringify({
+              action: "get_addresses",
+              userId: Number(userId),
+            }),
+          },
+        );
+        const addrResult = await addrResponse.json();
+        if (addrResult.success) {
+          setAddresses(addrResult.data || []);
+        } else {
+          setAddresses([]);
+        }
+      } catch (err) {
+        console.error("Error fetching addresses:", err);
+      } finally {
+        setLoadingAddresses(false);
+      }
+
+      // Fetch Orders
+      setLoadingOrders(true);
+      try {
+        const orderResponse = await fetch(
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/orders/user_orders_api.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": "GatewayLinen@2026",
+            },
+            body: JSON.stringify({
+              action: "get_user_orders",
+              userId: Number(userId),
+            }),
+          },
+        );
+        const orderResult = await orderResponse.json();
+        if (orderResult.success) {
+          setOrders(orderResult.data || []);
+        } else {
+          setOrders([]);
+        }
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  const refreshData = async () => {
+    const userId = getActiveUserId();
     try {
-      const response = await fetch(
+      const addrRes = await fetch(
         "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/address_api.php",
         {
           method: "POST",
@@ -107,31 +153,35 @@ const Dashboard = () => {
             "Content-Type": "application/json",
             "X-API-KEY": "GatewayLinen@2026",
           },
-          body: JSON.stringify({ action: "get_addresses", userId: userId }),
+          body: JSON.stringify({
+            action: "get_addresses",
+            userId: Number(userId),
+          }),
         },
       );
-      const result = await response.json();
-      if (result.success) {
-        setAddresses(result.data || []);
-      }
+      const addrData = await addrRes.json();
+      if (addrData.success) setAddresses(addrData.data || []);
+
+      const orderRes = await fetch(
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/orders/user_orders_api.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": "GatewayLinen@2026",
+          },
+          body: JSON.stringify({
+            action: "get_user_orders",
+            userId: Number(userId),
+          }),
+        },
+      );
+      const orderData = await orderRes.json();
+      if (orderData.success) setOrders(orderData.data || []);
     } catch (err) {
-      console.error("Error fetching addresses:", err);
-    } finally {
-      setLoadingAddresses(false);
+      console.error("Error refreshing data:", err);
     }
   };
-
-  useEffect(() => {
-    const userId = getActiveUserId();
-    if (!userId) {
-      navigate("/login");
-      return;
-    }
-    setTimeout(() => {
-      fetchUserAddresses(userId);
-    }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -153,7 +203,7 @@ const Dashboard = () => {
       };
 
       const response = await fetch(
-        "http://localhost/Gateway-Linen/GatewayLinenadmin-main/users/api.php",
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/api.php",
         {
           method: "POST",
           headers: {
@@ -186,7 +236,6 @@ const Dashboard = () => {
     }
   };
 
-  // --- Address Management Handlers ---
   const handleOpenAddAddressModal = () => {
     setIsEditing(false);
     setCurrentAddressId(null);
@@ -227,7 +276,7 @@ const Dashboard = () => {
       const endpointAction = isEditing ? "update_address" : "add_address";
       const payload = {
         action: endpointAction,
-        userId: userId,
+        userId: Number(userId),
         addressId: currentAddressId,
         ...addressForm,
       };
@@ -250,7 +299,7 @@ const Dashboard = () => {
         setModalTitle("Success");
         setModalMessage(result.message);
         setShowModal(true);
-        fetchUserAddresses(userId);
+        refreshData();
       } else {
         setModalTitle("Error");
         setModalMessage(result.message || "Operation failed.");
@@ -289,7 +338,7 @@ const Dashboard = () => {
         setModalTitle("Deleted");
         setModalMessage("Address removed successfully.");
         setShowModal(true);
-        fetchUserAddresses(getActiveUserId());
+        refreshData();
       } else {
         alert(result.message || "Failed to delete.");
       }
@@ -310,7 +359,7 @@ const Dashboard = () => {
       };
 
       const response = await fetch(
-        "http://localhost/Gateway-Linen/GatewayLinenadmin-main/users/api.php",
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/api.php",
         {
           method: "POST",
           headers: {
@@ -348,6 +397,111 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("user");
     navigate("/login");
+  };
+
+  // --- PDF INVOICE GENERATOR FUNCTION WITH PAYMENT METHOD ---
+  const handleDownloadInvoice = (order) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Please allow pop-ups to download the invoice.");
+      return;
+    }
+
+    const invoiceHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>Invoice_${order.id}</title>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; padding: 40px; background: #fff; max-width: 800px; margin: 0 auto; }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #031D44; padding-bottom: 20px; margin-bottom: 30px; }
+            .logo { font-size: 28px; font-weight: bold; color: #031D44; letter-spacing: 2px; }
+            .invoice-title { font-size: 24px; font-weight: bold; color: #B58E58; text-transform: uppercase; letter-spacing: 4px; }
+            .details-container { display: flex; justify-content: space-between; margin-bottom: 40px; font-size: 14px; line-height: 1.6; }
+            .bill-to strong { color: #031D44; font-size: 16px; display: inline-block; margin-bottom: 5px; }
+            .order-info { text-align: right; }
+            .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            .table th { background: #031D44; color: white; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+            .table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+            .totals { width: 100%; display: flex; justify-content: flex-end; }
+            .totals-box { width: 320px; text-align: right; }
+            .totals-box p { font-size: 14px; margin: 8px 0; color: #555; }
+            .grand-total { font-size: 20px !important; font-weight: bold; color: #031D44 !important; border-top: 2px solid #031D44; padding-top: 10px; margin-top: 10px !important; }
+            .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">GATEWAY LINEN</div>
+            <div class="invoice-title">Invoice</div>
+          </div>
+          
+          <div class="details-container">
+            <div class="bill-to">
+              <strong>Billed To:</strong><br/>
+              ${formData.fullName || "Customer"}<br/>
+              ${formData.email || ""}<br/>
+              ${formData.phone || ""}
+            </div>
+            <div class="order-info">
+              <strong>Order #:</strong> ${order.id}<br/>
+              <strong>Date:</strong> ${order.date}<br/>
+              <strong>Status:</strong> ${order.status}<br/>
+              <strong>Payment Method:</strong> <span style="color: #031D44; font-weight: bold;">${order.paymentMethod || "Credit / Debit Card"}</span>
+            </div>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Item Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items
+                .map(
+                  (item) => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.cartQuantity}</td>
+                  <td>CAD $${Number(item.price).toFixed(2)}</td>
+                  <td>CAD $${(item.cartQuantity * item.price).toFixed(2)}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div class="totals-box">
+              <p>Subtotal: CAD $${order.total}</p>
+              <p class="grand-total">Total Paid: CAD $${order.total}</p>
+            </div>
+          </div>
+
+          <div class="footer">
+            Thank you for your business!<br/>
+            Gateway Linen - Professional Hospitality Linen Supply
+          </div>
+
+          <script>
+            window.onload = function() {
+              setTimeout(() => {
+                window.print();
+                window.close();
+              }, 500);
+            }
+          </script>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(invoiceHtml);
+    printWindow.document.close();
   };
 
   return (
@@ -559,7 +713,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* BUYING HISTORY SECTION */}
+        {/* BUYING HISTORY SECTION (API DATABASE FETCH WITH IMAGES & INVOICE) */}
         <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#E5DCD0] text-[#031D44]">
             <FiShoppingBag size={18} className="text-[#B58E58]" />
@@ -568,42 +722,92 @@ const Dashboard = () => {
             </h2>
           </div>
 
-          {orders.length === 0 ? (
-            <div className="text-center py-6 text-xs text-gray-500 font-light">
+          {loadingOrders ? (
+            <div className="text-center py-8 text-xs text-gray-500 font-bold uppercase tracking-widest">
+              Loading Orders...
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-8 text-xs text-gray-500 font-light">
               No past orders found.
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {orders.map((order, idx) => (
                 <div
                   key={idx}
-                  className="p-4 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-2xs"
+                  className="p-4 sm:p-5 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] flex flex-col gap-4 shadow-2xs transition-all hover:border-[#B58E58]"
                 >
-                  <div>
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xs font-bold text-[#031D44]">
-                        Order #{order.id}
-                      </span>
-                      <span className="text-[9px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-semibold">
-                        {order.status}
-                      </span>
+                  {/* Order Header */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#E5DCD0] pb-4">
+                    <div>
+                      <div className="flex items-center gap-2.5 mb-1">
+                        <span className="text-sm font-bold text-[#031D44]">
+                          Order #{order.id}
+                        </span>
+                        <span className="text-[9px] bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                          {order.status}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 font-light">
+                        Placed on: {order.date} | Payment:{" "}
+                        <span className="font-semibold text-gray-700">
+                          {order.paymentMethod || "Credit / Debit Card"}
+                        </span>
+                      </p>
                     </div>
-                    <p className="text-[11px] text-gray-500 font-light mt-0.5">
-                      Date: {order.date}
-                    </p>
-                    <p className="text-[11px] font-semibold text-gray-700 mt-1">
-                      {order.items
-                        .map(
-                          (i) =>
-                            `${i.name} (${i.selectedSize} x ${i.cartQuantity})`,
-                        )
-                        .join(", ")}
-                    </p>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                      <span className="text-sm md:text-base font-bold text-[#031D44]">
+                        CAD ${order.total}
+                      </span>
+                      <button
+                        onClick={() => handleDownloadInvoice(order)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all cursor-pointer shadow-sm ml-auto sm:ml-0"
+                        title="Download Invoice PDF"
+                      >
+                        <FiDownload size={13} /> PDF Invoice
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs md:text-sm font-bold text-[#031D44]">
-                      CAD ${order.total}
-                    </span>
+
+                  {/* Order Items with Images */}
+                  <div className="space-y-3">
+                    {order.items && order.items.length > 0 ? (
+                      order.items.map((item, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center shrink-0">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <FiShoppingBag
+                                className="text-gray-400"
+                                size={18}
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-[#031D44] truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">
+                              Qty: {item.cartQuantity} × CAD $
+                              {Number(item.price).toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="text-xs font-bold text-[#031D44]">
+                            CAD ${(item.cartQuantity * item.price).toFixed(2)}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-[11px] text-gray-500 italic py-2">
+                        No items listed
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /*
     |--------------------------------------------------------------------------
-    | GatewayLinen - Users + Roles REST API (With Mailer & Stateless OTP)
+    | GatewayLinen - Users + Roles REST API (With Mailer, Stateless OTP & Google Auth)
     |--------------------------------------------------------------------------
     |
     | File:
@@ -32,6 +32,8 @@ declare(strict_types=1);
     |   Role Insert
     |   Role Update
     |   Role Delete
+    |   Google Login
+    |   Google Register
     |
     |--------------------------------------------------------------------------
     | Authentication
@@ -566,16 +568,16 @@ if ($method === 'POST') {
     }
 
     /*
-        | Validate Action (Updated with Forgot Password actions)
+        | Validate Action (Updated with Forgot Password & Google Auth actions)
         */
 
-    if (!in_array($action, ['insert', 'update', 'delete', 'login', 'send_otp', 'verify_otp', 'reset_password'], true)) {
+    if (!in_array($action, ['insert', 'update', 'delete', 'login', 'send_otp', 'verify_otp', 'reset_password', 'google_login', 'google_register'], true)) {
         apiResponse(false, "Invalid action.", null, 400);
     }
 
     /*
         |--------------------------------------------------------------------------
-        | USER LOGIN
+        | USER LOGIN (STANDARD)
         |--------------------------------------------------------------------------
         */
 
@@ -627,6 +629,147 @@ if ($method === 'POST') {
 
         // Success Response
         apiResponse(true, "Login successful.", userRow($user), 200);
+    }
+
+
+    /*
+        |--------------------------------------------------------------------------
+        | GOOGLE LOGIN
+        |--------------------------------------------------------------------------
+        */
+
+    if (($entity === 'user' || $entity === 'users') && $action === 'google_login') {
+
+        $email = cleanValue($data['email'] ?? $data['Email'] ?? '');
+
+        if ($email === '') {
+            apiResponse(false, "Email is required for Google login.", null, 422);
+        }
+
+        // Check if user exists
+        $stmt = sqlsrv_query(
+            $conn,
+            $userSelect . " WHERE LOWER(U.Email) = LOWER(?)",
+            [$email]
+        );
+
+        if ($stmt === false) {
+            error_log("GOOGLE LOGIN DB ERROR: " . print_r(sqlsrv_errors(), true));
+            apiResponse(false, "Database error during Google login.", null, 500);
+        }
+
+        $user = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+        sqlsrv_free_stmt($stmt);
+
+        // USER NOT FOUND => Deny Login!
+        if (!$user) {
+            apiResponse(false, "Account not found. Please register first.", null, 404);
+        }
+
+        // Check if active
+        if (!(bool)($user["IsActive"] ?? false)) {
+            apiResponse(false, "Account is disabled. Please contact support.", null, 403);
+        }
+
+        // Set email as verified if they logged in via Google
+        sqlsrv_query(
+            $conn,
+            "UPDATE dbo.Users SET LastLoginAt = GETDATE(), IsEmailVerified = 1 WHERE UserId = ?",
+            [$user['UserId']]
+        );
+
+        // Success Response
+        apiResponse(true, "Google login successful.", userRow($user), 200);
+    }
+
+    /*
+        |--------------------------------------------------------------------------
+        | GOOGLE REGISTER
+        |--------------------------------------------------------------------------
+        */
+
+    if (($entity === 'user' || $entity === 'users') && $action === 'google_register') {
+
+        $email = cleanValue($data['email'] ?? $data['Email'] ?? '');
+        $fullName = cleanValue($data['fullName'] ?? $data['name'] ?? '');
+
+        if ($email === '') {
+            apiResponse(false, "Email is required for Google registration.", null, 422);
+        }
+
+        // Check Duplicates
+        $duplicateStmt = sqlsrv_query($conn, "SELECT COUNT(*) AS Total FROM dbo.Users WHERE LOWER(Email) = LOWER(?)", [$email]);
+        if ($duplicateStmt === false) {
+            apiResponse(false, "Unable to validate email.", null, 500);
+        }
+        $duplicateRow = sqlsrv_fetch_array($duplicateStmt, SQLSRV_FETCH_ASSOC);
+        sqlsrv_free_stmt($duplicateStmt);
+
+        if ((int)($duplicateRow['Total'] ?? 0) > 0) {
+            apiResponse(false, "An account with this Google email already exists. Please log in.", null, 409);
+        }
+
+        // Generate a random secure password for Google users
+        $randomPassword = bin2hex(random_bytes(8));
+        $passwordHash = makePasswordHash($randomPassword);
+
+        // Defaults for Google users
+        $roleId = null;
+        $phone = null;
+        $companyName = null;
+        $taxNumber = null;
+        $isWholesaleApproved = 0;
+        $wholesaleDiscountPct = 0;
+        $creditLimit = 0;
+        $isTaxExempt = 0;
+        $isEmailVerified = 1; // Auto-verified because it's Google
+        $isActive = 1;
+
+        $insertSql = "
+                INSERT INTO dbo.Users
+                (
+                    RoleId, Email, PasswordHash, FullName, Phone, CompanyName, TaxNumber,
+                    IsWholesaleApproved, WholesaleDiscountPct, CreditLimit, IsTaxExempt,
+                    IsEmailVerified, IsActive, CreatedAt, UpdatedAt
+                )
+                OUTPUT
+                    INSERTED.UserId, INSERTED.RoleId, INSERTED.Email, INSERTED.FullName, INSERTED.Phone,
+                    INSERTED.CompanyName, INSERTED.TaxNumber, INSERTED.IsWholesaleApproved,
+                    INSERTED.WholesaleDiscountPct, INSERTED.CreditLimit, INSERTED.IsTaxExempt,
+                    INSERTED.IsEmailVerified, INSERTED.IsActive, INSERTED.CreatedAt,
+                    INSERTED.UpdatedAt, INSERTED.LastLoginAt
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
+            ";
+
+        $params = [
+            $roleId,
+            $email,
+            $passwordHash,
+            $fullName !== '' ? $fullName : null,
+            $phone,
+            $companyName,
+            $taxNumber,
+            $isWholesaleApproved,
+            $wholesaleDiscountPct,
+            $creditLimit,
+            $isTaxExempt,
+            $isEmailVerified,
+            $isActive
+        ];
+
+        $stmt = sqlsrv_query($conn, $insertSql, $params);
+        if ($stmt === false) {
+            error_log("GOOGLE REGISTER ERROR: " . print_r(sqlsrv_errors(), true));
+            apiResponse(false, "Unable to create Google user.", null, 500);
+        }
+
+        $newUser = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+        sqlsrv_free_stmt($stmt);
+
+        // Send a modified welcome email notifying them of their Google Sign In account
+        @sendWelcomeEmail($email, $fullName !== '' ? $fullName : 'Valued Customer', "Registered via Google");
+
+        apiResponse(true, "Google registration successful.", $newUser ? userRow($newUser) : null, 201);
     }
 
     /*

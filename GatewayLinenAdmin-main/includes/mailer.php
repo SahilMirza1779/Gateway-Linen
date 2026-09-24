@@ -3,8 +3,8 @@
 
 function sendWelcomeEmail($to, $fullName, $plainPassword)
 {
-    $senderEmail = "sahilmirza01779@gmail.com";
-    $appPassword = "xumb xpgu rrbd aimt";
+    $senderEmail = "gatewaylinen@gmail.com";
+    $appPassword = "lndx lhfo iqyv ztqp";
     $subject = "Welcome to Gateway Linen!";
 
     $messageBody = "
@@ -125,8 +125,8 @@ function sendWelcomeEmail($to, $fullName, $plainPassword)
 
 function sendOTPEmail($to, $fullName, $otp)
 {
-    $senderEmail = "sahilmirza01779@gmail.com";
-    $appPassword = "xumb xpgu rrbd aimt";
+    $senderEmail = "gatewaylinen@gmail.com";
+    $appPassword = "lndx lhfo iqyv ztqp";
     $subject = "Your Password Reset OTP";
 
     $messageBody = "
@@ -194,8 +194,8 @@ function sendOTPEmail($to, $fullName, $otp)
 
 function sendPasswordChangedEmail($to, $fullName)
 {
-    $senderEmail = "sahilmirza01779@gmail.com";
-    $appPassword = "xumb xpgu rrbd aimt";
+    $senderEmail = "gatewaylinen@gmail.com";
+    $appPassword = "lndx lhfo iqyv ztqp";
     $subject = "Password Changed Successfully";
 
     $messageBody = "

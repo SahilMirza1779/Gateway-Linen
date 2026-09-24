@@ -82,8 +82,8 @@ function response(
             'data'    => $data
         ],
         JSON_UNESCAPED_UNICODE |
-        JSON_UNESCAPED_SLASHES |
-        JSON_PRETTY_PRINT
+            JSON_UNESCAPED_SLASHES |
+            JSON_PRETTY_PRINT
     );
 
     exit;
@@ -272,7 +272,6 @@ function getUniqueSlug(
                 $slug,
                 $ignoreProductId
             ];
-
         } else {
 
             $sql = "
@@ -425,9 +424,6 @@ function getProductImages($conn, int $productId): array
         [$productId]
     );
 
-    /*
-    | If table doesn't exist, don't break main product API.
-    */
     if ($stmt === false) {
         return [];
     }
@@ -440,7 +436,7 @@ function getProductImages($conn, int $productId): array
     )) {
 
         $images[] = [
-            'imageId'     => (int)$row['ImageId'],
+            'imageId'      => (int)$row['ImageId'],
             'productId'   => (int)$row['ProductId'],
             'variantId'   => $row['VariantId'] !== null
                 ? (int)$row['VariantId']
@@ -448,7 +444,7 @@ function getProductImages($conn, int $productId): array
             'imageUrl'    => $row['ImageUrl'],
             'altText'     => $row['AltText'],
             'isMain'      => (bool)$row['IsMain'],
-            'displayOrder'=> (int)$row['DisplayOrder']
+            'displayOrder' => (int)$row['DisplayOrder']
         ];
     }
 
@@ -494,9 +490,6 @@ function getProductVariants($conn, int $productId): array
         [$productId]
     );
 
-    /*
-    | If table doesn't exist, don't break main product API.
-    */
     if ($stmt === false) {
         return [];
     }
@@ -586,7 +579,14 @@ function getProduct(
             p.IsActive,
 
             p.CreatedAt,
-            p.UpdatedAt
+            p.UpdatedAt,
+
+            (
+                SELECT TOP 1 pi.ImageUrl 
+                FROM dbo.ProductImages pi 
+                WHERE pi.ProductId = p.ProductId 
+                ORDER BY pi.IsMain DESC, pi.DisplayOrder ASC
+            ) AS ImageUrl
 
         FROM dbo.Products p
 
@@ -623,9 +623,9 @@ function getProduct(
         'name'            => $row['Name'],
         'slug'            => $row['Slug'],
 
-        'shortDescription'=> $row['ShortDescription'],
+        'shortDescription' => $row['ShortDescription'],
         'description'     => $row['Description'],
-        'careInstructions'=> $row['CareInstructions'],
+        'careInstructions' => $row['CareInstructions'],
         'specifications'  => $row['Specifications'],
 
         'basePrice'       => $row['BasePrice'] !== null
@@ -647,6 +647,8 @@ function getProduct(
         'isNewArrival'    => (bool)$row['IsNewArrival'],
         'isBestSeller'    => (bool)$row['IsBestSeller'],
         'isActive'        => (bool)$row['IsActive'],
+
+        'imageUrl'        => $row['ImageUrl'],
 
         'createdAt'       => formatDateValue($row['CreatedAt']),
         'updatedAt'       => formatDateValue($row['UpdatedAt'])
@@ -678,12 +680,6 @@ function showProducts($conn): void
 {
     $productId = getProductId();
 
-    /*
-    |--------------------------------------------------------------------------
-    | Single Product
-    |--------------------------------------------------------------------------
-    */
-
     if ($productId !== null) {
 
         $product = getProduct(
@@ -708,12 +704,6 @@ function showProducts($conn): void
             200
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Filters
-    |--------------------------------------------------------------------------
-    */
 
     $categoryId = null;
 
@@ -751,12 +741,6 @@ function showProducts($conn): void
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pagination
-    |--------------------------------------------------------------------------
-    */
-
     $page = isset($_GET['page'])
         ? max(1, (int)$_GET['page'])
         : 1;
@@ -766,12 +750,6 @@ function showProducts($conn): void
         : 20;
 
     $offset = ($page - 1) * $limit;
-
-    /*
-    |--------------------------------------------------------------------------
-    | WHERE
-    |--------------------------------------------------------------------------
-    */
 
     $where = [];
     $params = [];
@@ -814,12 +792,6 @@ function showProducts($conn): void
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Total Count
-    |--------------------------------------------------------------------------
-    */
-
     $countSql = "
         SELECT COUNT(*) AS Total
         FROM dbo.Products p
@@ -845,7 +817,7 @@ function showProducts($conn): void
 
     /*
     |--------------------------------------------------------------------------
-    | Product List
+    | Product List with ImageUrl Subquery / Join
     |--------------------------------------------------------------------------
     */
 
@@ -876,7 +848,14 @@ function showProducts($conn): void
             p.IsActive,
 
             p.CreatedAt,
-            p.UpdatedAt
+            p.UpdatedAt,
+
+            (
+                SELECT TOP 1 pi.ImageUrl 
+                FROM dbo.ProductImages pi 
+                WHERE pi.ProductId = p.ProductId 
+                ORDER BY pi.IsMain DESC, pi.DisplayOrder ASC
+            ) AS ImageUrl
 
         FROM dbo.Products p
 
@@ -921,9 +900,9 @@ function showProducts($conn): void
             'name'            => $row['Name'],
             'slug'            => $row['Slug'],
 
-            'shortDescription'=> $row['ShortDescription'],
+            'shortDescription' => $row['ShortDescription'],
             'description'     => $row['Description'],
-            'careInstructions'=> $row['CareInstructions'],
+            'careInstructions' => $row['CareInstructions'],
             'specifications'  => $row['Specifications'],
 
             'basePrice'       => $row['BasePrice'] !== null
@@ -946,16 +925,12 @@ function showProducts($conn): void
             'isBestSeller'    => (bool)$row['IsBestSeller'],
             'isActive'        => (bool)$row['IsActive'],
 
+            'imageUrl'        => $row['ImageUrl'],
+
             'createdAt'       => formatDateValue($row['CreatedAt']),
             'updatedAt'       => formatDateValue($row['UpdatedAt'])
         ];
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pagination
-    |--------------------------------------------------------------------------
-    */
 
     $totalPages = $limit > 0
         ? (int)ceil($total / $limit)
@@ -988,12 +963,6 @@ function createProduct($conn): void
 {
     $data = getJsonInput();
 
-    /*
-    |--------------------------------------------------------------------------
-    | Required Fields
-    |--------------------------------------------------------------------------
-    */
-
     $categoryId = isset($data['categoryId'])
         ? (int)$data['categoryId']
         : 0;
@@ -1020,12 +989,6 @@ function createProduct($conn): void
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Category Check
-    |--------------------------------------------------------------------------
-    */
-
     if (!categoryExists(
         $conn,
         $categoryId
@@ -1038,12 +1001,6 @@ function createProduct($conn): void
             422
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Slug
-    |--------------------------------------------------------------------------
-    */
 
     $slug = isset($data['slug'])
         ? trim((string)$data['slug'])
@@ -1059,12 +1016,6 @@ function createProduct($conn): void
         $conn,
         $slug
     );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Values
-    |--------------------------------------------------------------------------
-    */
 
     $shortDescription = isset($data['shortDescription'])
         ? trim((string)$data['shortDescription'])
@@ -1118,12 +1069,6 @@ function createProduct($conn): void
         $data['isActive'] ?? true
     );
 
-    /*
-    |--------------------------------------------------------------------------
-    | Price Validation
-    |--------------------------------------------------------------------------
-    */
-
     if ($basePrice < 0) {
         response(
             false,
@@ -1150,12 +1095,6 @@ function createProduct($conn): void
             422
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | INSERT
-    |--------------------------------------------------------------------------
-    */
 
     $sql = "
         INSERT INTO dbo.Products
@@ -1239,12 +1178,6 @@ function createProduct($conn): void
 
     $productId = (int)$row['ProductId'];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Fetch Created Product
-    |--------------------------------------------------------------------------
-    */
-
     $product = getProduct(
         $conn,
         $productId,
@@ -1270,12 +1203,6 @@ function updateProduct(
     int $productId
 ): void {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Existing Product
-    |--------------------------------------------------------------------------
-    */
-
     $existing = getProduct(
         $conn,
         $productId,
@@ -1293,12 +1220,6 @@ function updateProduct(
     }
 
     $data = getJsonInput();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Category
-    |--------------------------------------------------------------------------
-    */
 
     $categoryId = array_key_exists(
         'categoryId',
@@ -1329,12 +1250,6 @@ function updateProduct(
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Name
-    |--------------------------------------------------------------------------
-    */
-
     $name = array_key_exists(
         'name',
         $data
@@ -1352,12 +1267,6 @@ function updateProduct(
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Slug
-    |--------------------------------------------------------------------------
-    */
-
     if (array_key_exists(
         'slug',
         $data
@@ -1372,7 +1281,6 @@ function updateProduct(
         } else {
             $slug = makeSlug($slug);
         }
-
     } else {
 
         $slug = $existing['slug'];
@@ -1383,12 +1291,6 @@ function updateProduct(
         $slug,
         $productId
     );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Other Values
-    |--------------------------------------------------------------------------
-    */
 
     $shortDescription = array_key_exists(
         'shortDescription',
@@ -1481,12 +1383,6 @@ function updateProduct(
         ? boolValue($data['isActive'])
         : $existing['isActive'];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Price Validation
-    |--------------------------------------------------------------------------
-    */
-
     if ($basePrice < 0) {
 
         response(
@@ -1516,12 +1412,6 @@ function updateProduct(
             422
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE
-    |--------------------------------------------------------------------------
-    */
 
     $sql = "
         UPDATE dbo.Products
@@ -1578,12 +1468,6 @@ function updateProduct(
         databaseError('Unable to update product.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Updated Product
-    |--------------------------------------------------------------------------
-    */
-
     $product = getProduct(
         $conn,
         $productId,
@@ -1609,12 +1493,6 @@ function deleteProduct(
     int $productId
 ): void {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check Product
-    |--------------------------------------------------------------------------
-    */
-
     $existing = getProduct(
         $conn,
         $productId,
@@ -1630,12 +1508,6 @@ function deleteProduct(
             404
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Check Product Variants
-    |--------------------------------------------------------------------------
-    */
 
     $variantCount = 0;
 
@@ -1663,12 +1535,6 @@ function deleteProduct(
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check Product Images
-    |--------------------------------------------------------------------------
-    */
-
     $imageCount = 0;
 
     $imageSql = "
@@ -1694,12 +1560,6 @@ function deleteProduct(
             $imageRow['Total'] ?? 0
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Check Product Reviews
-    |--------------------------------------------------------------------------
-    */
 
     $reviewCount = 0;
 
@@ -1727,15 +1587,6 @@ function deleteProduct(
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Prevent Unsafe Delete
-    |--------------------------------------------------------------------------
-    |
-    | If child records exist, return a clear message.
-    |
-    */
-
     if (
         $variantCount > 0 ||
         $imageCount > 0 ||
@@ -1754,12 +1605,6 @@ function deleteProduct(
             409
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DELETE
-    |--------------------------------------------------------------------------
-    */
 
     $sql = "
         DELETE FROM dbo.Products
@@ -1800,35 +1645,17 @@ try {
 
     switch ($method) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | SHOW
-        |--------------------------------------------------------------------------
-        */
-
         case 'GET':
 
             showProducts($conn);
 
             break;
 
-        /*
-        |--------------------------------------------------------------------------
-        | INSERT
-        |--------------------------------------------------------------------------
-        */
-
         case 'POST':
 
             createProduct($conn);
 
             break;
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE
-        |--------------------------------------------------------------------------
-        */
 
         case 'PUT':
 
@@ -1851,12 +1678,6 @@ try {
 
             break;
 
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE
-        |--------------------------------------------------------------------------
-        */
-
         case 'DELETE':
 
             $productId = getProductId();
@@ -1878,12 +1699,6 @@ try {
 
             break;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Unsupported
-        |--------------------------------------------------------------------------
-        */
-
         default:
 
             response(
@@ -1900,14 +1715,7 @@ try {
                 405
             );
     }
-
 } catch (Throwable $e) {
-
-    /*
-    |--------------------------------------------------------------------------
-    | Unexpected Error
-    |--------------------------------------------------------------------------
-    */
 
     response(
         false,

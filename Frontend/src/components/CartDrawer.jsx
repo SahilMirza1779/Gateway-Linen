@@ -67,82 +67,120 @@ export default function CartDrawer() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {cartItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm items-center relative group"
-                >
+              {cartItems.map((item, index) => {
+                // Force resolving real database image path if available in item object
+                const rawImg =
+                  item.imageUrl || item.ImageUrl || item.image || "";
+                let itemImage =
+                  "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
+
+                if (
+                  rawImg.includes("unsplash.com") &&
+                  item.gallery &&
+                  item.gallery[0]
+                ) {
+                  // Fallback to gallery if unsplash placeholder is detected
+                  const galPath = item.gallery[0];
+                  itemImage = galPath.startsWith("http")
+                    ? galPath
+                    : `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${galPath.replace(/^\/+/, "")}`;
+                } else if (rawImg.startsWith("http")) {
+                  itemImage = rawImg;
+                } else if (rawImg !== "") {
+                  const cleanPath = rawImg.replace(/^\/+/, "");
+                  itemImage = `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
+                }
+
+                return (
                   <div
-                    onClick={() => handleProductClick(item.id)}
-                    className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity border border-gray-100"
+                    key={index}
+                    className="flex gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm items-center relative group"
                   >
-                    <img
-                      src={item.image || (item.gallery && item.gallery[0])}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <h3
-                          onClick={() => handleProductClick(item.id)}
-                          className="font-serif font-bold text-xs text-[#031D44] line-clamp-1 pr-6 cursor-pointer hover:text-[#B58E58] transition-colors"
-                        >
-                          {item.name}
-                        </h3>
-                      </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        Size: {item.size}
-                      </p>
+                    <div
+                      onClick={() =>
+                        handleProductClick(item.id || item.productId)
+                      }
+                      className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity border border-gray-100"
+                    >
+                      <img
+                        src={itemImage}
+                        alt={item.name}
+                        onError={(e) => {
+                          e.target.src =
+                            "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
+                        }}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
 
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                        <button
-                          onClick={() =>
-                            updateQuantity(
-                              item.id,
-                              item.size,
-                              item.quantity - 1,
-                            )
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-200 font-bold transition-all cursor-pointer text-xs"
-                        >
-                          -
-                        </button>
-                        <span className="w-6 text-center text-xs font-bold text-[#031D44]">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(
-                              item.id,
-                              item.size,
-                              item.quantity + 1,
-                            )
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-200 font-bold transition-all cursor-pointer text-xs"
-                        >
-                          +
-                        </button>
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start">
+                          <h3
+                            onClick={() =>
+                              handleProductClick(item.id || item.productId)
+                            }
+                            className="font-serif font-bold text-xs text-[#031D44] line-clamp-1 pr-6 cursor-pointer hover:text-[#B58E58] transition-colors"
+                          >
+                            {item.name || item.Name}
+                          </h3>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          Size: {item.size || item.selectedSize}
+                        </p>
                       </div>
-                      <p className="text-xs font-bold text-[#B58E58]">
-                        CAD ${(item.price * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
 
-                  <button
-                    onClick={() => removeFromCart(item.id, item.size)}
-                    className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
-                    title="Remove item"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
-                </div>
-              ))}
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                          <button
+                            onClick={() =>
+                              updateQuantity(
+                                item.id || item.productId,
+                                item.size || item.selectedSize,
+                                item.quantity - 1,
+                              )
+                            }
+                            className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-200 font-bold transition-all cursor-pointer text-xs"
+                          >
+                            -
+                          </button>
+                          <span className="w-6 text-center text-xs font-bold text-[#031D44]">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() =>
+                              updateQuantity(
+                                item.id || item.productId,
+                                item.size || item.selectedSize,
+                                item.quantity + 1,
+                              )
+                            }
+                            className="w-6 h-6 flex items-center justify-center text-gray-600 hover:bg-gray-200 font-bold transition-all cursor-pointer text-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <p className="text-xs font-bold text-[#B58E58]">
+                          CAD ${(item.price * item.quantity).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        removeFromCart(
+                          item.id || item.productId,
+                          item.size || item.selectedSize,
+                        )
+                      }
+                      className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
+                      title="Remove item"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

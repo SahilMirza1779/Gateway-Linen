@@ -60,16 +60,28 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   const addToCart = (product, quantity = 1, size = "Standard", price = 0) => {
+    const rawImg = product.image || product.imageUrl || product.ImageUrl || "";
+    let formattedImage =
+      "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
+    if (rawImg.startsWith("http")) {
+      formattedImage = rawImg;
+    } else if (rawImg !== "") {
+      const cleanPath = rawImg.replace(/^\/+/, "");
+      formattedImage = `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
+    }
+
+    const productId = product.id || product.productId || product.ProductId;
+
     setCartItems((prev) => {
       const selectedSize = size || "Standard";
       const existingItem = prev.find(
         (item) =>
-          item.id === product.id &&
+          (item.id === productId || item.productId === productId) &&
           (item.selectedSize === selectedSize || item.size === selectedSize),
       );
       if (existingItem) {
         return prev.map((item) =>
-          item.id === product.id &&
+          (item.id === productId || item.productId === productId) &&
           (item.selectedSize === selectedSize || item.size === selectedSize)
             ? { ...item, quantity: item.quantity + quantity }
             : item,
@@ -77,7 +89,15 @@ export const CartProvider = ({ children }) => {
       }
       return [
         ...prev,
-        { ...product, quantity, selectedSize, size: selectedSize, price },
+        {
+          ...product,
+          id: productId,
+          image: formattedImage,
+          quantity,
+          selectedSize,
+          size: selectedSize,
+          price,
+        },
       ];
     });
     setIsCartOpen(true);
@@ -88,7 +108,7 @@ export const CartProvider = ({ children }) => {
       prev.filter(
         (item) =>
           !(
-            item.id === productId &&
+            (item.id === productId || item.productId === productId) &&
             (item.selectedSize === size || item.size === size)
           ),
       ),
@@ -99,11 +119,22 @@ export const CartProvider = ({ children }) => {
     if (newQuantity < 1) return;
     setCartItems((prev) =>
       prev.map((item) =>
-        item.id === productId &&
+        (item.id === productId || item.productId === productId) &&
         (item.selectedSize === size || item.size === size)
           ? { ...item, quantity: newQuantity }
           : item,
       ),
+    );
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const getCartTotal = () => {
+    return cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0,
     );
   };
 
@@ -119,6 +150,8 @@ export const CartProvider = ({ children }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
+        clearCart,
+        getCartTotal,
         isCartOpen,
         toggleCart,
         toggleCartDrawer,

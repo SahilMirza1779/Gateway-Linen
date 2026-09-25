@@ -89,7 +89,7 @@ $csrfToken = $_SESSION["product_csrf_token"];
 
 /*
 |--------------------------------------------------------------------------
-| FORM VARIABLES
+| FORM VARIABLES (GST 5% & PST 7% FIXED BY DEFAULT)
 |--------------------------------------------------------------------------
 */
 
@@ -102,7 +102,7 @@ $careInstructions = "";
 $specifications   = "";
 $basePrice        = "0.00";
 $gstPercentage    = "5.00";
-$pstPercentage    = "0.00";
+$pstPercentage    = "7.00";
 $metaTitle        = "";
 $metaDescription  = "";
 
@@ -129,7 +129,7 @@ if (!is_dir($uploadDirectory)) {
 
 /*
 |--------------------------------------------------------------------------
-| FETCH ACTIVE CATEGORIES
+| FETCH ONLY SUB-CATEGORIES (USING ParentCategoryId)
 |--------------------------------------------------------------------------
 */
 
@@ -137,6 +137,7 @@ $categories = [];
 $categorySql = "
     SELECT CategoryId, Name 
     FROM dbo.Categories 
+    WHERE ParentCategoryId IS NOT NULL 
     ORDER BY Name ASC
 ";
 $categoryStmt = sqlsrv_query($conn, $categorySql);
@@ -181,8 +182,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $careInstructions = trim($_POST["care_instructions"] ?? "");
         $specifications   = trim($_POST["specifications"] ?? "");
         $basePrice        = trim($_POST["base_price"] ?? "0.00");
-        $gstPercentage    = trim($_POST["gst_percentage"] ?? "0.00");
-        $pstPercentage    = trim($_POST["pst_percentage"] ?? "0.00");
+        $gstPercentage    = trim($_POST["gst_percentage"] ?? "5.00");
+        $pstPercentage    = trim($_POST["pst_percentage"] ?? "7.00");
         $metaTitle        = trim($_POST["meta_title"] ?? "");
         $metaDescription  = trim($_POST["meta_description"] ?? "");
 
@@ -198,7 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     |--------------------------------------------------------------------------
     */
     if ($error === "" && empty($categoryId)) {
-        $error = "Please select a category.";
+        $error = "Please select a subcategory.";
     }
 
     if ($error === "" && $name === "") {
@@ -650,13 +651,45 @@ require_once __DIR__ . "/../includes/sidebar.php";
     }
 
     .add-form-label {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         margin-bottom: 7px;
         color: var(--text-body);
         font-size: 10.5px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .3px;
+    }
+
+    .tax-edit-btn {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: var(--blue);
+        cursor: pointer;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 5px;
+        text-transform: none;
+        letter-spacing: 0;
+        transition: all 0.2s ease;
+    }
+
+    .tax-edit-btn:hover {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: var(--blue);
+    }
+
+    .tax-edit-btn.unlocked {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: var(--green);
+    }
+
+    .tax-edit-btn.unlocked:hover {
+        background: rgba(16, 185, 129, 0.2);
+        border-color: var(--green);
     }
 
     .add-form-required {
@@ -675,6 +708,13 @@ require_once __DIR__ . "/../includes/sidebar.php";
         font-family: inherit;
         font-size: 12px;
         transition: all .18s ease;
+    }
+
+    .add-form-input:read-only {
+        background: rgba(15, 24, 35, 0.6);
+        color: var(--text-mute);
+        border-color: var(--border-soft);
+        cursor: not-allowed;
     }
 
     .add-form-input,
@@ -937,7 +977,7 @@ require_once __DIR__ . "/../includes/sidebar.php";
                     </div>
                     <h1 class="add-category-title">Add New Product</h1>
                     <p class="add-category-subtitle">
-                        Create a product with pricing, tax (GST/PST), multiple images, specifications, and SEO settings.
+                        Create a product with pricing, tax (GST 5% / PST 7%), multiple images, specifications, and SEO settings.
                     </p>
                 </div>
                 <a href="index.php" class="add-category-back">
@@ -966,10 +1006,10 @@ require_once __DIR__ . "/../includes/sidebar.php";
 
                         <div class="add-form-group">
                             <label for="productCategory" class="add-form-label">
-                                Category <span class="add-form-required">*</span>
+                                <span>Subcategory <span class="add-form-required">*</span></span>
                             </label>
                             <select id="productCategory" name="category_id" class="add-form-select" required>
-                                <option value="">Select Category</option>
+                                <option value="">Select Subcategory</option>
                                 <?php foreach ($categories as $cat): ?>
                                     <option value="<?= (int)$cat["CategoryId"] ?>" <?= (string)$categoryId === (string)$cat["CategoryId"] ? "selected" : "" ?>>
                                         <?= e($cat["Name"]) ?>
@@ -980,23 +1020,23 @@ require_once __DIR__ . "/../includes/sidebar.php";
 
                         <div class="add-form-group">
                             <label for="productName" class="add-form-label">
-                                Product Name <span class="add-form-required">*</span>
+                                <span>Product Name <span class="add-form-required">*</span></span>
                             </label>
                             <input type="text" id="productName" name="name" class="add-form-input" value="<?= e($name) ?>" placeholder="e.g. Premium Bath Towel" maxlength="255" required>
                         </div>
 
                         <div class="add-form-group">
-                            <label for="productSlug" class="add-form-label">Slug</label>
+                            <label for="productSlug" class="add-form-label"><span>Slug</span></label>
                             <input type="text" id="productSlug" name="slug" class="add-form-input" value="<?= e($slug) ?>" placeholder="premium-bath-towel" maxlength="255">
                         </div>
 
                         <div class="add-form-group">
-                            <label for="productShortDesc" class="add-form-label">Short Description</label>
+                            <label for="productShortDesc" class="add-form-label"><span>Short Description</span></label>
                             <input type="text" id="productShortDesc" name="short_description" class="add-form-input" value="<?= e($shortDescription) ?>" placeholder="Brief 1-line overview of product">
                         </div>
 
                         <div class="add-form-group add-form-group-full">
-                            <label for="productDesc" class="add-form-label">Full Description</label>
+                            <label for="productDesc" class="add-form-label"><span>Full Description</span></label>
                             <textarea id="productDesc" name="description" class="add-form-textarea" placeholder="Detailed product overview..."><?= e($description) ?></textarea>
                         </div>
 
@@ -1006,18 +1046,24 @@ require_once __DIR__ . "/../includes/sidebar.php";
                         </div>
 
                         <div class="add-form-group">
-                            <label for="basePrice" class="add-form-label">Base Price ($) <span class="add-form-required">*</span></label>
+                            <label for="basePrice" class="add-form-label"><span>Base Price ($) <span class="add-form-required">*</span></span></label>
                             <input type="number" step="0.01" min="0" id="basePrice" name="base_price" class="add-form-input" value="<?= e($basePrice) ?>" required>
                         </div>
 
                         <div class="add-form-group">
-                            <label for="gstPercentage" class="add-form-label">GST Percentage (%)</label>
-                            <input type="number" step="0.01" min="0" id="gstPercentage" name="gst_percentage" class="add-form-input" value="<?= e($gstPercentage) ?>">
+                            <label for="gstPercentage" class="add-form-label">
+                                <span>GST Percentage (%)</span>
+                                <button type="button" class="tax-edit-btn" id="editGstBtn">🔒 Unlock</button>
+                            </label>
+                            <input type="number" step="0.01" min="0" id="gstPercentage" name="gst_percentage" class="add-form-input" value="<?= e($gstPercentage) ?>" readonly>
                         </div>
 
                         <div class="add-form-group">
-                            <label for="pstPercentage" class="add-form-label">PST Percentage (%)</label>
-                            <input type="number" step="0.01" min="0" id="pstPercentage" name="pst_percentage" class="add-form-input" value="<?= e($pstPercentage) ?>">
+                            <label for="pstPercentage" class="add-form-label">
+                                <span>PST Percentage (%)</span>
+                                <button type="button" class="tax-edit-btn" id="editPstBtn">🔒 Unlock</button>
+                            </label>
+                            <input type="number" step="0.01" min="0" id="pstPercentage" name="pst_percentage" class="add-form-input" value="<?= e($pstPercentage) ?>" readonly>
                         </div>
 
                         <div class="add-category-section sec-purple">
@@ -1026,12 +1072,12 @@ require_once __DIR__ . "/../includes/sidebar.php";
                         </div>
 
                         <div class="add-form-group">
-                            <label for="productSpecs" class="add-form-label">Specifications</label>
+                            <label for="productSpecs" class="add-form-label"><span>Specifications</span></label>
                             <textarea id="productSpecs" name="specifications" class="add-form-textarea" placeholder="e.g. 100% Cotton, 600 GSM, Hotel Quality"><?= e($specifications) ?></textarea>
                         </div>
 
                         <div class="add-form-group">
-                            <label for="careInstructions" class="add-form-label">Care Instructions</label>
+                            <label for="careInstructions" class="add-form-label"><span>Care Instructions</span></label>
                             <textarea id="careInstructions" name="care_instructions" class="add-form-textarea" placeholder="e.g. Machine wash cold. Do not bleach."><?= e($careInstructions) ?></textarea>
                         </div>
 
@@ -1097,12 +1143,12 @@ require_once __DIR__ . "/../includes/sidebar.php";
                         </div>
 
                         <div class="add-form-group">
-                            <label for="metaTitle" class="add-form-label">Meta Title</label>
+                            <label for="metaTitle" class="add-form-label"><span>Meta Title</span></label>
                             <input type="text" id="metaTitle" name="meta_title" class="add-form-input" value="<?= e($metaTitle) ?>" placeholder="SEO Title">
                         </div>
 
                         <div class="add-form-group">
-                            <label for="metaDescription" class="add-form-label">Meta Description</label>
+                            <label for="metaDescription" class="add-form-label"><span>Meta Description</span></label>
                             <input type="text" id="metaDescription" name="meta_description" class="add-form-input" value="<?= e($metaDescription) ?>" placeholder="SEO Description">
                         </div>
 
@@ -1142,6 +1188,10 @@ require_once __DIR__ . "/../includes/sidebar.php";
         const nameInput = document.getElementById("productName");
         const slugInput = document.getElementById("productSlug");
         const priceInput = document.getElementById("basePrice");
+        const gstInput = document.getElementById("gstPercentage");
+        const pstInput = document.getElementById("pstPercentage");
+        const editGstBtn = document.getElementById("editGstBtn");
+        const editPstBtn = document.getElementById("editPstBtn");
         const metaTitleInput = document.getElementById("metaTitle");
         const shortDescInput = document.getElementById("productShortDesc");
         const metaDescInput = document.getElementById("metaDescription");
@@ -1150,6 +1200,38 @@ require_once __DIR__ . "/../includes/sidebar.php";
         const form = document.getElementById("addProductForm");
         const saveBtn = document.getElementById("saveProductBtn");
         const shortcutBox = document.getElementById("shortcutHelpBox");
+
+        // Toggle GST Edit / Lock
+        if (editGstBtn && gstInput) {
+            editGstBtn.addEventListener("click", function() {
+                if (gstInput.hasAttribute("readonly")) {
+                    gstInput.removeAttribute("readonly");
+                    gstInput.focus();
+                    editGstBtn.textContent = "🔓 Lock";
+                    editGstBtn.classList.add("unlocked");
+                } else {
+                    gstInput.setAttribute("readonly", "readonly");
+                    editGstBtn.textContent = "🔒 Unlock";
+                    editGstBtn.classList.remove("unlocked");
+                }
+            });
+        }
+
+        // Toggle PST Edit / Lock
+        if (editPstBtn && pstInput) {
+            editPstBtn.addEventListener("click", function() {
+                if (pstInput.hasAttribute("readonly")) {
+                    pstInput.removeAttribute("readonly");
+                    pstInput.focus();
+                    editPstBtn.textContent = "🔓 Lock";
+                    editPstBtn.classList.add("unlocked");
+                } else {
+                    pstInput.setAttribute("readonly", "readonly");
+                    editPstBtn.textContent = "🔒 Unlock";
+                    editPstBtn.classList.remove("unlocked");
+                }
+            });
+        }
 
         let slugManuallyChanged = slugInput && slugInput.value.trim() !== "";
 

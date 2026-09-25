@@ -134,24 +134,41 @@ function productImageUrl($value): string
 
 /*
 |--------------------------------------------------------------------------
-| FETCH CATEGORIES (FOR DROPDOWN FILTER)
+| FETCH MAIN CATEGORIES & SUBCATEGORIES FOR FILTER DROPDOWN
 |--------------------------------------------------------------------------
 */
 
-$categoriesList = [];
-$catSql = "SELECT CategoryId, Name FROM dbo.Categories ORDER BY Name ASC";
-$catStmt = sqlsrv_query($conn, $catSql);
+$mainCategories = [];
+$mainCatSql = "SELECT CategoryId, Name FROM dbo.Categories WHERE ParentCategoryId IS NULL ORDER BY Name ASC";
+$mainCatStmt = sqlsrv_query($conn, $mainCatSql);
 
-if ($catStmt !== false) {
-    while ($row = sqlsrv_fetch_array($catStmt, SQLSRV_FETCH_ASSOC)) {
-        $categoriesList[] = $row;
+if ($mainCatStmt !== false) {
+    while ($row = sqlsrv_fetch_array($mainCatStmt, SQLSRV_FETCH_ASSOC)) {
+        $mainCatId = $row['CategoryId'];
+        $mainCatName = $row['Name'];
+
+        $subCats = [];
+        $subSql = "SELECT CategoryId, Name FROM dbo.Categories WHERE ParentCategoryId = ? ORDER BY Name ASC";
+        $subStmt = sqlsrv_query($conn, $subSql, [$mainCatId]);
+        if ($subStmt !== false) {
+            while ($subRow = sqlsrv_fetch_array($subStmt, SQLSRV_FETCH_ASSOC)) {
+                $subCats[] = $subRow;
+            }
+            sqlsrv_free_stmt($subStmt);
+        }
+
+        $mainCategories[] = [
+            'id' => $mainCatId,
+            'name' => $mainCatName,
+            'subs' => $subCats
+        ];
     }
-    sqlsrv_free_stmt($catStmt);
+    sqlsrv_free_stmt($mainCatStmt);
 }
 
 /*
 |--------------------------------------------------------------------------
-| FETCH PRODUCTS WITH CATEGORY & MAIN IMAGE
+| FETCH PRODUCTS WITH CATEGORY & ALL IMAGES (JSON)
 |--------------------------------------------------------------------------
 */
 
@@ -176,7 +193,15 @@ $sql = "
         p.IsActive,
         p.CreatedAt,
         c.Name AS CategoryName,
-        img.ImageUrl AS MainImage
+        c.ParentCategoryId,
+        img.ImageUrl AS MainImage,
+        (
+            SELECT ImageUrl + '|' 
+            FROM dbo.ProductImages 
+            WHERE ProductId = p.ProductId 
+            ORDER BY IsMain DESC, DisplayOrder ASC 
+            FOR XML PATH('')
+        ) AS AllImages
     FROM dbo.Products p
     LEFT JOIN dbo.Categories c ON p.CategoryId = c.CategoryId
     OUTER APPLY (
@@ -185,7 +210,7 @@ $sql = "
         WHERE ProductId = p.ProductId 
         ORDER BY IsMain DESC, DisplayOrder ASC
     ) img
-    ORDER BY p.ProductId DESC
+    ORDER BY p.ProductId ASC
 ";
 
 $stmt = sqlsrv_query($conn, $sql);
@@ -504,7 +529,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
     }
 
     .category-status-filter {
-        min-width: 135px;
+        min-width: 170px;
         padding: 0 10px;
     }
 
@@ -925,13 +950,19 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .detail-grid {
         display: grid;
-        grid-template-columns: 220px 1fr;
+        grid-template-columns: 260px 1fr;
         gap: 18px;
     }
 
-    .detail-image {
-        width: 220px;
-        height: 220px;
+    .detail-image-box {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .detail-main-image {
+        width: 260px;
+        height: 260px;
         border-radius: 10px;
         overflow: hidden;
         border: 1px solid var(--border);
@@ -943,10 +974,34 @@ require_once __DIR__ . '/../includes/sidebar.php';
         font-size: 32px;
     }
 
-    .detail-image img {
+    .detail-main-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+
+    .detail-thumbnails {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        max-height: 90px;
+        overflow-y: auto;
+    }
+
+    .thumb-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        object-fit: cover;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: 0.2s;
+    }
+
+    .thumb-img:hover, .thumb-img.active {
+        opacity: 1;
+        border-color: var(--green);
     }
 
     .detail-item label {
@@ -1045,55 +1100,13 @@ require_once __DIR__ . '/../includes/sidebar.php';
             grid-template-columns: 1fr;
         }
 
-        .detail-image {
+        .detail-main-image {
             width: 100%;
             height: 220px;
         }
 
         .detail-meta {
             grid-template-columns: 1fr;
-        }
-    }
-
-    @media print {
-
-        html,
-        body,
-        .main,
-        .content {
-            background: #fff !important;
-            color: #111 !important;
-        }
-
-        .category-page {
-            max-width: none;
-        }
-
-        .category-page-header,
-        .category-stats,
-        .category-filters,
-        .export-bar,
-        .category-actions,
-        .shortcut-help-box,
-        .notice,
-        .modal-backdrop,
-        .no-print {
-            display: none !important;
-        }
-
-        .category-content {
-            border: 0;
-        }
-
-        .category-table {
-            min-width: 0;
-        }
-
-        .category-table th,
-        .category-table td {
-            color: #111 !important;
-            background: #fff !important;
-            border-color: #ccc !important;
         }
     }
 </style>
@@ -1204,13 +1217,18 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                 autocomplete="off">
                         </div>
 
-                        <!-- CATEGORY FILTER -->
+                        <!-- HIERARCHICAL CATEGORY FILTER -->
                         <select id="categoryFilter" class="category-status-filter">
                             <option value="all">All Categories</option>
-                            <?php foreach ($categoriesList as $cat): ?>
-                                <option value="<?= e(strtolower($cat['Name'])) ?>">
-                                    <?= e($cat['Name']) ?>
+                            <?php foreach ($mainCategories as $main): ?>
+                                <option value="main-<?= (int)$main['id'] ?>" style="font-weight: bold; color: var(--text-hi); background: var(--bg-header);">
+                                    📁 <?= e($main['name']) ?>
                                 </option>
+                                <?php foreach ($main['subs'] as $sub): ?>
+                                    <option value="<?= e(strtolower($sub['Name'])) ?>">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;— <?= e($sub['Name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             <?php endforeach; ?>
                         </select>
 
@@ -1259,8 +1277,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     <th>ID</th>
                                     <th>Product</th>
                                     <th>Category</th>
-                                    <th>Base Price</th>
-                                    <th>Tax (GST/PST)</th>
+                                    <th>Price (Base + Tax)</th>
+                                    <th>Tax Breakdown</th>
                                     <th>Badges</th>
                                     <th>Status</th>
                                     <th>Created</th>
@@ -1268,12 +1286,14 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($allProducts as $product): ?>
-                                    <?php
+                                <?php 
+                                $displayId = 1;
+                                foreach ($allProducts as $product): 
                                     $productId    = (int)($product['ProductId'] ?? 0);
                                     $name         = (string)($product['Name'] ?? '');
                                     $slug         = (string)($product['Slug'] ?? '');
                                     $catName      = (string)($product['CategoryName'] ?? 'Uncategorized');
+                                    $parentCatId  = (int)($product['ParentCategoryId'] ?? 0);
                                     $shortDesc    = trim((string)($product['ShortDescription'] ?? ''));
                                     $desc         = trim((string)($product['Description'] ?? ''));
                                     $specs        = trim((string)($product['Specifications'] ?? ''));
@@ -1281,6 +1301,12 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     $basePrice    = (float)($product['BasePrice'] ?? 0);
                                     $gstPercent   = (float)($product['GstPercentage'] ?? 0);
                                     $pstPercent   = (float)($product['PstPercentage'] ?? 0);
+                                    
+                                    // Calculate Tax and Total Price with Tax
+                                    $gstAmount    = $basePrice * ($gstPercent / 100);
+                                    $pstAmount    = $basePrice * ($pstPercent / 100);
+                                    $totalPrice   = $basePrice + $gstAmount + $pstAmount;
+
                                     $metaTitle    = (string)($product['MetaTitle'] ?? '');
                                     $metaDesc     = (string)($product['MetaDescription'] ?? '');
                                     $isActive     = !empty($product['IsActive']);
@@ -1288,11 +1314,23 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     $isNew        = !empty($product['IsNewArrival']);
                                     $isBestSeller = !empty($product['IsBestSeller']);
                                     $image        = productImageUrl($product['MainImage'] ?? '');
+                                    
+                                    $rawImages = explode('|', (string)($product['AllImages'] ?? ''));
+                                    $formattedImages = [];
+                                    foreach ($rawImages as $imgFile) {
+                                        $url = productImageUrl($imgFile);
+                                        if ($url !== '') {
+                                            $formattedImages[] = $url;
+                                        }
+                                    }
+                                    $allImagesJson = htmlspecialchars(json_encode($formattedImages), ENT_QUOTES, 'UTF-8');
+
                                     $createdAt    = dateValue($product['CreatedAt'] ?? '');
                                     ?>
                                     <tr
                                         class="category-row product-row"
                                         data-id="<?= $productId ?>"
+                                        data-parentcat="<?= $parentCatId ?>"
                                         data-status="<?= $isActive ? 'active' : 'inactive' ?>"
                                         data-category="<?= e(strtolower($catName)) ?>"
                                         data-name="<?= e(strtolower($name)) ?>"
@@ -1300,9 +1338,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                         data-specs="<?= e(strtolower($specs)) ?>"
                                         data-description="<?= e(strtolower($desc)) ?>">
 
-                                        <!-- ID -->
+                                        <!-- ID STARTING FROM 1 -->
                                         <td>
-                                            <span class="order-box">#<?= $productId ?></span>
+                                            <span class="order-box">#<?= $displayId++ ?></span>
                                         </td>
 
                                         <!-- PRODUCT & IMAGE -->
@@ -1339,16 +1377,17 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                             <span class="cat-badge"><?= e($catName) ?></span>
                                         </td>
 
-                                        <!-- BASE PRICE -->
+                                        <!-- PRICE WITH TAX INCLUDED -->
                                         <td>
-                                            <span class="price-value">$<?= number_format($basePrice, 2) ?></span>
+                                            <div class="price-value">$<?= number_format($totalPrice, 2) ?></div>
+                                            <div style="font-size:10px; color:var(--text-mute);">Base: $<?= number_format($basePrice, 2) ?></div>
                                         </td>
 
                                         <!-- TAXES -->
                                         <td>
                                             <div style="font-size:11px; line-height:1.4;">
-                                                <div>GST: <?= number_format($gstPercent, 1) ?>%</div>
-                                                <div style="color:var(--text-mute);">PST: <?= number_format($pstPercent, 1) ?>%</div>
+                                                <div>GST (<?= number_format($gstPercent, 1) ?>%): +$<?= number_format($gstAmount, 2) ?></div>
+                                                <div style="color:var(--text-mute);">PST (<?= number_format($pstPercent, 1) ?>%): +$<?= number_format($pstAmount, 2) ?></div>
                                             </div>
                                         </td>
 
@@ -1400,9 +1439,9 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     data-name="<?= e($name) ?>"
                                                     data-slug="<?= e($slug) ?>"
                                                     data-category="<?= e($catName) ?>"
-                                                    data-price="$<?= number_format($basePrice, 2) ?>"
-                                                    data-gst="<?= number_format($gstPercent, 1) ?>%"
-                                                    data-pst="<?= number_format($pstPercent, 1) ?>%"
+                                                    data-price="$<?= number_format($totalPrice, 2) ?> (Base: $<?= number_format($basePrice, 2) ?>)"
+                                                    data-gst="<?= number_format($gstPercent, 1) ?>% (+$<?= number_format($gstAmount, 2) ?>)"
+                                                    data-pst="<?= number_format($pstPercent, 1) ?>% (+$<?= number_format($pstAmount, 2) ?>)"
                                                     data-shortdesc="<?= e($shortDesc) ?>"
                                                     data-description="<?= e($desc) ?>"
                                                     data-specs="<?= e($specs) ?>"
@@ -1412,7 +1451,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     data-status="<?= $isActive ? 'Active' : 'Inactive' ?>"
                                                     data-flags="<?= trim(($isFeatured ? 'Featured ' : '') . ($isNew ? 'NewArrival ' : '') . ($isBestSeller ? 'BestSeller' : '')) ?>"
                                                     data-created="<?= e($createdAt) ?>"
-                                                    data-image="<?= e($image) ?>">
+                                                    data-images="<?= $allImagesJson ?>">
                                                     ◉
                                                 </button>
 
@@ -1491,7 +1530,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
         <div class="modal-body">
             <div class="detail-grid">
-                <div class="detail-image" id="modalImageBox">📦</div>
+                <div class="detail-image-box">
+                    <div class="detail-main-image" id="modalImageBox">📦</div>
+                    <div class="detail-thumbnails" id="modalThumbnails"></div>
+                </div>
 
                 <div>
                     <div class="detail-item">
@@ -1514,7 +1556,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                         <div class="detail-card">
                             <div class="detail-item">
-                                <label>Base Price</label>
+                                <label>Price (With Tax)</label>
                                 <div id="modalPrice" style="color:var(--green); font-weight:800;">—</div>
                             </div>
                         </div>
@@ -1530,7 +1572,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     <div class="detail-meta" style="margin-top:10px;">
                         <div class="detail-card">
                             <div class="detail-item">
-                                <label>GST / PST</label>
+                                <label>GST / PST Breakdown</label>
                                 <div id="modalTaxes">—</div>
                             </div>
                         </div>
@@ -1619,14 +1661,14 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
             /*
             |--------------------------------------------------------------------------
-            | INSTANT REAL-TIME FILTER
+            | HIERARCHICAL REAL-TIME FILTER
             |--------------------------------------------------------------------------
             */
             function filterProducts() {
                 if (!table) return;
 
                 const q = (searchInput?.value || '').toLowerCase().trim();
-                const cat = (categoryFilter?.value || 'all');
+                const catVal = (categoryFilter?.value || 'all');
                 const status = (statusFilter?.value || 'all');
 
                 let count = 0;
@@ -1637,10 +1679,21 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     const specs = row.dataset.specs || '';
                     const desc = row.dataset.description || '';
                     const rowCat = row.dataset.category || '';
+                    const parentCatId = row.dataset.parentcat || '';
                     const rowStatus = row.dataset.status || '';
 
                     const textMatch = (!q || name.includes(q) || slug.includes(q) || specs.includes(q) || desc.includes(q));
-                    const catMatch = (cat === 'all' || rowCat === cat);
+                    
+                    let catMatch = true;
+                    if (catVal !== 'all') {
+                        if (catVal.startsWith('main-')) {
+                            const mainId = catVal.replace('main-', '');
+                            catMatch = (parentCatId === mainId);
+                        } else {
+                            catMatch = (rowCat === catVal);
+                        }
+                    }
+
                     const statusMatch = (status === 'all' || rowStatus === status);
 
                     if (textMatch && catMatch && statusMatch) {
@@ -1752,7 +1805,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
             /*
             |--------------------------------------------------------------------------
-            | MODAL HANDLING
+            | MODAL HANDLING WITH MULTIPLE IMAGES
             |--------------------------------------------------------------------------
             */
             function openModal(btn) {
@@ -1769,16 +1822,37 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 document.getElementById('modalSpecs').textContent = btn.dataset.specs || 'No specifications listed.';
                 document.getElementById('modalCare').textContent = btn.dataset.care || 'Standard care instructions.';
 
-                const box = document.getElementById('modalImageBox');
-                box.innerHTML = '';
-                if (btn.dataset.image) {
-                    const img = document.createElement('img');
-                    img.src = btn.dataset.image;
-                    img.alt = btn.dataset.name;
-                    img.onerror = () => box.textContent = '📦';
-                    box.appendChild(img);
-                } else {
-                    box.textContent = '📦';
+                const mainBox = document.getElementById('modalImageBox');
+                const thumbBox = document.getElementById('modalThumbnails');
+                mainBox.innerHTML = '📦';
+                thumbBox.innerHTML = '';
+
+                let images = [];
+                try {
+                    images = JSON.parse(btn.dataset.images || '[]');
+                } catch (e) {
+                    images = [];
+                }
+
+                if (images.length > 0) {
+                    const mainImg = document.createElement('img');
+                    mainImg.src = images[0];
+                    mainImg.alt = btn.dataset.name;
+                    mainImg.onerror = () => mainBox.textContent = '📦';
+                    mainBox.innerHTML = '';
+                    mainBox.appendChild(mainImg);
+
+                    images.forEach((imgUrl, idx) => {
+                        const thumb = document.createElement('img');
+                        thumb.src = imgUrl;
+                        thumb.className = 'thumb-img' + (idx === 0 ? ' active' : '');
+                        thumb.addEventListener('click', () => {
+                            mainImg.src = imgUrl;
+                            thumbBox.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
+                            thumb.classList.add('active');
+                        });
+                        thumbBox.appendChild(thumb);
+                    });
                 }
 
                 modal.classList.add('show');

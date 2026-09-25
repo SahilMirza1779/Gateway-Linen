@@ -76,6 +76,7 @@ $checkSql = "
         c.CategoryId,
         c.Name,
         c.DisplayOrder,
+        c.ImageUrl,
         (
             SELECT COUNT(*)
             FROM dbo.Products p
@@ -92,12 +93,10 @@ $checkStmt = sqlsrv_query(
 );
 
 if ($checkStmt === false) {
-
     header(
         'Location: index.php?error=' .
         urlencode('Unable to check the selected category.')
     );
-
     exit;
 }
 
@@ -115,12 +114,10 @@ sqlsrv_free_stmt($checkStmt);
 */
 
 if (!$category) {
-
     header(
         'Location: index.php?error=' .
         urlencode('Category not found.')
     );
-
     exit;
 }
 
@@ -133,7 +130,6 @@ if (!$category) {
 $productCount = (int)($category['ProductCount'] ?? 0);
 
 if ($productCount > 0) {
-
     $message =
         'Category "' .
         ($category['Name'] ?? 'Unknown') .
@@ -145,7 +141,6 @@ if ($productCount > 0) {
         'Location: index.php?error=' .
         urlencode($message)
     );
-
     exit;
 }
 
@@ -156,18 +151,16 @@ if ($productCount > 0) {
 */
 
 if (!sqlsrv_begin_transaction($conn)) {
-
     header(
         'Location: index.php?error=' .
         urlencode('Unable to start delete transaction.')
     );
-
     exit;
 }
 
 /*
 |--------------------------------------------------------------------------
-| DELETE CATEGORY
+| DELETE CATEGORY FROM DATABASE
 |--------------------------------------------------------------------------
 */
 
@@ -183,7 +176,6 @@ $deleteStmt = sqlsrv_query(
 );
 
 if ($deleteStmt === false) {
-
     sqlsrv_rollback($conn);
 
     header(
@@ -192,7 +184,6 @@ if ($deleteStmt === false) {
             'Category could not be deleted. It may be referenced by another record.'
         )
     );
-
     exit;
 }
 
@@ -200,13 +191,24 @@ sqlsrv_free_stmt($deleteStmt);
 
 /*
 |--------------------------------------------------------------------------
+| DELETE IMAGE FILE FROM FOLDER
+|--------------------------------------------------------------------------
+*/
+
+$imageUrl = $category['ImageUrl'] ?? '';
+if (!empty($imageUrl)) {
+    // Kyunki database mein 'uploads/categories/filename.ext' save hai
+    $imagePath = __DIR__ . '/../' . $imageUrl;
+    if (file_exists($imagePath)) {
+        @unlink($imagePath);
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
 | IMPORTANT:
 | TEMPORARILY MOVE DISPLAY ORDER
 |--------------------------------------------------------------------------
-|
-| This avoids duplicate DisplayOrder problems if DisplayOrder
-| has a UNIQUE constraint/index.
-|
 */
 
 $tempSql = "
@@ -220,7 +222,6 @@ $tempStmt = sqlsrv_query(
 );
 
 if ($tempStmt === false) {
-
     sqlsrv_rollback($conn);
 
     header(
@@ -229,7 +230,6 @@ if ($tempStmt === false) {
             'Category was not deleted because category numbering could not be prepared.'
         )
     );
-
     exit;
 }
 
@@ -239,17 +239,6 @@ sqlsrv_free_stmt($tempStmt);
 |--------------------------------------------------------------------------
 | AUTO RE-NUMBER
 |--------------------------------------------------------------------------
-|
-| Remaining categories:
-|
-| 1
-| 2
-| 3
-| 4
-| ...
-|
-| Existing order is preserved.
-|
 */
 
 $renumberSql = "
@@ -279,7 +268,6 @@ $renumberStmt = sqlsrv_query(
 );
 
 if ($renumberStmt === false) {
-
     sqlsrv_rollback($conn);
 
     header(
@@ -288,7 +276,6 @@ if ($renumberStmt === false) {
             'Category was not deleted because automatic re-numbering failed.'
         )
     );
-
     exit;
 }
 
@@ -301,14 +288,12 @@ sqlsrv_free_stmt($renumberStmt);
 */
 
 if (!sqlsrv_commit($conn)) {
-
     sqlsrv_rollback($conn);
 
     header(
         'Location: index.php?error=' .
         urlencode('Category deletion could not be completed.')
     );
-
     exit;
 }
 
@@ -323,7 +308,7 @@ $deletedName = (string)($category['Name'] ?? 'Category');
 $message =
     'Category "' .
     $deletedName .
-    '" deleted successfully. Category numbers were updated automatically.';
+    '" and its image deleted successfully. Category numbers were updated automatically.';
 
 header(
     'Location: index.php?success=' .

@@ -53,11 +53,7 @@ const Register = () => {
       };
 
       const response = await fetch(
-<<<<<<< HEAD
-        "http://localhost/Gateway-Linen/GatewayLinenadmin-main/users/api.php",
-=======
         "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/api.php",
->>>>>>> 76f841f381353ab4294a66c957f4089f48f67a21
         {
           method: "POST",
           headers: {

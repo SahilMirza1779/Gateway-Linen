@@ -48,69 +48,6 @@ const categories = [
 export default function CategoryGrid() {
   const navigate = useNavigate();
 
-<<<<<<< HEAD
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost/Gateway-Linen/GatewayLinenadmin-main/categories/api.php",
-          {
-            method: "GET",
-            headers: {
-              "X-API-KEY": "GatewayLinen@2026",
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        const result = await response.json();
-        if (result.success && result.data) {
-          setCategories(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (scrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-        if (scrollLeft + clientWidth >= scrollWidth - 10) {
-          scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          scrollRef.current.scrollBy({ left: 280, behavior: "smooth" });
-        }
-      }
-    }, 6000);
-
-    return () => clearInterval(interval);
-  }, [categories]);
-
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
-
-  const handleCategoryClick = (categoryName) => {
-    const slug = categoryName.toLowerCase().replace(/\s+/g, "-");
-    navigate(`/category/${slug}`);
-  };
-
-=======
->>>>>>> 76f841f381353ab4294a66c957f4089f48f67a21
   return (
     <section className="w-full bg-[#F0EAE1] py-12 md:py-16 px-3 md:px-10 font-sans">
       <div className="max-w-[1536px] mx-auto">

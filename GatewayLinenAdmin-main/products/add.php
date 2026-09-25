@@ -89,7 +89,7 @@ $csrfToken = $_SESSION["product_csrf_token"];
 
 /*
 |--------------------------------------------------------------------------
-| FORM VARIABLES (GST 5% & PST 7% FIXED BY DEFAULT)
+| FORM VARIABLES
 |--------------------------------------------------------------------------
 */
 
@@ -101,6 +101,7 @@ $description      = "";
 $careInstructions = "";
 $specifications   = "";
 $basePrice        = "0.00";
+$taxType          = "both"; // Options: 'both', 'gst_only', 'pst_only', 'none', 'custom'
 $gstPercentage    = "5.00";
 $pstPercentage    = "7.00";
 $metaTitle        = "";
@@ -182,10 +183,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $careInstructions = trim($_POST["care_instructions"] ?? "");
         $specifications   = trim($_POST["specifications"] ?? "");
         $basePrice        = trim($_POST["base_price"] ?? "0.00");
-        $gstPercentage    = trim($_POST["gst_percentage"] ?? "5.00");
-        $pstPercentage    = trim($_POST["pst_percentage"] ?? "7.00");
+        $taxType          = trim($_POST["tax_type"] ?? "both");
         $metaTitle        = trim($_POST["meta_title"] ?? "");
         $metaDescription  = trim($_POST["meta_description"] ?? "");
+
+        // Handle tax percentages based on selected tax type
+        if ($taxType === "gst_only") {
+            $gstPercentage = trim($_POST["gst_percentage"] ?? "5.00");
+            $pstPercentage = "0.00";
+        } elseif ($taxType === "pst_only") {
+            $gstPercentage = "0.00";
+            $pstPercentage = trim($_POST["pst_percentage"] ?? "7.00");
+        } elseif ($taxType === "none") {
+            $gstPercentage = "0.00";
+            $pstPercentage = "0.00";
+        } else {
+            // 'both' or 'custom'
+            $gstPercentage = trim($_POST["gst_percentage"] ?? "5.00");
+            $pstPercentage = trim($_POST["pst_percentage"] ?? "7.00");
+        }
 
         $isFeatured   = isset($_POST["is_featured"]) ? 1 : 0;
         $isNewArrival = isset($_POST["is_new_arrival"]) ? 1 : 0;
@@ -308,10 +324,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $dbPath = "uploads/products/" . $newFileName;
 
             $uploadedFiles[] = [
-                "tmp"      => $files["tmp_name"][$i],
-                "dest"     => $physicalPath,
-                "db_path"  => $dbPath,
-                "name"     => $files["name"][$i]
+                "tmp"     => $files["tmp_name"][$i],
+                "dest"    => $physicalPath,
+                "db_path" => $dbPath,
+                "name"    => $files["name"][$i]
             ];
         }
     }
@@ -692,6 +708,30 @@ require_once __DIR__ . "/../includes/sidebar.php";
         border-color: var(--green);
     }
 
+    /* Live Tax Calculation Summary Box */
+    .tax-summary-box {
+        grid-column: 1 / -1;
+        margin-top: 5px;
+        padding: 12px 14px;
+        background: rgba(16, 185, 129, 0.05);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 8px;
+        font-size: 11.5px;
+    }
+    .tax-summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        color: var(--text-body);
+    }
+    .tax-summary-row:last-child {
+        margin-bottom: 0;
+        padding-top: 6px;
+        border-top: 1px dashed rgba(16, 185, 129, 0.2);
+        font-weight: 800;
+        color: var(--text-hi);
+    }
+
     .add-form-required {
         color: var(--red);
     }
@@ -977,7 +1017,7 @@ require_once __DIR__ . "/../includes/sidebar.php";
                     </div>
                     <h1 class="add-category-title">Add New Product</h1>
                     <p class="add-category-subtitle">
-                        Create a product with pricing, tax (GST 5% / PST 7%), multiple images, specifications, and SEO settings.
+                        Create a product with pricing, dynamic tax configuration, multiple images, specifications, and SEO settings.
                     </p>
                 </div>
                 <a href="index.php" class="add-category-back">
@@ -1051,6 +1091,17 @@ require_once __DIR__ . "/../includes/sidebar.php";
                         </div>
 
                         <div class="add-form-group">
+                            <label for="taxType" class="add-form-label"><span>Tax Configuration</span></label>
+                            <select id="taxType" name="tax_type" class="add-form-select">
+                                <option value="both" <?= $taxType === 'both' ? 'selected' : '' ?>>Both GST (5%) & PST (7%)</option>
+                                <option value="gst_only" <?= $taxType === 'gst_only' ? 'selected' : '' ?>>GST Only</option>
+                                <option value="pst_only" <?= $taxType === 'pst_only' ? 'selected' : '' ?>>PST Only</option>
+                                <option value="none" <?= $taxType === 'none' ? 'selected' : '' ?>>Without Tax (Tax-Free)</option>
+                                <option value="custom" id="customTaxOption" style="display:none;" disabled>Custom Tax Configuration</option>
+                            </select>
+                        </div>
+
+                        <div class="add-form-group">
                             <label for="gstPercentage" class="add-form-label">
                                 <span>GST Percentage (%)</span>
                                 <button type="button" class="tax-edit-btn" id="editGstBtn">🔒 Unlock</button>
@@ -1064,6 +1115,22 @@ require_once __DIR__ . "/../includes/sidebar.php";
                                 <button type="button" class="tax-edit-btn" id="editPstBtn">🔒 Unlock</button>
                             </label>
                             <input type="number" step="0.01" min="0" id="pstPercentage" name="pst_percentage" class="add-form-input" value="<?= e($pstPercentage) ?>" readonly>
+                        </div>
+
+                        <!-- LIVE TAX & TOTAL CALCULATION SUMMARY -->
+                        <div class="tax-summary-box">
+                            <div class="tax-summary-row">
+                                <span>GST Amount:</span>
+                                <span id="summaryGstAmount">$0.00</span>
+                            </div>
+                            <div class="tax-summary-row">
+                                <span>PST Amount:</span>
+                                <span id="summaryPstAmount">$0.00</span>
+                            </div>
+                            <div class="tax-summary-row">
+                                <span>Grand Total (Incl. Tax):</span>
+                                <span id="summaryGrandTotal">$0.00</span>
+                            </div>
                         </div>
 
                         <div class="add-category-section sec-purple">
@@ -1188,10 +1255,12 @@ require_once __DIR__ . "/../includes/sidebar.php";
         const nameInput = document.getElementById("productName");
         const slugInput = document.getElementById("productSlug");
         const priceInput = document.getElementById("basePrice");
+        const taxTypeSelect = document.getElementById("taxType");
         const gstInput = document.getElementById("gstPercentage");
         const pstInput = document.getElementById("pstPercentage");
         const editGstBtn = document.getElementById("editGstBtn");
         const editPstBtn = document.getElementById("editPstBtn");
+        const customTaxOption = document.getElementById("customTaxOption");
         const metaTitleInput = document.getElementById("metaTitle");
         const shortDescInput = document.getElementById("productShortDesc");
         const metaDescInput = document.getElementById("metaDescription");
@@ -1200,6 +1269,86 @@ require_once __DIR__ . "/../includes/sidebar.php";
         const form = document.getElementById("addProductForm");
         const saveBtn = document.getElementById("saveProductBtn");
         const shortcutBox = document.getElementById("shortcutHelpBox");
+
+        const summaryGstAmount = document.getElementById("summaryGstAmount");
+        const summaryPstAmount = document.getElementById("summaryPstAmount");
+        const summaryGrandTotal = document.getElementById("summaryGrandTotal");
+
+        let customGstValue = null;
+        let customPstValue = null;
+        let isUserChangingTaxType = false;
+
+        // Calculate and update live tax breakdown
+        function calculateTaxSummary() {
+            const basePrice = parseFloat(priceInput.value) || 0;
+            const gstRate = parseFloat(gstInput.value) || 0;
+            const pstRate = parseFloat(pstInput.value) || 0;
+
+            const gstAmt = (basePrice * gstRate) / 100;
+            const pstAmt = (basePrice * pstRate) / 100;
+            const grandTotal = basePrice + gstAmt + pstAmt;
+
+            summaryGstAmount.textContent = `$${gstAmt.toFixed(2)} (${gstRate}%)`;
+            summaryPstAmount.textContent = `$${pstAmt.toFixed(2)} (${pstRate}%)`;
+            summaryGrandTotal.textContent = `$${grandTotal.toFixed(2)}`;
+        }
+
+        function checkCustomTaxStatus() {
+            if (isUserChangingTaxType) return;
+
+            const gst = parseFloat(gstInput.value) || 0;
+            const pst = parseFloat(pstInput.value) || 0;
+            const mode = taxTypeSelect.value;
+
+            let isStandard = false;
+            if (mode === "both" && gst === 5.00 && pst === 7.00) isStandard = true;
+            if (mode === "gst_only" && gst === 5.00 && pst === 0.00) isStandard = true;
+            if (mode === "pst_only" && gst === 0.00 && pst === 7.00) isStandard = true;
+            if (mode === "none" && gst === 0.00 && pst === 0.00) isStandard = true;
+
+            if (!isStandard) {
+                customTaxOption.style.display = "block";
+                customTaxOption.textContent = `Custom Tax (GST: ${gst}%, PST: ${pst}%)`;
+                taxTypeSelect.value = "custom";
+            } else {
+                customTaxOption.style.display = "none";
+            }
+            calculateTaxSummary();
+        }
+
+        // Handle dynamic tax mode selections
+        function updateTaxFields() {
+            isUserChangingTaxType = true;
+            const mode = taxTypeSelect.value;
+            
+            if (mode === "both") {
+                gstInput.value = customGstValue !== null ? customGstValue : "5.00";
+                pstInput.value = customPstValue !== null ? customPstValue : "7.00";
+                customTaxOption.style.display = "none";
+            } else if (mode === "gst_only") {
+                gstInput.value = customGstValue !== null ? customGstValue : "5.00";
+                pstInput.value = "0.00";
+                customTaxOption.style.display = "none";
+            } else if (mode === "pst_only") {
+                gstInput.value = "0.00";
+                pstInput.value = customPstValue !== null ? customPstValue : "7.00";
+                customTaxOption.style.display = "none";
+            } else if (mode === "none") {
+                gstInput.value = "0.00";
+                pstInput.value = "0.00";
+                customTaxOption.style.display = "none";
+            }
+            isUserChangingTaxType = false;
+            calculateTaxSummary();
+        }
+
+        if (taxTypeSelect) {
+            taxTypeSelect.addEventListener("change", updateTaxFields);
+        }
+
+        if (priceInput) {
+            priceInput.addEventListener("input", calculateTaxSummary);
+        }
 
         // Toggle GST Edit / Lock
         if (editGstBtn && gstInput) {
@@ -1213,6 +1362,18 @@ require_once __DIR__ . "/../includes/sidebar.php";
                     gstInput.setAttribute("readonly", "readonly");
                     editGstBtn.textContent = "🔒 Unlock";
                     editGstBtn.classList.remove("unlocked");
+                    customGstValue = gstInput.value;
+                    checkCustomTaxStatus();
+                }
+            });
+        }
+
+        // Track custom input value while editing GST
+        if (gstInput) {
+            gstInput.addEventListener("input", function() {
+                if (!gstInput.hasAttribute("readonly")) {
+                    customGstValue = gstInput.value;
+                    checkCustomTaxStatus();
                 }
             });
         }
@@ -1229,9 +1390,24 @@ require_once __DIR__ . "/../includes/sidebar.php";
                     pstInput.setAttribute("readonly", "readonly");
                     editPstBtn.textContent = "🔒 Unlock";
                     editPstBtn.classList.remove("unlocked");
+                    customPstValue = pstInput.value;
+                    checkCustomTaxStatus();
                 }
             });
         }
+
+        // Track custom input value while editing PST
+        if (pstInput) {
+            pstInput.addEventListener("input", function() {
+                if (!pstInput.hasAttribute("readonly")) {
+                    customPstValue = pstInput.value;
+                    checkCustomTaxStatus();
+                }
+            });
+        }
+
+        // Initial calculation on page load
+        calculateTaxSummary();
 
         let slugManuallyChanged = slugInput && slugInput.value.trim() !== "";
 

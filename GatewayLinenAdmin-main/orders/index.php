@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 
 /*
@@ -133,11 +132,6 @@ foreach ($allOrders as $order) {
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| HEADER / SIDEBAR
-|--------------------------------------------------------------------------
-*/
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/sidebar.php';
 ?>
@@ -185,14 +179,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
         width: 100%;
         max-width: 1600px;
         margin: 0 auto;
-        padding: 0 0 30px;
+        padding: 0 0 40px;
     }
 
-    .orders-page * {
-        box-sizing: border-box;
-    }
+    .orders-page * { box-sizing: border-box; }
 
-    /* HEADER */
     .page-header {
         display: flex;
         align-items: flex-end;
@@ -215,9 +206,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
         letter-spacing: .4px;
     }
 
-    .breadcrumb .current {
-        color: var(--green);
-    }
+    .breadcrumb .current { color: var(--green); }
 
     .page-header h1 {
         margin: 0;
@@ -254,7 +243,18 @@ require_once __DIR__ . '/../includes/sidebar.php';
         font-weight: 800;
         text-decoration: none;
         cursor: pointer;
-        transition: .18s;
+        transition: .18s ease;
+    }
+
+    .btn kbd {
+        display: inline-block;
+        padding: 1px 5px;
+        font-size: 9px;
+        font-family: monospace;
+        color: var(--text-mute);
+        background: rgba(255,255,255,0.06);
+        border: 1px solid var(--border);
+        border-radius: 4px;
     }
 
     .btn:hover {
@@ -265,7 +265,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
     .btn-blue { color: var(--blue) !important; }
 
-    /* STATS */
+    /* STATS GRID */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -401,7 +401,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
     }
 
     .filter-select {
-        min-width: 140px;
+        min-width: 150px;
         padding: 0 12px;
         cursor: pointer;
     }
@@ -475,14 +475,17 @@ require_once __DIR__ . '/../includes/sidebar.php';
         vertical-align: middle;
     }
 
+    table.data-table tbody tr {
+        transition: background .12s ease;
+    }
+
     table.data-table tbody tr:hover {
         background: var(--bg-hover);
     }
 
     table.data-table tbody tr.keyboard-selected {
-        outline: 2px solid var(--green);
-        outline-offset: -2px;
-        background: var(--green-soft);
+        background: rgba(16, 185, 129, 0.12) !important;
+        outline: 1px solid var(--green);
     }
 
     /* BADGES */
@@ -493,9 +496,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
         font-family: monospace;
         font-size: 13px;
     }
-    .order-number:hover {
-        color: var(--green);
-    }
+    .order-number:hover { color: var(--green); }
 
     .customer-info strong {
         display: block;
@@ -583,6 +584,47 @@ require_once __DIR__ . '/../includes/sidebar.php';
         color: var(--red);
     }
 
+    /* SHORTCUT BAR / FLOATING WIDGET */
+    .shortcut-box {
+        margin-top: 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 20px;
+    }
+    .shortcut-box.hidden { display: none; }
+    .shortcut-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+        font-size: 12px;
+        color: var(--text-hi);
+        margin-bottom: 12px;
+    }
+    .shortcut-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+    }
+    .shortcut-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+    }
+    .shortcut-key {
+        padding: 2px 7px;
+        border-radius: 4px;
+        background: var(--bg-header);
+        border: 1px solid var(--border);
+        font-family: monospace;
+        font-size: 10px;
+        color: var(--green);
+        font-weight: 800;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+
     /* MODAL */
     .modal-backdrop {
         position: fixed;
@@ -641,6 +683,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
         border-top: 1px solid var(--border);
         background: var(--bg-card-alt);
     }
+
+    @media (max-width: 900px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
 </style>
 
 <main class="main">
@@ -657,9 +703,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     <p>Track, manage, view invoice and update fulfillment status for customer orders.</p>
                 </div>
                 <div class="header-actions">
-                    <button type="button" class="btn btn-blue" id="printBtn">🖨 Print <small>P</small></button>
-                    <button type="button" class="btn" id="pdfBtn">↓ PDF <small>V</small></button>
-                    <button type="button" class="btn" id="excelBtn">↓ Excel <small>X</small></button>
+                    <button type="button" class="btn btn-blue" id="printBtn">🖨 Print <kbd>P</kbd></button>
+                    <button type="button" class="btn" id="pdfBtn">↓ PDF <kbd>D</kbd></button>
+                    <button type="button" class="btn" id="excelBtn">↓ Excel <kbd>E</kbd></button>
+                    <button type="button" class="btn" id="toggleShortcutsBtn">⌨ Keys <kbd>?</kbd></button>
                 </div>
             </div>
 
@@ -720,10 +767,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     <div class="filter-group">
                         <div class="search-wrap">
                             <span class="search-icon">⌕</span>
-                            <input type="search" id="orderSearch" class="input-search" placeholder="Search Order #, customer name, phone..." autocomplete="off">
+                            <input type="search" id="orderSearch" class="input-search" placeholder="Search Order #, customer name, phone... (Press '/' or 'B')" autocomplete="off">
                         </div>
 
-                        <select id="statusFilter" class="filter-select">
+                        <select id="statusFilter" class="filter-select" title="Shortcut: 'F'">
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
@@ -791,6 +838,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     ?>
                                     <tr 
                                         class="order-row"
+                                        tabindex="0"
                                         data-id="<?= $orderId ?>"
                                         data-ordernum="<?= e(strtolower($orderNum)) ?>"
                                         data-customer="<?= e(strtolower($custName)) ?>"
@@ -848,14 +896,14 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     data-status="<?= e($status) ?>"
                                                     data-date="<?= e($dateStr) ?>"
                                                     data-address="<?= e($address) ?>"
-                                                    data-tracking="<?= e($ord['TrackingNumber']) ?>"
-                                                    data-courier="<?= e($ord['CourierName']) ?>"
+                                                    data-tracking="<?= e($ord['TrackingNumber'] ?? '') ?>"
+                                                    data-courier="<?= e($ord['CourierName'] ?? '') ?>"
                                                 >
                                                     ◉
                                                 </button>
 
                                                 <!-- FULL ORDER VIEW / INVOICE -->
-                                                <a href="view.php?id=<?= $orderId ?>" class="action-btn" title="View Order & Invoice">
+                                                <a href="view.php?id=<?= $orderId ?>" class="action-btn full-view-btn" title="View Order & Invoice">
                                                     📄
                                                 </a>
 
@@ -885,16 +933,20 @@ require_once __DIR__ . '/../includes/sidebar.php';
             <div class="shortcut-box" id="shortcutBox">
                 <div class="shortcut-title">
                     <span>⌨</span>
-                    <span>Keyboard Shortcuts</span>
-                    <small style="margin-left:auto; color:var(--text-mute);">Press H to toggle</small>
+                    <span>Keyboard Shortcuts Guide</span>
+                    <small style="margin-left:auto; color:var(--text-mute); font-weight:normal;">Press <kbd class="shortcut-key">?</kbd> to hide/show</small>
                 </div>
                 <div class="shortcut-grid">
-                    <div class="shortcut"><span class="key">B</span><span class="key-text">Search Orders</span></div>
-                    <div class="shortcut"><span class="key">C</span><span class="key-text">Filter by Status</span></div>
-                    <div class="shortcut"><span class="key">P</span><span class="key-text">Print Table</span></div>
-                    <div class="shortcut"><span class="key">V</span><span class="key-text">Download PDF</span></div>
-                    <div class="shortcut"><span class="key">X</span><span class="key-text">Export to Excel</span></div>
-                    <div class="shortcut"><span class="key">Esc</span><span class="key-text">Clear Search / Close</span></div>
+                    <div class="shortcut-item"><span class="shortcut-key">/</span> or <span class="shortcut-key">B</span> Search Orders</div>
+                    <div class="shortcut-item"><span class="shortcut-key">F</span> Filter Status</div>
+                    <div class="shortcut-item"><span class="shortcut-key">↓ / J</span> Next Row</div>
+                    <div class="shortcut-item"><span class="shortcut-key">↑ / K</span> Previous Row</div>
+                    <div class="shortcut-item"><span class="shortcut-key">Enter</span> Quick View Selected</div>
+                    <div class="shortcut-item"><span class="shortcut-key">O</span> Open Invoice Selected</div>
+                    <div class="shortcut-item"><span class="shortcut-key">P</span> Print Table</div>
+                    <div class="shortcut-item"><span class="shortcut-key">D</span> Download PDF</div>
+                    <div class="shortcut-item"><span class="shortcut-key">E</span> Export Excel</div>
+                    <div class="shortcut-item"><span class="shortcut-key">Esc</span> Close / Reset</div>
                 </div>
             </div>
 
@@ -903,11 +955,11 @@ require_once __DIR__ . '/../includes/sidebar.php';
 </main>
 
 <!-- ORDER DETAILS POPUP MODAL -->
-<div class="modal-backdrop" id="orderModal">
+<div class="modal-backdrop" id="orderModal" role="dialog" aria-modal="true">
     <div class="order-modal">
         <div class="modal-header">
             <h3 id="modalOrderTitle">Order Details</h3>
-            <button type="button" class="modal-close" id="modalClose">×</button>
+            <button type="button" class="modal-close" id="modalClose" aria-label="Close modal">×</button>
         </div>
         <div class="modal-body">
             <div class="modal-grid">
@@ -946,7 +998,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn" id="modalCloseBtn">Close</button>
+            <button type="button" class="btn" id="modalCloseBtn">Close <kbd>Esc</kbd></button>
         </div>
     </div>
 </div>
@@ -965,6 +1017,28 @@ document.addEventListener("DOMContentLoaded", function() {
     const noResults = document.getElementById("noResults");
     const modal = document.getElementById("orderModal");
     const shortcutBox = document.getElementById("shortcutBox");
+    const toggleShortcutsBtn = document.getElementById("toggleShortcutsBtn");
+
+    let selectedRowIndex = -1;
+
+    function getVisibleRows() {
+        return rows.filter(r => r.style.display !== 'none');
+    }
+
+    function selectRow(index) {
+        const visible = getVisibleRows();
+        if (visible.length === 0) return;
+
+        visible.forEach(r => r.classList.remove("keyboard-selected"));
+
+        if (index < 0) index = 0;
+        if (index >= visible.length) index = visible.length - 1;
+
+        selectedRowIndex = index;
+        const targetRow = visible[selectedRowIndex];
+        targetRow.classList.add("keyboard-selected");
+        targetRow.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
 
     // Real-time Search & Filter
     function filterOrders() {
@@ -987,9 +1061,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 visibleCount++;
             } else {
                 row.style.display = "none";
+                row.classList.remove("keyboard-selected");
             }
         });
 
+        selectedRowIndex = -1;
         if (countElement) countElement.textContent = visibleCount;
         if (noResults) noResults.style.display = (visibleCount === 0) ? "block" : "none";
     }
@@ -997,28 +1073,32 @@ document.addEventListener("DOMContentLoaded", function() {
     searchInput?.addEventListener("input", filterOrders);
     statusFilter?.addEventListener("change", filterOrders);
 
-    // Modal Details
+    // Modal Details Populate
+    function openModalWithData(btn) {
+        document.getElementById("modalOrderTitle").textContent = "Order #" + (btn.dataset.ordernum || '');
+        document.getElementById("mCustomer").textContent = btn.dataset.customer || '—';
+        document.getElementById("mStatus").textContent = btn.dataset.status || '—';
+        document.getElementById("mPhone").textContent = btn.dataset.phone || '—';
+        document.getElementById("mEmail").textContent = btn.dataset.email || '—';
+        document.getElementById("mAmount").textContent = btn.dataset.amount || '$0.00';
+        document.getElementById("mDate").textContent = btn.dataset.date || '—';
+        document.getElementById("mAddress").textContent = btn.dataset.address || 'No address provided';
+
+        const trackRow = document.getElementById("mTrackingRow");
+        if (btn.dataset.tracking) {
+            trackRow.style.display = "block";
+            document.getElementById("mTracking").textContent = (btn.dataset.courier ? btn.dataset.courier + ': ' : '') + btn.dataset.tracking;
+        } else {
+            trackRow.style.display = "none";
+        }
+
+        modal.classList.add("show");
+    }
+
     document.querySelectorAll(".quick-view-btn").forEach(btn => {
         btn.addEventListener("click", function(e) {
             e.stopPropagation();
-            document.getElementById("modalOrderTitle").textContent = "Order #" + this.dataset.ordernum;
-            document.getElementById("mCustomer").textContent = this.dataset.customer;
-            document.getElementById("mStatus").textContent = this.dataset.status;
-            document.getElementById("mPhone").textContent = this.dataset.phone;
-            document.getElementById("mEmail").textContent = this.dataset.email;
-            document.getElementById("mAmount").textContent = this.dataset.amount;
-            document.getElementById("mDate").textContent = this.dataset.date;
-            document.getElementById("mAddress").textContent = this.dataset.address || 'No address provided';
-
-            const trackRow = document.getElementById("mTrackingRow");
-            if (this.dataset.tracking) {
-                trackRow.style.display = "block";
-                document.getElementById("mTracking").textContent = (this.dataset.courier ? this.dataset.courier + ': ' : '') + this.dataset.tracking;
-            } else {
-                trackRow.style.display = "none";
-            }
-
-            modal.classList.add("show");
+            openModalWithData(this);
         });
     });
 
@@ -1030,14 +1110,17 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("modalCloseBtn")?.addEventListener("click", closeModal);
     modal?.addEventListener("click", e => { if (e.target === modal) closeModal(); });
 
-    // Print
+    toggleShortcutsBtn?.addEventListener("click", () => {
+        shortcutBox?.classList.toggle("hidden");
+    });
+
+    // Exports
     const doPrint = () => window.print();
     document.getElementById("printBtn")?.addEventListener("click", doPrint);
     document.getElementById("printBtn2")?.addEventListener("click", doPrint);
 
-    // Export Excel
     const doExcel = () => {
-        const visibleRows = rows.filter(r => r.style.display !== 'none');
+        const visibleRows = getVisibleRows();
         const data = visibleRows.map(r => ({
             'Order #': r.querySelector('.order-number')?.innerText.trim() || '',
             'Customer': r.querySelector('.customer-info strong')?.innerText.trim() || '',
@@ -1058,13 +1141,12 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("excelBtn")?.addEventListener("click", doExcel);
     document.getElementById("excelBtn2")?.addEventListener("click", doExcel);
 
-    // Export PDF
     const doPdf = () => {
         if (!window.jspdf || !window.jspdf.jsPDF) {
             alert('PDF library not ready. Please use Print option.');
             return;
         }
-        const visibleRows = rows.filter(r => r.style.display !== 'none');
+        const visibleRows = getVisibleRows();
         const body = visibleRows.map(r => [
             r.querySelector('.order-number')?.innerText.trim() || '',
             r.querySelector('.customer-info strong')?.innerText.trim() || '',
@@ -1094,41 +1176,76 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("pdfBtn")?.addEventListener("click", doPdf);
     document.getElementById("pdfBtn2")?.addEventListener("click", doPdf);
 
-    // Keyboard Shortcuts
+    // Advanced Keyboard Shortcuts
     document.addEventListener("keydown", function(e) {
-        const tag = (e.target?.tagName || '').toLowerCase();
-        const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
-        if (typing) return;
+        const activeElem = document.activeElement;
+        const tag = (activeElem?.tagName || '').toLowerCase();
+        const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || activeElem?.isContentEditable;
 
-        const key = (e.key || '').toUpperCase();
-
-        if (key === 'B') {
-            e.preventDefault();
-            searchInput?.focus();
-            searchInput?.select();
-        } else if (key === 'C') {
-            e.preventDefault();
-            statusFilter?.focus();
-        } else if (key === 'P') {
-            e.preventDefault();
-            doPrint();
-        } else if (key === 'X') {
-            e.preventDefault();
-            doExcel();
-        } else if (key === 'V') {
-            e.preventDefault();
-            doPdf();
-        } else if (key === 'H') {
-            e.preventDefault();
-            shortcutBox?.classList.toggle('hidden');
-        } else if (e.key === 'Escape') {
+        // Escape works globally
+        if (e.key === 'Escape') {
             if (modal?.classList.contains('show')) {
                 closeModal();
-            } else if (searchInput?.value) {
+                return;
+            }
+            if (isTyping) {
+                activeElem.blur();
+                return;
+            }
+            if (searchInput?.value) {
                 searchInput.value = '';
                 filterOrders();
             }
-            searchInput?.blur();
+            rows.forEach(r => r.classList.remove("keyboard-selected"));
+            selectedRowIndex = -1;
+            return;
+        }
+
+        // Skip other keys while typing
+        if (isTyping) return;
+
+        const key = e.key;
+        const upper = key.toUpperCase();
+
+        if (key === '/' || upper === 'B') {
+            e.preventDefault();
+            searchInput?.focus();
+            searchInput?.select();
+        } else if (upper === 'F') {
+            e.preventDefault();
+            statusFilter?.focus();
+        } else if (upper === 'P') {
+            e.preventDefault();
+            doPrint();
+        } else if (upper === 'E' || upper === 'X') {
+            e.preventDefault();
+            doExcel();
+        } else if (upper === 'D' || upper === 'V') {
+            e.preventDefault();
+            doPdf();
+        } else if (key === '?' || (e.ctrlKey && key === '/')) {
+            e.preventDefault();
+            shortcutBox?.classList.toggle('hidden');
+        } else if (key === 'ArrowDown' || upper === 'J') {
+            e.preventDefault();
+            selectRow(selectedRowIndex + 1);
+        } else if (key === 'ArrowUp' || upper === 'K') {
+            e.preventDefault();
+            selectRow(selectedRowIndex - 1);
+        } else if (key === 'Enter') {
+            const visible = getVisibleRows();
+            if (selectedRowIndex >= 0 && visible[selectedRowIndex]) {
+                e.preventDefault();
+                const qBtn = visible[selectedRowIndex].querySelector('.quick-view-btn');
+                if (qBtn) openModalWithData(qBtn);
+            }
+        } else if (upper === 'O') {
+            const visible = getVisibleRows();
+            if (selectedRowIndex >= 0 && visible[selectedRowIndex]) {
+                e.preventDefault();
+                const link = visible[selectedRowIndex].querySelector('a.order-number');
+                if (link) window.location.href = link.href;
+            }
         }
     });
 });

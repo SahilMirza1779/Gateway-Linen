@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   FiUser,
   FiMail,
@@ -15,6 +15,11 @@ import {
   FiEdit2,
   FiLogOut,
   FiDownload,
+  FiFileText,
+  FiClock,
+  FiXCircle,
+  FiCreditCard,
+  FiRefreshCw,
 } from "react-icons/fi";
 
 const Dashboard = () => {
@@ -71,6 +76,10 @@ const Dashboard = () => {
 
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
+  // --- NEW: QUOTES STATE ---
+  const [quotes, setQuotes] = useState([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -137,6 +146,31 @@ const Dashboard = () => {
       } finally {
         setLoadingOrders(false);
       }
+
+      // --- NEW: FETCH USER QUOTES ---
+      setLoadingQuotes(true);
+      try {
+        const quoteResponse = await fetch(
+          `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/quotes/api.php?user_id=${Number(userId)}`,
+          {
+            method: "GET",
+            headers: {
+              "X-API-KEY": "GatewayLinen@2026",
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        const quoteResult = await quoteResponse.json();
+        if (quoteResult.success) {
+          setQuotes(quoteResult.data || []);
+        } else {
+          setQuotes([]);
+        }
+      } catch (err) {
+        console.error("Error fetching quotes:", err);
+      } finally {
+        setLoadingQuotes(false);
+      }
     };
 
     loadDashboardData();
@@ -178,6 +212,20 @@ const Dashboard = () => {
       );
       const orderData = await orderRes.json();
       if (orderData.success) setOrders(orderData.data || []);
+
+      // Refresh Quotes
+      const quoteRes = await fetch(
+        `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/quotes/api.php?user_id=${Number(userId)}`,
+        {
+          method: "GET",
+          headers: {
+            "X-API-KEY": "GatewayLinen@2026",
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const quoteData = await quoteRes.json();
+      if (quoteData.success) setQuotes(quoteData.data || []);
     } catch (err) {
       console.error("Error refreshing data:", err);
     }
@@ -399,7 +447,6 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  // --- PDF INVOICE GENERATOR FUNCTION WITH PAYMENT METHOD ---
   const handleDownloadInvoice = (order) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
@@ -513,7 +560,8 @@ const Dashboard = () => {
               My Dashboard
             </h1>
             <p className="text-xs text-gray-600 font-light mt-0.5">
-              Manage your profile, shipping addresses, and buying history.
+              Manage your profile, shipping addresses, quotes, and buying
+              history.
             </p>
           </div>
           <button
@@ -623,6 +671,135 @@ const Dashboard = () => {
           </form>
         </div>
 
+        {/* --- NEW: BULK QUOTES & INQUIRIES SECTION --- */}
+        <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#E5DCD0]">
+            <div className="flex items-center gap-2.5 text-[#031D44]">
+              <div className="w-8 h-8 md:w-9 md:h-9 bg-[#031D44]/10 text-[#031D44] rounded-xl flex items-center justify-center shrink-0">
+                <FiFileText size={16} className="text-[#B58E58]" />
+              </div>
+              <div>
+                <h2 className="text-base md:text-lg font-serif font-bold">
+                  Bulk Inquiries & Quotes Status
+                </h2>
+                <p className="text-[10px] md:text-[11px] text-gray-500 font-light">
+                  Track your wholesale quotation submissions and admin reviews
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/quote-builder"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#B58E58] text-white rounded-xl text-xs font-bold hover:bg-[#031D44] transition-all shadow-sm"
+            >
+              <FiPlus size={14} /> Request New Quote
+            </Link>
+          </div>
+
+          {loadingQuotes ? (
+            <div className="text-center py-8 text-xs text-gray-500 font-bold uppercase tracking-widest">
+              Loading Quotes...
+            </div>
+          ) : quotes.length === 0 ? (
+            <div className="text-center py-10 bg-[#FFFDF9] rounded-2xl border border-dashed border-[#E5DCD0]">
+              <FiFileText size={28} className="mx-auto text-gray-300 mb-2" />
+              <p className="text-xs font-bold text-[#031D44] mb-1">
+                No bulk quotes submitted yet
+              </p>
+              <p className="text-[11px] text-gray-500 font-light mb-4">
+                Use our B2B Quote Builder to request custom commercial packages.
+              </p>
+              <Link
+                to="/quote-builder"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#031D44] text-white rounded-xl text-xs font-bold hover:bg-[#B58E58] transition-all"
+              >
+                Build a Quote Now
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {quotes.map((q) => {
+                const status = (
+                  q.Status ||
+                  q.status ||
+                  "Pending"
+                ).toLowerCase();
+                let badgeStyle = "bg-amber-100 text-amber-800 border-amber-200";
+                let statusIcon = <FiClock size={12} className="inline mr-1" />;
+
+                if (status === "approved") {
+                  badgeStyle = "bg-green-100 text-green-800 border-green-200";
+                  statusIcon = (
+                    <FiCheckCircle size={12} className="inline mr-1" />
+                  );
+                } else if (status === "rejected") {
+                  badgeStyle = "bg-red-100 text-red-800 border-red-200";
+                  statusIcon = <FiXCircle size={12} className="inline mr-1" />;
+                }
+
+                return (
+                  <div
+                    key={q.QuoteId || q.quoteId}
+                    className="p-4 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-2xs hover:border-[#B58E58] transition-all"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-xs md:text-sm text-[#031D44]">
+                          {q.QuoteNumber || q.quoteNumber || "Quote Request"}
+                        </span>
+                        <span
+                          className={`text-[9px] px-2.5 py-0.5 rounded-full uppercase font-bold border tracking-wider flex items-center ${badgeStyle}`}
+                        >
+                          {statusIcon} {q.Status || q.status || "Pending"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 font-light">
+                        Submitted On: {q.CreatedAt || q.createdAt || "N/A"} |
+                        Company:{" "}
+                        <span className="font-medium text-gray-700">
+                          {q.CompanyName || q.companyName || "N/A"}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                      <span className="text-sm font-bold text-[#031D44]">
+                        CAD $
+                        {Number(
+                          q.TotalQuotedAmount || q.totalQuotedAmount || 0,
+                        ).toFixed(2)}
+                      </span>
+
+                      {status === "approved" ? (
+                        <button
+                          onClick={() =>
+                            alert(
+                              "Redirecting to secure payment checkout for approved quote...",
+                            )
+                          }
+                          className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold tracking-wider uppercase rounded-xl transition-all shadow-sm cursor-pointer"
+                        >
+                          <FiCreditCard size={13} /> Pay Now
+                        </button>
+                      ) : status === "rejected" ? (
+                        <Link
+                          to="/quote-builder"
+                          className="flex items-center gap-1.5 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold tracking-wider uppercase rounded-xl transition-all shadow-sm"
+                        >
+                          <FiRefreshCw size={13} /> Re-Request
+                        </Link>
+                      ) : (
+                        <span className="text-[11px] text-amber-600 font-medium bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                          Awaiting Admin Review
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* SAVED ADDRESSES SECTION */}
         <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#E5DCD0]">
@@ -713,7 +890,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* BUYING HISTORY SECTION (API DATABASE FETCH WITH IMAGES & INVOICE) */}
+        {/* BUYING HISTORY SECTION */}
         <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#E5DCD0] text-[#031D44]">
             <FiShoppingBag size={18} className="text-[#B58E58]" />
@@ -737,7 +914,6 @@ const Dashboard = () => {
                   key={idx}
                   className="p-4 sm:p-5 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] flex flex-col gap-4 shadow-2xs transition-all hover:border-[#B58E58]"
                 >
-                  {/* Order Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#E5DCD0] pb-4">
                     <div>
                       <div className="flex items-center gap-2.5 mb-1">
@@ -770,7 +946,6 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {/* Order Items with Images */}
                   <div className="space-y-3">
                     {order.items && order.items.length > 0 ? (
                       order.items.map((item, i) => (
@@ -1003,7 +1178,7 @@ const Dashboard = () => {
                 onClick={() => setShowDeleteModal(false)}
                 className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full transition-colors cursor-pointer bg-white border border-gray-200"
               >
-                <FiX size={16} />
+                <FiX sizeين={16} />
               </button>
             </div>
 

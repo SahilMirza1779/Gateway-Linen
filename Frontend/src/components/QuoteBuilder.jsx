@@ -65,7 +65,23 @@ export default function QuoteBuilder() {
   const [discount, setDiscount] = useState(0);
   const [couponMessage, setCouponMessage] = useState({ text: "", type: "" });
   const [warningMessage, setWarningMessage] = useState("");
-  const [savingAddress, setSavingAddress] = useState(false);
+  const [savingQuote, setSavingQuote] = useState(false);
+
+  // FETCH ACTIVE USER ID DYNAMICALLY
+  const getActiveUserId = () => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const id =
+          parsed.UserId || parsed.userId || parsed.id || parsed.user_id;
+        if (id) return id;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    return 1; // Fallback
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -230,23 +246,35 @@ export default function QuoteBuilder() {
   const tax = subtotal * 0.13;
   const grandTotal = Math.max(0, subtotal + tax - discount);
 
-  // --- SAVE ADDRESS TO DATABASE VIA CORRECTED `/users/address_api.php` ---
-  const saveAddressToDatabase = async () => {
+  // --- SUBMIT QUOTE TO BACKEND API ---
+  const submitQuoteToDatabase = async () => {
     try {
-      setSavingAddress(true);
+      setSavingQuote(true);
+
+      const formattedItems = quoteItems.map((item) => {
+        const unitPrice = Number(
+          item.basePrice || item.BasePrice || item.price || 0,
+        );
+        const qty = Number(item.exactQuantity || 1);
+        return {
+          variant_id: item.productId || item.ProductId || item.id || 1,
+          quantity: qty,
+          unit_price: unitPrice,
+          line_total: unitPrice * qty,
+        };
+      });
+
       const payload = {
-        action: "add_address",
-        userId: 11, // Standard User ID from your DB
-        recipientName: companyDetails.fullName,
-        phone: companyDetails.phone,
-        addressLine1: companyDetails.addressLine1 || "Main Street",
-        city: companyDetails.city || "Surat",
-        stateProvince: companyDetails.stateProvince || "Gujarat",
-        postalCode: companyDetails.postalCode || "395006",
+        action: "submit_quote",
+        user_id: Number(getActiveUserId()), // DYNAMIC USER ID
+        company_name: companyDetails.hotelName || "Independent Hotel",
+        contact_person: companyDetails.fullName,
+        total_amount: grandTotal,
+        items: formattedItems,
       };
 
       const response = await fetch(
-        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/address_api.php",
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/quotes/api.php",
         {
           method: "POST",
           headers: {
@@ -258,21 +286,18 @@ export default function QuoteBuilder() {
       );
 
       const result = await response.json();
-      console.log("Address save response:", result);
-    } catch (err) {
-      console.error("Error saving address:", err);
-    } finally {
-      setSavingAddress(false);
-    }
-  };
 
-  const handleSubmitQuote = () => {
-    console.log("Submitting Quote:", {
-      quoteItems,
-      companyDetails,
-      grandTotal,
-    });
-    setStep(6);
+      if (result.success) {
+        setStep(6); // Success step
+      } else {
+        setWarningMessage(result.message || "Failed to submit quote.");
+      }
+    } catch (err) {
+      console.error("Error submitting quote:", err);
+      setWarningMessage("Network error while submitting quote.");
+    } finally {
+      setSavingQuote(false);
+    }
   };
 
   return (
@@ -882,15 +907,12 @@ export default function QuoteBuilder() {
                   </div>
 
                   <button
-                    onClick={() => {
-                      saveAddressToDatabase();
-                      handleSubmitQuote();
-                    }}
-                    disabled={savingAddress}
+                    onClick={submitQuoteToDatabase}
+                    disabled={savingQuote}
                     className="w-full py-4 bg-[#B58E58] hover:bg-white text-white hover:text-[#031D44] rounded-xl text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg"
                   >
-                    {savingAddress ? (
-                      "Saving Address..."
+                    {savingQuote ? (
+                      "Submitting Quote..."
                     ) : (
                       <>
                         <FiSend size={14} /> Send to Admin
@@ -913,8 +935,8 @@ export default function QuoteBuilder() {
               </h2>
               <p className="text-sm text-gray-600 mb-8 leading-relaxed">
                 Your commercial bulk inquiry and shipping address have been
-                successfully saved to your profile and sent to the Gateway Linen
-                Wholesale Division.
+                successfully saved and sent to the Gateway Linen Wholesale
+                Division. Admin will review and approve it shortly.
               </p>
               <button
                 onClick={() => navigate("/dashboard")}
@@ -1041,16 +1063,6 @@ export default function QuoteBuilder() {
                       </p>
                       <p className="text-gray-600 font-light leading-relaxed">
                         {selectedProductDetail.shortDescription}
-                      </p>
-                    </div>
-                  )}
-                  {selectedProductDetail.description && (
-                    <div className="pt-2 border-t border-gray-100">
-                      <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">
-                        Description
-                      </p>
-                      <p className="text-gray-600 font-light leading-relaxed">
-                        {selectedProductDetail.description}
                       </p>
                     </div>
                   )}

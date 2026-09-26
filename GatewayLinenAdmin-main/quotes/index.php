@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 session_start();
 
@@ -37,20 +36,28 @@ $actionError   = trim((string)($_GET['error'] ?? ''));
 
 /*
 |--------------------------------------------------------------------------
-| UPDATE QUOTE STATUS / CONVERT TO ORDER
+| HANDLE STATUS UPDATES
 |--------------------------------------------------------------------------
 */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $quoteId = (int)($_POST['quote_id'] ?? 0);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['quote_id'])) {
+    $quoteId = (int)$_POST['quote_id'];
     $actionType = trim($_POST['action']);
 
     if ($quoteId > 0) {
+        $allowedStatuses = ['Pending', 'Sent', 'Approved', 'Rejected'];
+        $newStatus = '';
+
         if ($actionType === 'update_status') {
             $newStatus = trim($_POST['status'] ?? 'Pending');
+        } elseif (in_array($actionType, $allowedStatuses, true)) {
+            $newStatus = $actionType;
+        }
+
+        if ($newStatus !== '') {
             $upSql = "UPDATE dbo.Quotes SET Status = ? WHERE QuoteId = ?";
             $upStmt = sqlsrv_query($conn, $upSql, [$newStatus, $quoteId]);
             if ($upStmt !== false) {
-                header('Location: index.php?success=' . urlencode("Quote status updated to $newStatus successfully."));
+                header('Location: index.php?success=' . urlencode("Quote #$quoteId status updated to $newStatus successfully."));
                 exit;
             } else {
                 $actionError = "Failed to update quote status.";
@@ -144,7 +151,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
     --red-soft: rgba(239, 68, 68, .12);
 }
 
-html, body, .main, .content { background: var(--bg-page) !important; color: var(--text-body) !important; }
+html, body, .main, .content { background: var(--bg-page) !important; color: var(--text-body) !important; font-family: inherit; }
 .quotes-page { width: 100%; max-width: 1600px; margin: 0 auto; padding-bottom: 50px; }
 
 .page-header {
@@ -157,25 +164,26 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
 
 .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    height: 38px; padding: 0 15px; border-radius: 8px; border: 1px solid var(--border);
+    height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border);
     background: var(--bg-input); color: var(--text-body) !important; font-size: 11px;
-    font-weight: 800; text-decoration: none; cursor: pointer; transition: .18s;
+    font-weight: 700; text-decoration: none; cursor: pointer; transition: .18s;
 }
 .btn:hover { border-color: var(--green); background: var(--green-soft); color: var(--green) !important; }
 .btn-primary { border-color: transparent; background: linear-gradient(135deg, #059669, #10b981); color: #fff !important; }
 .btn-blue { color: var(--blue) !important; }
+.btn-blue:hover { border-color: var(--blue); background: var(--blue-soft); }
 
 /* METRICS */
-.metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
 .metric-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
 .metric-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 .metric-val { font-size: 22px; font-weight: 800; color: var(--text-hi); line-height: 1.1; }
 .metric-label { font-size: 11px; font-weight: 700; color: var(--text-mute); text-transform: uppercase; margin-top: 2px; }
 
 /* CONTENT & TABLE */
-.content-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.content-box-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.search-input { height: 36px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-input); color: var(--text-hi); padding: 0 14px; font-size: 12px; width: 260px; outline: none; }
+.content-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,.2); }
+.content-box-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.search-input { height: 36px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-input); color: var(--text-hi); padding: 0 14px; font-size: 12px; width: 280px; outline: none; }
 .search-input:focus { border-color: var(--green); }
 
 .data-table { width: 100%; min-width: 1100px; border-collapse: collapse; }
@@ -184,10 +192,16 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
 .data-table tr:hover td { background: rgba(255,255,255,0.015); }
 
 .badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-block; }
-.badge-pending { background: var(--amber-soft); color: var(--amber); }
-.badge-approved { background: var(--green-soft); color: var(--green); }
-.badge-rejected { background: var(--red-soft); color: var(--red); }
-.badge-converted { background: var(--blue-soft); color: var(--blue); }
+.badge-pending { background: var(--amber-soft); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+.badge-approved { background: var(--green-soft); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
+.badge-rejected { background: var(--red-soft); color: var(--red); border: 1px solid rgba(239,68,68,.2); }
+.badge-converted { background: var(--blue-soft); color: var(--blue); border: 1px solid rgba(56,189,248,.2); }
+
+.action-links { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+.btn-action { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-body); cursor: pointer; text-decoration: none; display: inline-block; transition: .15s ease; }
+.btn-action:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+.btn-approve:hover { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.btn-reject:hover { background: var(--red-soft); border-color: var(--red); color: var(--red); }
 
 .key-badge {
     font-size: 9.5px; font-family: monospace; font-weight: 800; padding: 2px 6px;
@@ -200,8 +214,9 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
     backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;
 }
 .modal-overlay.active { display: flex; }
-.modal-box { background: var(--bg-card); border: 1px solid var(--border); width: 100%; max-width: 440px; border-radius: 14px; padding: 22px; }
-.form-control { width: 100%; height: 38px; background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; color: var(--text-hi); padding: 0 12px; margin-bottom: 14px; box-sizing: border-box; }
+.modal-box { background: var(--bg-card); border: 1px solid var(--border); width: 100%; max-width: 440px; border-radius: 14px; padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,.5); }
+.form-control { width: 100%; height: 38px; background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; color: var(--text-hi); padding: 0 12px; margin-bottom: 14px; box-sizing: border-box; outline: none; }
+.form-control:focus { border-color: var(--green); }
 </style>
 
 <main class="main">
@@ -300,7 +315,7 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
                                     </td>
                                 </tr>
                             <?php else: foreach ($quotesList as $q): 
-                                $st = strtolower($q['Status']);
+                                $st = strtolower($q['Status'] ?? 'pending');
                                 $bClass = 'badge-pending';
                                 if (in_array($st, ['approved', 'accepted'])) $bClass = 'badge-approved';
                                 if ($st === 'rejected') $bClass = 'badge-rejected';
@@ -318,7 +333,7 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
                                         <div style="font-size:10.5px; color:var(--text-mute);"><?= e($q['UserEmail'] ?? '') ?></div>
                                     </td>
                                     <td>
-                                        <strong style="color:var(--text-hi); font-size:14px;">$<?= number_format((float)$q['TotalQuotedAmount'], 2) ?></strong>
+                                        <strong style="color:var(--text-hi); font-size:14px;">$<?= number_format((float)($q['TotalQuotedAmount'] ?? 0), 2) ?></strong>
                                     </td>
                                     <td>
                                         <span class="badge <?= $bClass ?>"><?= e($q['Status']) ?></span>
@@ -331,17 +346,34 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
                                     </td>
                                     <td>
                                         <?php if (!empty($q['ConvertedOrderId'])): ?>
-                                            <a href="../orders/view.php?id=<?= $q['ConvertedOrderId'] ?>" style="color:var(--green); font-weight:700; text-decoration:none;">
+                                            <a href="../orders/view.php?id=<?= (int)$q['ConvertedOrderId'] ?>" style="color:var(--green); font-weight:700; text-decoration:none;">
                                                 Order #<?= e($q['ConvertedOrderId']) ?>
                                             </a>
                                         <?php else: ?>
                                             <span style="color:var(--text-mute); font-size:11px;">Not Converted</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="text-align:right;">
-                                        <button type="button" class="btn" style="height:32px; padding:0 10px;" onclick="openStatusModal(<?= $q['QuoteId'] ?>, '<?= e($q['Status']) ?>')">
-                                            ⚙️ Update
-                                        </button>
+                                    <td>
+                                        <div class="action-links">
+                                            <a href="view.php?id=<?= (int)$q['QuoteId'] ?>" class="btn-action">View</a>
+
+                                            <?php if ($st === 'pending'): ?>
+                                                <form method="POST" style="margin:0;">
+                                                    <input type="hidden" name="quote_id" value="<?= (int)$q['QuoteId'] ?>">
+                                                    <input type="hidden" name="action" value="Approved">
+                                                    <button type="submit" class="btn-action btn-approve" onclick="return confirm('Approve quote #<?= (int)$q['QuoteId'] ?>?');">Approve</button>
+                                                </form>
+                                                <form method="POST" style="margin:0;">
+                                                    <input type="hidden" name="quote_id" value="<?= (int)$q['QuoteId'] ?>">
+                                                    <input type="hidden" name="action" value="Rejected">
+                                                    <button type="submit" class="btn-action btn-reject" onclick="return confirm('Reject quote #<?= (int)$q['QuoteId'] ?>?');">Reject</button>
+                                                </form>
+                                            <?php endif; ?>
+
+                                            <button type="button" class="btn-action" onclick="openStatusModal(<?= (int)$q['QuoteId'] ?>, '<?= e($q['Status']) ?>')">
+                                                ⚙️ Status
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; endif; ?>
@@ -362,7 +394,7 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
             <input type="hidden" name="action" value="update_status">
             <input type="hidden" name="quote_id" id="modalQuoteId" value="0">
 
-            <label style="font-size:11px; font-weight:700; color:var(--text-mute); display:block; margin-bottom:4px;">CHANGE QUOTE STATUS:</label>
+            <label style="font-size:11.5px; font-weight:700; color:var(--text-mute); display:block; margin-bottom:6px;">CHANGE QUOTE STATUS:</label>
             <select name="status" id="modalQuoteStatus" class="form-control">
                 <option value="Pending">Pending (Draft / Under Review)</option>
                 <option value="Sent">Sent to Customer</option>
@@ -398,7 +430,7 @@ document.getElementById('quoteSearch')?.addEventListener('input', function() {
     });
 });
 
-// Shortcuts
+// Keyboard Shortcuts
 window.addEventListener('keydown', function(e) {
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
     const k = e.key.toUpperCase();
@@ -409,381 +441,3 @@ window.addEventListener('keydown', function(e) {
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-=======
-<?php
-session_start();
-
-/*
-|--------------------------------------------------------------------------
-| GatewayLinen Admin - Quotes Management
-|--------------------------------------------------------------------------
-*/
-
-if (empty($_SESSION["admin_id"])) {
-    header("Location: ../index.php");
-    exit;
-}
-
-require_once __DIR__ . "/../config/database.php";
-
-$activeMenu = "quotes";
-$pageTitle  = "GatewayLinen | Bulk Inquiries & Quotes";
-
-if (!isset($_SESSION["admin_name"])) {
-    $_SESSION["admin_name"] = $_SESSION["admin_username"] ?? "GatewayLinen Administrator";
-}
-
-function e($value)
-{
-    return htmlspecialchars((string) $value, ENT_QUOTES, "UTF-8");
-}
-
-/*
-|--------------------------------------------------------------------------
-| HANDLE QUOTE STATUS UPDATE (Approve / Reject)
-|--------------------------------------------------------------------------
-*/
-$actionMessage = "";
-$actionType = "";
-
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"], $_POST["quote_id"])) {
-    $targetQuoteId = (int)$_POST["quote_id"];
-    $newStatus = $_POST["action"]; // 'Approved' or 'Rejected'
-
-    $updateSql = "UPDATE dbo.Quotes SET Status = ? WHERE QuoteId = ?";
-    $updateParams = [$newStatus, $targetQuoteId];
-    $updateStmt = sqlsrv_query($conn, $updateSql, $updateParams);
-
-    if ($updateStmt !== false) {
-        $actionMessage = "Quote successfully marked as " . e($newStatus) . ".";
-        $actionType = "success";
-        sqlsrv_free_stmt($updateStmt);
-    } else {
-        $actionMessage = "Failed to update quote status.";
-        $actionType = "error";
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| FETCH QUOTES FROM DATABASE
-|--------------------------------------------------------------------------
-*/
-$quotes = [];
-$sql = "
-    SELECT 
-        QuoteId, 
-        QuoteNumber, 
-        UserId, 
-        CompanyName, 
-        ContactPerson, 
-        TotalQuotedAmount, 
-        Status, 
-        CreatedAt 
-    FROM dbo.Quotes 
-    ORDER BY CreatedAt DESC
-";
-
-$stmt = sqlsrv_query($conn, $sql);
-
-if ($stmt !== false) {
-    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $quotes[] = $row;
-    }
-    sqlsrv_free_stmt($stmt);
-}
-
-require_once __DIR__ . "/../includes/header.php";
-require_once __DIR__ . "/../includes/sidebar.php";
-?>
-
-<style>
-    :root {
-        --bg-page: #0a1119;
-        --bg-card: #111b26;
-        --bg-card-alt: #0f1823;
-        --bg-input: #0d1620;
-        --bg-hover: #16222e;
-        --border: #1e2d3d;
-        --border-soft: #182636;
-        --text-hi: #f0f4f8;
-        --text-body: #a8b8c8;
-        --text-mute: #5f7488;
-        --green: #10b981;
-        --green-soft: rgba(16, 185, 129, .12);
-        --blue: #3b82f6;
-        --blue-soft: rgba(59, 130, 246, .12);
-        --yellow: #f59e0b;
-        --yellow-soft: rgba(245, 158, 11, .12);
-        --red: #ef4444;
-        --red-soft: rgba(239, 68, 68, .12);
-    }
-
-    html,
-    body {
-        background: var(--bg-page) !important;
-        color: var(--text-body) !important;
-        font-family: sans-serif;
-    }
-
-    .main,
-    .content {
-        background: var(--bg-page) !important;
-    }
-
-    .quotes-page {
-        width: 100%;
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 20px 20px 45px;
-        box-sizing: border-box;
-    }
-
-    .page-header {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        margin-bottom: 24px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .page-title {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 27px;
-        line-height: 1.2;
-        font-weight: 800;
-    }
-
-    .page-subtitle {
-        margin: 7px 0 0;
-        color: var(--text-mute);
-        font-size: 12px;
-    }
-
-    .alert-msg {
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 20px;
-    }
-
-    .alert-success {
-        background: var(--green-soft);
-        color: var(--green);
-        border: 1px solid rgba(16, 185, 129, .2);
-    }
-
-    .alert-error {
-        background: var(--red-soft);
-        color: var(--red);
-        border: 1px solid rgba(239, 68, 68, .2);
-    }
-
-    .table-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, .18);
-    }
-
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-    }
-
-    .data-table th {
-        background: var(--bg-card-alt);
-        color: var(--text-mute);
-        font-size: 10.5px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .6px;
-        padding: 14px 18px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .data-table td {
-        padding: 14px 18px;
-        border-bottom: 1px solid var(--border-soft);
-        font-size: 12px;
-        color: var(--text-body);
-        vertical-align: middle;
-    }
-
-    .data-table tr:hover td {
-        background: var(--bg-hover);
-    }
-
-    .quote-user {
-        color: var(--text-hi);
-        font-weight: 700;
-        font-size: 13px;
-    }
-
-    .quote-company {
-        font-size: 10.5px;
-        color: var(--text-mute);
-    }
-
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    .badge-pending {
-        background: var(--yellow-soft);
-        color: var(--yellow);
-        border: 1px solid rgba(245, 158, 11, .2);
-    }
-
-    .badge-approved {
-        background: var(--green-soft);
-        color: var(--green);
-        border: 1px solid rgba(16, 185, 129, .2);
-    }
-
-    .badge-rejected {
-        background: var(--red-soft);
-        color: var(--red);
-        border: 1px solid rgba(239, 68, 68, .2);
-    }
-
-    .action-links {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .btn-action {
-        padding: 6px 12px;
-        border-radius: 7px;
-        font-size: 11px;
-        font-weight: 700;
-        border: 1px solid var(--border);
-        background: var(--bg-input);
-        color: var(--text-body);
-        cursor: pointer;
-        transition: .15s ease;
-        text-decoration: none;
-    }
-
-    .btn-action:hover {
-        border-color: var(--blue);
-        color: var(--blue);
-        background: var(--blue-soft);
-    }
-
-    .btn-approve:hover {
-        background: var(--green-soft);
-        border-color: var(--green);
-        color: var(--green);
-    }
-
-    .btn-reject:hover {
-        background: var(--red-soft);
-        border-color: var(--red);
-        color: var(--red);
-    }
-</style>
-
-<main class="main">
-    <section class="content">
-        <div class="quotes-page">
-
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title">Bulk Inquiries & Quotes</h1>
-                    <p class="page-subtitle">Review, approve, or reject bulk order quotation requests from customers.</p>
-                </div>
-            </div>
-
-            <?php if (!empty($actionMessage)): ?>
-                <div class="alert-msg <?= $actionType === 'success' ? 'alert-success' : 'alert-error' ?>">
-                    <?= e($actionMessage) ?>
-                </div>
-            <?php endif; ?>
-
-            <div class="table-card">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Quote #</th>
-                            <th>Contact Person</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($quotes)): ?>
-                            <?php foreach ($quotes as $q):
-                                $status = $q['Status'] ?? 'Pending';
-                                $badgeClass = 'badge-pending';
-                                if (strtolower($status) == 'approved') $badgeClass = 'badge-approved';
-                                if (strtolower($status) == 'rejected') $badgeClass = 'badge-rejected';
-                            ?>
-                                <tr>
-                                    <td><span style="color: var(--blue); font-weight: 700;"><?= e($q["QuoteNumber"] ?? 'N/A') ?></span></td>
-                                    <td>
-                                        <div class="quote-user"><?= e($q["ContactPerson"] ?? 'Unknown') ?></div>
-                                        <div class="quote-company"><?= e($q["CompanyName"] ?? 'N/A') ?></div>
-                                    </td>
-                                    <td>
-                                        <div style="color: var(--text-hi); font-weight: 600;">
-                                            CAD $<?= number_format((float)($q["TotalQuotedAmount"] ?? 0), 2) ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <?= isset($q["CreatedAt"]) && is_object($q["CreatedAt"]) ? $q["CreatedAt"]->format('d M, Y') : 'N/A' ?>
-                                    </td>
-                                    <td>
-                                        <span class="badge <?= $badgeClass ?>"><?= e($status) ?></span>
-                                    </td>
-                                    <td>
-                                        <div class="action-links">
-                                            <a href="view.php?id=<?= (int)$q["QuoteId"] ?>" class="btn-action">View</a>
-
-                                            <?php if (strtolower($status) === 'pending' || $status === '' || $status === null): ?>
-                                                <form method="POST" style="margin:0;">
-                                                    <input type="hidden" name="quote_id" value="<?= (int)$q["QuoteId"] ?>">
-                                                    <input type="hidden" name="action" value="Approved">
-                                                    <button type="submit" class="btn-action btn-approve" onclick="return confirm('Are you sure you want to approve this quote?');">Approve</button>
-                                                </form>
-                                                <form method="POST" style="margin:0;">
-                                                    <input type="hidden" name="quote_id" value="<?= (int)$q["QuoteId"] ?>">
-                                                    <input type="hidden" name="action" value="Rejected">
-                                                    <button type="submit" class="btn-action btn-reject" onclick="return confirm('Are you sure you want to reject this quote?');">Reject</button>
-                                                </form>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 50px 20px; color: var(--text-mute);">
-                                    No quotes found in the database.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
-    </section>
-</main>
-
-<?php require_once __DIR__ . "/../includes/footer.php"; ?>
->>>>>>> b2ffc4661197e45f6fc032a942d0c3b1ccf5632e

@@ -1109,6 +1109,19 @@ require_once __DIR__ . '/../includes/sidebar.php';
             grid-template-columns: 1fr;
         }
     }
+
+    @media print {
+        @page { size: landscape; margin: 10mm; }
+        html, body, .main, .content { background: #fff !important; color: #111 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        .category-page { max-width: none !important; width: 100% !important; }
+        .category-page-header, .category-stats, .category-filters, .export-bar, .category-actions,
+        .shortcut-help-box, .notice, .modal-backdrop, .no-print, th:last-child, td:last-child, .category-image { display: none !important; }
+        .category-content { border: 0 !important; background: none !important; box-shadow: none !important; }
+        .category-table-wrapper { overflow: visible !important; }
+        .category-table { width: 100% !important; min-width: 0 !important; border-collapse: collapse !important; }
+        .category-table th, .category-table td { color: #111 !important; background: #fff !important; border: 1px solid #ddd !important; padding: 8px !important; font-size: 11px !important; }
+        .category-table th { background: #f2f2f2 !important; }
+    }
 </style>
 
 <main class="main">
@@ -1202,7 +1215,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 <div class="category-content-header">
                     <div class="category-content-title">
                         <h2>Products List</h2>
-                        <p>Image, title, SKU/slug, category, base price, tax configurations, badges and dates.</p>
+                        <p>Title, SKU/slug, category, base price, tax configurations, badges and dates.</p>
                     </div>
 
                     <div class="category-filters">
@@ -1302,7 +1315,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     $gstPercent   = (float)($product['GstPercentage'] ?? 0);
                                     $pstPercent   = (float)($product['PstPercentage'] ?? 0);
                                     
-                                    // Calculate Tax and Total Price with Tax
                                     $gstAmount    = $basePrice * ($gstPercent / 100);
                                     $pstAmount    = $basePrice * ($pstPercent / 100);
                                     $totalPrice   = $basePrice + $gstAmount + $pstAmount;
@@ -1338,7 +1350,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                         data-specs="<?= e(strtolower($specs)) ?>"
                                         data-description="<?= e(strtolower($desc)) ?>">
 
-                                        <!-- ID STARTING FROM 1 -->
+                                        <!-- ID -->
                                         <td>
                                             <span class="order-box">#<?= $displayId++ ?></span>
                                         </td>
@@ -1377,7 +1389,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                             <span class="cat-badge"><?= e($catName) ?></span>
                                         </td>
 
-                                        <!-- PRICE WITH TAX INCLUDED -->
+                                        <!-- PRICE -->
                                         <td>
                                             <div class="price-value">$<?= number_format($totalPrice, 2) ?></div>
                                             <div style="font-size:10px; color:var(--text-mute);">Base: $<?= number_format($basePrice, 2) ?></div>
@@ -1430,7 +1442,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                         <!-- ACTIONS -->
                                         <td style="text-align:right;">
                                             <div class="category-actions" style="justify-content:flex-end;">
-                                                <!-- VIEW -->
                                                 <button
                                                     type="button"
                                                     class="category-action detail-btn"
@@ -1455,7 +1466,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     ◉
                                                 </button>
 
-                                                <!-- EDIT -->
                                                 <a
                                                     href="edit.php?id=<?= $productId ?>"
                                                     class="category-action edit-btn"
@@ -1463,7 +1473,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     ✎
                                                 </a>
 
-                                                <!-- DELETE -->
                                                 <form
                                                     method="POST"
                                                     action="delete.php"
@@ -1659,11 +1668,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 }
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | HIERARCHICAL REAL-TIME FILTER
-            |--------------------------------------------------------------------------
-            */
             function filterProducts() {
                 if (!table) return;
 
@@ -1710,11 +1714,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 selectFirstVisible(false);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | EXPORT TO EXCEL
-            |--------------------------------------------------------------------------
-            */
             function excelExport() {
                 const data = visibleRows().map(function(row) {
                     return {
@@ -1751,11 +1750,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 }
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | EXPORT TO PDF
-            |--------------------------------------------------------------------------
-            */
             function pdfExport() {
                 if (!window.jspdf || !window.jspdf.jsPDF) {
                     alert('PDF library not available. Please print and choose Save as PDF.');
@@ -1795,7 +1789,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
                             cellPadding: 3
                         },
                         headStyles: {
-                            fontSize: 8
+                            fontSize: 8,
+                            fillColor: [16, 185, 129]
                         }
                     });
                 }
@@ -1803,11 +1798,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 doc.save('products-' + new Date().toISOString().slice(0, 10) + '.pdf');
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | MODAL HANDLING WITH MULTIPLE IMAGES
-            |--------------------------------------------------------------------------
-            */
             function openModal(btn) {
                 document.getElementById('modalName').textContent = btn.dataset.name || '—';
                 document.getElementById('modalSlug').textContent = '/' + (btn.dataset.slug || '—');
@@ -1877,11 +1867,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 if (e.target === modal) closeModal();
             });
 
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE CONFIRMATION
-            |--------------------------------------------------------------------------
-            */
             document.querySelectorAll('.delete-product-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     const row = btn.closest('.product-row');
@@ -1891,11 +1876,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 });
             });
 
-            /*
-            |--------------------------------------------------------------------------
-            | BUTTON BINDINGS
-            |--------------------------------------------------------------------------
-            */
             document.getElementById('printBtn')?.addEventListener('click', () => window.print());
             document.getElementById('printBtn2')?.addEventListener('click', () => window.print());
             document.getElementById('pdfBtn')?.addEventListener('click', pdfExport);
@@ -1907,11 +1887,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
             categoryFilter?.addEventListener('change', filterProducts);
             statusFilter?.addEventListener('change', filterProducts);
 
-            /*
-            |--------------------------------------------------------------------------
-            | ROW SELECTION CLICK
-            |--------------------------------------------------------------------------
-            */
             rows().forEach(row => {
                 row.addEventListener('click', function(e) {
                     if (e.target.closest('button, a, form')) return;
@@ -1920,11 +1895,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 });
             });
 
-            /*
-            |--------------------------------------------------------------------------
-            | KEYBOARD SHORTCUTS
-            |--------------------------------------------------------------------------
-            */
             document.addEventListener('keydown', function(e) {
                 const tag = (e.target?.tagName || '').toLowerCase();
                 const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;

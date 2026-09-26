@@ -21,47 +21,54 @@ $error = '';
 // Add / Update Tiered Slab
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'add_tier') {
-        $productId = (int)($_POST['product_id'] ?? 0);
+        $variantId = (int)($_POST['variant_id'] ?? 0);
         $minQty    = (int)($_POST['min_qty'] ?? 1);
         $maxQty    = !empty($_POST['max_qty']) ? (int)$_POST['max_qty'] : null;
-        $discount  = (float)($_POST['discount_pct'] ?? 0);
+        $unitPrice = (float)($_POST['bulk_unit_price'] ?? 0);
 
-        if ($productId > 0 && $minQty > 0) {
-            $inSql = "INSERT INTO dbo.BulkProductPricing (ProductId, MinQuantity, MaxQuantity, DiscountPercentage, CreatedAt) VALUES (?, ?, ?, ?, GETDATE())";
-            $inStmt = sqlsrv_query($conn, $inSql, [$productId, $minQty, $maxQty, $discount]);
+        if ($variantId > 0 && $minQty > 0 && $unitPrice > 0) {
+            $inSql = "INSERT INTO dbo.BulkProductPricing (VariantId, MinQuantity, MaxQuantity, BulkUnitPrice) VALUES (?, ?, ?, ?)";
+            $inStmt = sqlsrv_query($conn, $inSql, [$variantId, $minQty, $maxQty, $unitPrice]);
             if ($inStmt !== false) {
                 $message = "New tiered pricing slab created successfully.";
             } else {
                 $error = "Failed to create pricing slab.";
             }
+        } else {
+            $error = "Please fill in all required fields with valid values.";
         }
     }
 
     if ($_POST['action'] === 'delete_tier') {
         $tierId = (int)($_POST['tier_id'] ?? 0);
-        $delStmt = sqlsrv_query($conn, "DELETE FROM dbo.BulkProductPricing WHERE PricingId = ?", [$tierId]);
+        $delStmt = sqlsrv_query($conn, "DELETE FROM dbo.BulkProductPricing WHERE BulkPriceId = ?", [$tierId]);
         if ($delStmt !== false) {
             $message = "Pricing slab deleted.";
         }
     }
 }
 
-// Fetch Products for Dropdown
-$products = [];
-$pStmt = sqlsrv_query($conn, "SELECT ProductId, Name FROM dbo.Products ORDER BY Name ASC");
-if ($pStmt !== false) {
-    while ($pr = sqlsrv_fetch_array($pStmt, SQLSRV_FETCH_ASSOC)) {
-        $products[] = $pr;
+// Fetch Product Variants for Dropdown
+$variants = [];
+$vSql = "SELECT pv.VariantId, p.Name AS ProductName, pv.SKU 
+         FROM dbo.ProductVariants pv 
+         LEFT JOIN dbo.Products p ON pv.ProductId = p.ProductId 
+         ORDER BY p.Name ASC";
+$vStmt = sqlsrv_query($conn, $vSql);
+if ($vStmt !== false) {
+    while ($vr = sqlsrv_fetch_array($vStmt, SQLSRV_FETCH_ASSOC)) {
+        $variants[] = $vr;
     }
-    sqlsrv_free_stmt($pStmt);
+    sqlsrv_free_stmt($vStmt);
 }
 
 // Fetch Slabs
 $slabs = [];
-$sSql = "SELECT bp.*, p.Name AS ProductName 
+$sSql = "SELECT bp.*, pv.SKU, p.Name AS ProductName 
          FROM dbo.BulkProductPricing bp
-         LEFT JOIN dbo.Products p ON bp.ProductId = p.ProductId
-         ORDER BY bp.ProductId ASC, bp.MinQuantity ASC";
+         LEFT JOIN dbo.ProductVariants pv ON bp.VariantId = pv.VariantId
+         LEFT JOIN dbo.Products p ON pv.ProductId = p.ProductId
+         ORDER BY bp.VariantId ASC, bp.MinQuantity ASC";
 $sStmt = sqlsrv_query($conn, $sSql);
 if ($sStmt !== false) {
     while ($sr = sqlsrv_fetch_array($sStmt, SQLSRV_FETCH_ASSOC)) {
@@ -105,7 +112,7 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; padding-bottom:18px; border-bottom:1px solid var(--border);">
                 <div>
                     <h1 style="margin:0; font-size:24px; color:var(--text-hi); font-weight:800;">Bulk Quantity Pricing Slabs</h1>
-                    <span style="font-size:12px; color:var(--text-mute);">Setup tiered volume discounts for wholesale bulk buyers.</span>
+                    <span style="font-size:12px; color:var(--text-mute);">Setup tiered volume unit prices for wholesale bulk buyers.</span>
                 </div>
                 <a href="../wholesale/index.php" class="btn" style="background:var(--bg-input); color:var(--text-body);">← Back to Wholesale</a>
             </div>
@@ -121,11 +128,11 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
                         <form method="POST">
                             <input type="hidden" name="action" value="add_tier">
 
-                            <label style="font-size:11px; font-weight:700; color:var(--text-mute);">PRODUCT:</label>
-                            <select name="product_id" class="form-control" required>
-                                <option value="">-- Choose Product --</option>
-                                <?php foreach ($products as $p): ?>
-                                    <option value="<?= $p['ProductId'] ?>"><?= e($p['Name']) ?></option>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-mute);">PRODUCT VARIANT:</label>
+                            <select name="variant_id" class="form-control" required>
+                                <option value="">-- Choose Variant --</option>
+                                <?php foreach ($variants as $v): ?>
+                                    <option value="<?= $v['VariantId'] ?>"><?= e($v['ProductName'] . ' (' . $v['SKU'] . ')') ?></option>
                                 <?php endforeach; ?>
                             </select>
 
@@ -135,8 +142,8 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
                             <label style="font-size:11px; font-weight:700; color:var(--text-mute);">MAX QUANTITY (OPTIONAL):</label>
                             <input type="number" name="max_qty" class="form-control" placeholder="Leave empty for unlimited">
 
-                            <label style="font-size:11px; font-weight:700; color:var(--text-mute);">DISCOUNT PERCENTAGE (%):</label>
-                            <input type="number" step="0.5" name="discount_pct" class="form-control" placeholder="e.g. 15.0" required>
+                            <label style="font-size:11px; font-weight:700; color:var(--text-mute);">BULK UNIT PRICE ($):</label>
+                            <input type="number" step="0.01" name="bulk_unit_price" class="form-control" placeholder="e.g. 9.99" required>
 
                             <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;">Save Pricing Slab</button>
                         </form>
@@ -149,9 +156,9 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
                         <table class="table-data">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
+                                    <th>Product / Variant</th>
                                     <th>Quantity Slab</th>
-                                    <th>Discount</th>
+                                    <th>Bulk Unit Price</th>
                                     <th style="text-align:right;">Action</th>
                                 </tr>
                             </thead>
@@ -160,14 +167,17 @@ html, body, .main, .content { background: var(--bg-page) !important; color: var(
                                     <tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-mute);">No bulk pricing rules defined yet.</td></tr>
                                 <?php else: foreach ($slabs as $s): ?>
                                     <tr>
-                                        <td><strong style="color:var(--text-hi);"><?= e($s['ProductName']) ?></strong></td>
+                                        <td>
+                                            <strong style="color:var(--text-hi);"><?= e($s['ProductName']) ?></strong><br>
+                                            <span style="font-size:11px; color:var(--text-mute);">SKU: <?= e($s['SKU']) ?></span>
+                                        </td>
                                         <td><?= (int)$s['MinQuantity'] ?> – <?= $s['MaxQuantity'] ? (int)$s['MaxQuantity'] : '∞ (Above)' ?> units</td>
-                                        <td><strong style="color:var(--green);"><?= number_format((float)$s['DiscountPercentage'], 1) ?>% OFF</strong></td>
+                                        <td><strong style="color:var(--green);">$<?= number_format((float)$s['BulkUnitPrice'], 2) ?></strong></td>
                                         <td style="text-align:right;">
                                             <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this pricing rule?');">
                                                 <input type="hidden" name="action" value="delete_tier">
-                                                <input type="hidden" name="tier_id" value="<?= $s['PricingId'] ?? $s['Id'] ?>">
-                                                <button type="submit" class="btn" style="height:28px; padding:0 8px; color:var(--red); font-size:11px;">Delete</button>
+                                                <input type="hidden" name="tier_id" value="<?= $s['BulkPriceId'] ?>">
+                                                <button type="submit" class="btn" style="height:28px; padding:0 8px; color:#fca5a5; font-size:11px;">Delete</button>
                                             </form>
                                         </td>
                                     </tr>

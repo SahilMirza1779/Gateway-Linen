@@ -50,7 +50,7 @@ if ($productId <= 0) {
 
 /*
 |--------------------------------------------------------------------------
-| 1. CHECK PRODUCT DETAILS (SIMPLIFIED & SAFE)
+| 1. CHECK PRODUCT DETAILS
 |--------------------------------------------------------------------------
 */
 
@@ -58,9 +58,7 @@ $checkSql = "SELECT ProductId, Name FROM dbo.Products WHERE ProductId = ?";
 $checkStmt = sqlsrv_query($conn, $checkSql, [$productId]);
 
 if ($checkStmt === false) {
-    $errors = sqlsrv_errors();
-    $dbMsg = $errors[0]['message'] ?? 'Database error while checking product.';
-    header('Location: index.php?error=' . urlencode($dbMsg));
+    header('Location: index.php?error=' . urlencode('Database error while checking product.'));
     exit;
 }
 
@@ -74,7 +72,7 @@ if (!$product) {
 
 /*
 |--------------------------------------------------------------------------
-| 2. FETCH PRODUCT IMAGES (FOR FILE REMOVAL)
+| 2. FETCH PRODUCT IMAGES (FOR PHYSICAL FILE REMOVAL)
 |--------------------------------------------------------------------------
 */
 
@@ -104,27 +102,43 @@ if (!sqlsrv_begin_transaction($conn)) {
 
 /*
 |--------------------------------------------------------------------------
-| 4. CLEANUP CHILD / LINKED DATA (FK SAFE DELETION)
+| 4. BULLETPROOF CASCADING DELETE (CORRECT HIERARCHY)
 |--------------------------------------------------------------------------
 */
 
-// Delete images records
-$delImgStmt = sqlsrv_query($conn, "DELETE FROM dbo.ProductImages WHERE ProductId = ?", [$productId]);
-if ($delImgStmt === false) {
+// Step 4A: Leaf nodes aur direct ProductId linked tables saaf karenge
+$leafTables = [
+    'dbo.CartItems',
+    'dbo.QuoteItems',
+    'dbo.OrderItems',
+    'dbo.WishlistItems',
+    'dbo.StockMovements',
+    'dbo.Inventory',
+    'dbo.BulkProductPricing',
+    'dbo.ProductReviews',
+    'dbo.ProductImages'
+];
+
+foreach ($leafTables as $table) {
+    @sqlsrv_query($conn, "DELETE FROM $table WHERE ProductId = ?", [$productId]);
+}
+
+// Step 4B: Variants se jude hue Quote/Cart items ko pehle clear karenge taaki variant delete ho sake
+@sqlsrv_query($conn, "DELETE FROM dbo.QuoteItems WHERE VariantId IN (SELECT VariantId FROM dbo.ProductVariants WHERE ProductId = ?)", [$productId]);
+@sqlsrv_query($conn, "DELETE FROM dbo.CartItems WHERE VariantId IN (SELECT VariantId FROM dbo.ProductVariants WHERE ProductId = ?)", [$productId]);
+
+// Step 4C: Ab ProductVariants ko safely delete karenge
+$delVariants = sqlsrv_query($conn, "DELETE FROM dbo.ProductVariants WHERE ProductId = ?", [$productId]);
+if ($delVariants === false) {
     sqlsrv_rollback($conn);
-    header('Location: index.php?error=' . urlencode('Could not remove associated product images.'));
+    header('Location: index.php?error=' . urlencode('Failed to delete product variants.'));
     exit;
 }
-sqlsrv_free_stmt($delImgStmt);
-
-// Optional: clean reviews, cart, wishlist jodi thake
-@sqlsrv_query($conn, "DELETE FROM dbo.ProductReviews WHERE ProductId = ?", [$productId]);
-@sqlsrv_query($conn, "DELETE FROM dbo.WishlistItems WHERE ProductId = ?", [$productId]);
-@sqlsrv_query($conn, "DELETE FROM dbo.CartItems WHERE ProductId = ?", [$productId]);
+sqlsrv_free_stmt($delVariants);
 
 /*
 |--------------------------------------------------------------------------
-| 5. DELETE PRODUCT
+| 5. DELETE MAIN PRODUCT
 |--------------------------------------------------------------------------
 */
 
@@ -133,8 +147,10 @@ $deleteStmt = sqlsrv_query($conn, $deleteSql, [$productId]);
 
 if ($deleteStmt === false) {
     sqlsrv_rollback($conn);
+
     $errors = sqlsrv_errors();
-    $sqlMsg = $errors[0]['message'] ?? 'Product could not be deleted because it is referenced by another record.';
+    $sqlMsg = $errors[0]['message'] ?? 'Product could not be deleted because it is still referenced by another record.';
+
     header('Location: index.php?error=' . urlencode($sqlMsg));
     exit;
 }
@@ -178,7 +194,7 @@ foreach ($imagesToDelete as $imagePath) {
 $_SESSION['product_delete_token'] = bin2hex(random_bytes(32));
 
 $deletedName = (string)($product['Name'] ?? 'Product');
-$message = 'Product "' . $deletedName . '" and its images were permanently deleted.';
+$message = 'Product "' . $deletedName . '" and all related records were permanently deleted.';
 
 header('Location: index.php?success=' . urlencode($message));
 exit;

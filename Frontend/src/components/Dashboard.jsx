@@ -15,6 +15,8 @@ import {
   FiEdit2,
   FiLogOut,
   FiDownload,
+  FiFileText,
+  FiDollarSign,
 } from "react-icons/fi";
 
 const Dashboard = () => {
@@ -71,6 +73,10 @@ const Dashboard = () => {
 
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
+  // Quotes State
+  const [quotes, setQuotes] = useState([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -137,6 +143,35 @@ const Dashboard = () => {
       } finally {
         setLoadingOrders(false);
       }
+
+      // Fetch Bulk Quotes
+      setLoadingQuotes(true);
+      try {
+        const quoteResponse = await fetch(
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/quotes/user_quotes_api.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": "GatewayLinen@2026",
+            },
+            body: JSON.stringify({
+              action: "get_user_quotes",
+              userId: Number(userId),
+            }),
+          },
+        );
+        const quoteResult = await quoteResponse.json();
+        if (quoteResult.success) {
+          setQuotes(quoteResult.data || []);
+        } else {
+          setQuotes([]);
+        }
+      } catch (err) {
+        console.error("Error fetching quotes:", err);
+      } finally {
+        setLoadingQuotes(false);
+      }
     };
 
     loadDashboardData();
@@ -178,6 +213,23 @@ const Dashboard = () => {
       );
       const orderData = await orderRes.json();
       if (orderData.success) setOrders(orderData.data || []);
+
+      const quoteRes = await fetch(
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/quotes/user_quotes_api.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": "GatewayLinen@2026",
+          },
+          body: JSON.stringify({
+            action: "get_user_quotes",
+            userId: Number(userId),
+          }),
+        },
+      );
+      const quoteData = await quoteRes.json();
+      if (quoteData.success) setQuotes(quoteData.data || []);
     } catch (err) {
       console.error("Error refreshing data:", err);
     }
@@ -399,7 +451,10 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  // --- PDF INVOICE GENERATOR FUNCTION WITH PAYMENT METHOD ---
+  const handleProceedToPayment = (quoteId) => {
+    alert(`Proceeding to secure payment gateway for Quote ID: ${quoteId}`);
+  };
+
   const handleDownloadInvoice = (order) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
@@ -513,7 +568,8 @@ const Dashboard = () => {
               My Dashboard
             </h1>
             <p className="text-xs text-gray-600 font-light mt-0.5">
-              Manage your profile, shipping addresses, and buying history.
+              Manage your profile, retail shipping addresses, bulk quotes, and
+              buying history.
             </p>
           </div>
           <button
@@ -623,7 +679,7 @@ const Dashboard = () => {
           </form>
         </div>
 
-        {/* SAVED ADDRESSES SECTION */}
+        {/* SAVED RETAIL SHIPPING ADDRESSES SECTION */}
         <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#E5DCD0]">
             <div className="flex items-center gap-2.5 text-[#031D44]">
@@ -632,10 +688,11 @@ const Dashboard = () => {
               </div>
               <div>
                 <h2 className="text-base md:text-lg font-serif font-bold">
-                  Saved Shipping Addresses
+                  Saved Retail Shipping Addresses
                 </h2>
                 <p className="text-[10px] md:text-[11px] text-gray-500 font-light">
-                  Manage your delivery locations for fast checkout
+                  Manage your standard retail delivery locations for fast
+                  checkout
                 </p>
               </div>
             </div>
@@ -655,10 +712,10 @@ const Dashboard = () => {
             <div className="text-center py-10 bg-[#FFFDF9] rounded-2xl border border-dashed border-[#E5DCD0]">
               <FiMapPin size={28} className="mx-auto text-gray-300 mb-2" />
               <p className="text-xs font-bold text-[#031D44] mb-1">
-                No saved addresses found
+                No saved retail addresses found
               </p>
               <p className="text-[11px] text-gray-500 font-light">
-                Add your first shipping address using the button above.
+                Add your first retail shipping address using the button above.
               </p>
             </div>
           ) : (
@@ -676,7 +733,7 @@ const Dashboard = () => {
                           {addr.RecipientName}
                         </span>
                         <span className="text-[8.5px] bg-[#B58E58]/10 text-[#B58E58] border border-[#B58E58]/30 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">
-                          {addr.AddressType || "Shipping"}
+                          {addr.AddressType || "Retail"}
                         </span>
                       </div>
                       <p className="text-[11px] md:text-xs text-gray-600 font-light mb-1 leading-relaxed">
@@ -713,7 +770,84 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* BUYING HISTORY SECTION (API DATABASE FETCH WITH IMAGES & INVOICE) */}
+        {/* BULK QUOTES SECTION */}
+        <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
+          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#E5DCD0] text-[#031D44]">
+            <FiFileText size={18} className="text-[#B58E58]" />
+            <h2 className="text-base md:text-lg font-serif font-bold">
+              My Bulk Quotes
+            </h2>
+          </div>
+
+          {loadingQuotes ? (
+            <div className="text-center py-8 text-xs text-gray-500 font-bold uppercase tracking-widest">
+              Loading Quotes...
+            </div>
+          ) : quotes.length === 0 ? (
+            <div className="text-center py-8 text-xs text-gray-500 font-light">
+              You haven't submitted any bulk quotes yet.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {quotes.map((quote, idx) => {
+                const status = (quote.status || "Pending").toLowerCase();
+                let statusColor = "bg-yellow-100 text-yellow-800";
+                if (status === "approved")
+                  statusColor =
+                    "bg-green-100 text-green-800 border border-green-200";
+                else if (status === "rejected")
+                  statusColor = "bg-red-100 text-red-800 border border-red-200";
+                else if (status === "converted")
+                  statusColor =
+                    "bg-blue-100 text-blue-800 border border-blue-200";
+
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 sm:p-5 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] flex flex-col gap-4 shadow-2xs transition-all hover:border-[#B58E58]"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <div>
+                        <div className="flex items-center gap-2.5 mb-1">
+                          <span className="text-sm font-bold text-[#031D44]">
+                            Quote #{quote.quoteNumber}
+                          </span>
+                          <span
+                            className={`text-[9px] px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider ${statusColor}`}
+                          >
+                            {quote.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 font-light">
+                          Submitted on: {quote.date}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                        <span className="text-sm md:text-base font-bold text-[#031D44]">
+                          CAD ${Number(quote.totalAmount).toFixed(2)}
+                        </span>
+
+                        {status === "approved" && (
+                          <button
+                            onClick={() =>
+                              handleProceedToPayment(quote.quoteId)
+                            }
+                            className="flex items-center gap-1.5 px-4 py-2 bg-[#B58E58] hover:bg-[#031D44] text-white text-[10px] font-bold tracking-wider uppercase rounded-lg transition-all cursor-pointer shadow-md ml-auto sm:ml-0"
+                          >
+                            <FiDollarSign size={13} /> Proceed to Payment
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* BUYING HISTORY SECTION (ORDERS) */}
         <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#E5DCD0] text-[#031D44]">
             <FiShoppingBag size={18} className="text-[#B58E58]" />
@@ -737,7 +871,6 @@ const Dashboard = () => {
                   key={idx}
                   className="p-4 sm:p-5 bg-[#FFFDF9] rounded-xl border border-[#E5DCD0] flex flex-col gap-4 shadow-2xs transition-all hover:border-[#B58E58]"
                 >
-                  {/* Order Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#E5DCD0] pb-4">
                     <div>
                       <div className="flex items-center gap-2.5 mb-1">
@@ -770,7 +903,6 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {/* Order Items with Images */}
                   <div className="space-y-3">
                     {order.items && order.items.length > 0 ? (
                       order.items.map((item, i) => (
@@ -1003,7 +1135,7 @@ const Dashboard = () => {
                 onClick={() => setShowDeleteModal(false)}
                 className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full transition-colors cursor-pointer bg-white border border-gray-200"
               >
-                <FiX size={16} />
+                <FiX size5={16} />
               </button>
             </div>
 

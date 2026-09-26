@@ -42,10 +42,10 @@ export default function QuoteBuilder() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
 
-  const [allProducts, setAllProducts] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [allVariants, setAllVariants] = useState([]);
+  const [loadingVariants, setLoadingVariants] = useState(true);
 
-  const [selectedProductDetail, setSelectedProductDetail] = useState(null);
+  const [selectedVariantDetail, setSelectedVariantDetail] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const [quoteItems, setQuoteItems] = useState([]);
@@ -68,34 +68,27 @@ export default function QuoteBuilder() {
   const [savingAddress, setSavingAddress] = useState(false);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchVariants = async () => {
       try {
         const response = await fetch(
-          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php",
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/variants/api.php?action=get_variants",
         );
         const result = await response.json();
 
-        let fetchedItems = [];
-        if (result && result.success && result.data) {
-          if (Array.isArray(result.data.items)) {
-            fetchedItems = result.data.items;
-          } else if (Array.isArray(result.data)) {
-            fetchedItems = result.data;
-          }
-        } else if (Array.isArray(result)) {
-          fetchedItems = result;
+        if (result && result.status === "success" && result.data) {
+          setAllVariants(result.data);
+        } else {
+          setAllVariants([]);
         }
-
-        setAllProducts(fetchedItems);
       } catch (err) {
         console.error("Fetch Error:", err);
-        setAllProducts([]);
+        setAllVariants([]);
       } finally {
-        setLoadingProducts(false);
+        setLoadingVariants(false);
       }
     };
 
-    fetchProducts();
+    fetchVariants();
   }, []);
 
   const resolveImage = (rawImg) => {
@@ -106,19 +99,19 @@ export default function QuoteBuilder() {
     return `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
   };
 
-  const getProductImageUrls = (product) => {
-    if (!product)
+  const getProductImageUrls = (variant) => {
+    if (!variant)
       return [
         "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600",
       ];
     let urls = [];
 
     if (
-      product.images &&
-      Array.isArray(product.images) &&
-      product.images.length > 0
+      variant.images &&
+      Array.isArray(variant.images) &&
+      variant.images.length > 0
     ) {
-      product.images.forEach((imgObj) => {
+      variant.images.forEach((imgObj) => {
         const path = imgObj.imageUrl || imgObj.ImageUrl || imgObj;
         if (path) {
           const resolved = resolveImage(path);
@@ -127,7 +120,7 @@ export default function QuoteBuilder() {
       });
     }
 
-    const singleImg = product.imageUrl || product.ImageUrl || product.image;
+    const singleImg = variant.imageUrl || variant.ImageUrl || variant.image;
     if (singleImg) {
       const resolved = resolveImage(singleImg);
       if (!urls.includes(resolved)) {
@@ -144,21 +137,17 @@ export default function QuoteBuilder() {
     return urls;
   };
 
-  const handleAddProduct = (product) => {
-    const productId = product.productId || product.ProductId || product.id;
-    if (!productId) return;
+  const handleAddVariant = (variant) => {
+    const variantId = variant.variant_id;
+    if (!variantId) return;
 
-    if (
-      !quoteItems.find(
-        (item) => (item.productId || item.ProductId || item.id) === productId,
-      )
-    ) {
+    if (!quoteItems.find((item) => item.variant_id === variantId)) {
       const defaultBucket = "50 - 100 Units";
       const limits = getBucketLimits(defaultBucket);
       setQuoteItems([
         ...quoteItems,
         {
-          ...product,
+          ...variant,
           bucket: defaultBucket,
           exactQuantity: limits.min,
         },
@@ -166,18 +155,14 @@ export default function QuoteBuilder() {
     }
   };
 
-  const handleRemoveProduct = (productId) => {
-    setQuoteItems(
-      quoteItems.filter(
-        (item) => (item.productId || item.ProductId || item.id) !== productId,
-      ),
-    );
+  const handleRemoveVariant = (variantId) => {
+    setQuoteItems(quoteItems.filter((item) => item.variant_id !== variantId));
   };
 
-  const updateItemQuantity = (productId, field, value) => {
+  const updateItemQuantity = (variantId, field, value) => {
     setQuoteItems(
       quoteItems.map((item) => {
-        if ((item.productId || item.ProductId || item.id) === productId) {
+        if (item.variant_id === variantId) {
           if (field === "bucket") {
             const newLimits = getBucketLimits(value);
             return { ...item, bucket: value, exactQuantity: newLimits.min };
@@ -218,9 +203,7 @@ export default function QuoteBuilder() {
 
   const calculateSubtotal = () => {
     return quoteItems.reduce((total, item) => {
-      const itemPrice = Number(
-        item.basePrice || item.BasePrice || item.price || 0,
-      );
+      const itemPrice = Number(item.pricing?.price || 0);
       const qty = Number(item.exactQuantity || 0);
       return total + itemPrice * qty;
     }, 0);
@@ -230,23 +213,20 @@ export default function QuoteBuilder() {
   const tax = subtotal * 0.13;
   const grandTotal = Math.max(0, subtotal + tax - discount);
 
-  // --- SAVE ADDRESS TO DATABASE VIA CORRECTED `/users/address_api.php` ---
-  const saveAddressToDatabase = async () => {
+  // --- SUBMIT QUOTE TO DATABASE API ---
+  const handleSubmitQuote = async () => {
     try {
       setSavingAddress(true);
       const payload = {
-        action: "add_address",
-        userId: 11, // Standard User ID from your DB
-        recipientName: companyDetails.fullName,
-        phone: companyDetails.phone,
-        addressLine1: companyDetails.addressLine1 || "Main Street",
-        city: companyDetails.city || "Surat",
-        stateProvince: companyDetails.stateProvince || "Gujarat",
-        postalCode: companyDetails.postalCode || "395006",
+        action: "submit_quote",
+        userId: 11,
+        companyDetails: companyDetails,
+        quoteItems: quoteItems,
+        grandTotal: grandTotal,
       };
 
       const response = await fetch(
-        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/users/address_api.php",
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/quotes/submit_quote_api.php",
         {
           method: "POST",
           headers: {
@@ -258,21 +238,18 @@ export default function QuoteBuilder() {
       );
 
       const result = await response.json();
-      console.log("Address save response:", result);
+
+      if (result.success) {
+        setStep(6);
+      } else {
+        setWarningMessage(result.message || "Failed to submit quote.");
+      }
     } catch (err) {
-      console.error("Error saving address:", err);
+      console.error("Submit Quote Error:", err);
+      setWarningMessage("Server error while submitting the quote.");
     } finally {
       setSavingAddress(false);
     }
-  };
-
-  const handleSubmitQuote = () => {
-    console.log("Submitting Quote:", {
-      quoteItems,
-      companyDetails,
-      grandTotal,
-    });
-    setStep(6);
   };
 
   return (
@@ -290,7 +267,7 @@ export default function QuoteBuilder() {
         {/* Stepper Navigation */}
         <div className="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-[#E5DCD0] mb-8 overflow-x-auto">
           {[
-            { num: 1, label: "Products", icon: FiBox },
+            { num: 1, label: "Variants", icon: FiBox },
             { num: 2, label: "Quantities", icon: FiList },
             { num: 3, label: "Pricing & Tax", icon: FiDollarSign },
             { num: 4, label: "Details", icon: FiUser },
@@ -306,7 +283,6 @@ export default function QuoteBuilder() {
           ))}
         </div>
 
-        {/* Custom Warning Banner */}
         {warningMessage && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-5 py-3.5 rounded-2xl flex items-center justify-between text-xs font-bold shadow-sm animate-in fade-in">
             <div className="flex items-center gap-2.5">
@@ -323,54 +299,52 @@ export default function QuoteBuilder() {
         )}
 
         <div className="bg-white rounded-[32px] shadow-xl border border-[#E5DCD0] p-6 md:p-10 min-h-[500px] relative">
-          {/* STEP 1: PRODUCTS */}
+          {/* STEP 1: VARIANTS */}
           {step === 1 && (
             <div className="animate-in fade-in">
               <h2 className="text-xl font-serif font-bold text-[#031D44] mb-6 border-b border-[#E5DCD0] pb-3">
-                Select Products for Quote
+                Select Product Variants for Quote
               </h2>
 
-              {loadingProducts ? (
+              {loadingVariants ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <div className="w-10 h-10 border-4 border-[#E5DCD0] border-t-[#B58E58] rounded-full animate-spin mb-4"></div>
                   <p className="text-xs font-bold tracking-widest uppercase text-[#031D44]">
-                    Loading Catalog...
+                    Loading Variants Catalog...
                   </p>
                 </div>
-              ) : !Array.isArray(allProducts) || allProducts.length === 0 ? (
+              ) : !Array.isArray(allVariants) || allVariants.length === 0 ? (
                 <div className="text-center py-20 text-gray-400 font-medium">
-                  No products found in the database.
+                  No active variants found in the database.
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                  {allProducts.map((product, idx) => {
-                    const productId =
-                      product.productId || product.ProductId || idx;
+                  {allVariants.map((variant) => {
+                    const variantId = variant.variant_id;
                     const isAdded = quoteItems.some(
-                      (item) =>
-                        (item.productId || item.ProductId) === productId,
+                      (item) => item.variant_id === variantId,
                     );
-                    const itemImage = getProductImageUrls(product)[0];
-                    const productName =
-                      product.name || product.Name || "Unnamed Product";
-                    const productCategory =
-                      product.categoryName || product.CategoryName || "Linen";
+                    const itemImage = getProductImageUrls(variant)[0];
+                    const variantName =
+                      variant.product_name || "Unnamed Variant";
+                    const sku = variant.sku || "N/A";
+                    const price = variant.pricing?.price || 0;
 
                     return (
                       <div
-                        key={`prod-${productId}`}
+                        key={`var-${variantId}`}
                         className={`flex flex-col bg-white rounded-2xl overflow-hidden border transition-all duration-300 ${isAdded ? "border-[#B58E58] shadow-md ring-2 ring-[#B58E58]/20" : "border-[#E5DCD0] hover:border-[#031D44] hover:shadow-lg"}`}
                       >
                         <div
                           onClick={() => {
-                            setSelectedProductDetail(product);
+                            setSelectedVariantDetail(variant);
                             setActiveImageIndex(0);
                           }}
                           className="h-40 overflow-hidden bg-gray-50 relative group cursor-pointer"
                         >
                           <img
                             src={itemImage}
-                            alt={productName}
+                            alt={variantName}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             onError={(e) => {
                               e.target.src =
@@ -388,27 +362,30 @@ export default function QuoteBuilder() {
                         </div>
                         <div className="p-4 flex flex-col flex-grow">
                           <p className="text-[9px] text-[#B58E58] uppercase font-bold tracking-widest mb-1 line-clamp-1">
-                            {productCategory}
+                            SKU: {sku}
                           </p>
                           <h3
                             onClick={() => {
-                              setSelectedProductDetail(product);
+                              setSelectedVariantDetail(variant);
                               setActiveImageIndex(0);
                             }}
-                            className="text-xs sm:text-sm font-bold text-[#031D44] mb-3 line-clamp-2 flex-grow cursor-pointer hover:text-[#B58E58] transition-colors"
+                            className="text-xs sm:text-sm font-bold text-[#031D44] mb-1 line-clamp-2 cursor-pointer hover:text-[#B58E58] transition-colors"
                           >
-                            {productName}
+                            {variantName}
                           </h3>
+                          <p className="text-xs font-bold text-[#B58E58] mb-3 flex-grow">
+                            CAD ${Number(price).toFixed(2)}
+                          </p>
 
                           <button
                             onClick={() =>
                               isAdded
-                                ? handleRemoveProduct(productId)
-                                : handleAddProduct(product)
+                                ? handleRemoveVariant(variantId)
+                                : handleAddVariant(variant)
                             }
                             className={`w-full py-2.5 rounded-xl text-[11px] font-bold tracking-widest uppercase transition-all cursor-pointer ${isAdded ? "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100" : "bg-[#031D44] text-white hover:bg-[#B58E58] shadow-md"}`}
                           >
-                            {isAdded ? "Remove Item" : "Add to Quote"}
+                            {isAdded ? "Remove Variant" : "Add to Quote"}
                           </button>
                         </div>
                       </div>
@@ -429,32 +406,32 @@ export default function QuoteBuilder() {
                 <div className="text-center py-20">
                   <FiBox size={48} className="mx-auto text-gray-300 mb-4" />
                   <p className="text-gray-500 font-medium">
-                    Please go back and select at least one product to continue.
+                    Please go back and select at least one variant to continue.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {quoteItems.map((item) => {
-                    const productId = item.productId || item.ProductId;
-                    const itemPrice = item.basePrice || item.BasePrice || 0;
+                    const variantId = item.variant_id;
+                    const itemPrice = item.pricing?.price || 0;
                     const limits = getBucketLimits(item.bucket);
 
                     return (
                       <div
-                        key={`cart-${productId}`}
+                        key={`cart-${variantId}`}
                         className="flex flex-col md:flex-row items-center gap-4 border border-[#E5DCD0] p-4 rounded-2xl bg-[#FAF7F2] shadow-sm hover:shadow-md transition-shadow"
                       >
                         <img
                           src={getProductImageUrls(item)[0]}
                           className="w-20 h-20 rounded-xl object-cover border border-gray-200"
-                          alt={item.name || item.Name}
+                          alt={item.product_name}
                         />
                         <div className="flex-1 text-center md:text-left">
                           <p className="text-[9px] text-[#B58E58] uppercase font-bold tracking-widest mb-0.5">
-                            {item.categoryName || item.CategoryName || "Linen"}
+                            SKU: {item.sku}
                           </p>
                           <h3 className="font-bold text-sm text-[#031D44] mb-1">
-                            {item.name || item.Name}
+                            {item.product_name}
                           </h3>
                           <p className="text-xs text-gray-600 font-medium">
                             Est. Unit Price:{" "}
@@ -473,7 +450,7 @@ export default function QuoteBuilder() {
                               value={item.bucket}
                               onChange={(e) =>
                                 updateItemQuantity(
-                                  productId,
+                                  variantId,
                                   "bucket",
                                   e.target.value,
                                 )
@@ -498,7 +475,7 @@ export default function QuoteBuilder() {
                               value={item.exactQuantity}
                               onChange={(e) =>
                                 updateItemQuantity(
-                                  productId,
+                                  variantId,
                                   "exactQuantity",
                                   e.target.value,
                                 )
@@ -509,7 +486,7 @@ export default function QuoteBuilder() {
                         </div>
 
                         <button
-                          onClick={() => handleRemoveProduct(productId)}
+                          onClick={() => handleRemoveVariant(variantId)}
                           className="w-full md:w-auto mt-2 md:mt-0 p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer flex justify-center"
                           title="Remove item"
                         >
@@ -536,19 +513,20 @@ export default function QuoteBuilder() {
                 </h3>
 
                 {quoteItems.map((item) => {
-                  const itemPrice = Number(
-                    item.basePrice || item.BasePrice || 0,
-                  );
+                  const itemPrice = Number(item.pricing?.price || 0);
                   const qty = Number(item.exactQuantity || 0);
                   const itemTotal = itemPrice * qty;
                   return (
                     <div
-                      key={`summary-${item.productId || item.ProductId}`}
+                      key={`summary-${item.variant_id}`}
                       className="flex justify-between items-center bg-white p-3.5 rounded-xl border border-gray-100"
                     >
                       <div>
                         <p className="text-xs font-bold text-[#031D44]">
-                          {item.name || item.Name}
+                          {item.product_name}{" "}
+                          <span className="text-gray-400 font-normal">
+                            ({item.sku})
+                          </span>
                         </p>
                         <p className="text-[10px] text-gray-500">
                           {qty} Units × CAD ${itemPrice.toFixed(2)}
@@ -813,10 +791,10 @@ export default function QuoteBuilder() {
                 </h3>
                 <div className="space-y-3 bg-white p-4 rounded-2xl border border-[#E5DCD0] shadow-sm">
                   {quoteItems.map((item) => {
-                    const itemPrice = item.basePrice || item.BasePrice || 0;
+                    const itemPrice = item.pricing?.price || 0;
                     return (
                       <div
-                        key={`review-${item.productId || item.ProductId}`}
+                        key={`review-${item.variant_id}`}
                         className="flex justify-between items-center border-b border-gray-100 last:border-0 pb-3 last:pb-0"
                       >
                         <div className="flex items-center gap-3">
@@ -827,7 +805,7 @@ export default function QuoteBuilder() {
                           />
                           <div>
                             <p className="text-xs font-bold text-[#031D44] line-clamp-1">
-                              {item.name || item.Name}
+                              {item.product_name}
                             </p>
                             <p className="text-[9px] text-gray-500 uppercase tracking-widest">
                               {item.bucket} • {item.exactQuantity} Qty
@@ -882,15 +860,12 @@ export default function QuoteBuilder() {
                   </div>
 
                   <button
-                    onClick={() => {
-                      saveAddressToDatabase();
-                      handleSubmitQuote();
-                    }}
+                    onClick={handleSubmitQuote}
                     disabled={savingAddress}
                     className="w-full py-4 bg-[#B58E58] hover:bg-white text-white hover:text-[#031D44] rounded-xl text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg"
                   >
                     {savingAddress ? (
-                      "Saving Address..."
+                      "Transmitting Quote..."
                     ) : (
                       <>
                         <FiSend size={14} /> Send to Admin
@@ -940,7 +915,7 @@ export default function QuoteBuilder() {
                   onClick={() => {
                     if (step === 1 && quoteItems.length === 0) {
                       setWarningMessage(
-                        "Please select at least one product from the catalog before proceeding.",
+                        "Please select at least one product variant from the catalog before proceeding.",
                       );
                       return;
                     }
@@ -971,15 +946,17 @@ export default function QuoteBuilder() {
         </div>
       </div>
 
-      {/* --- PRODUCT DETAIL POPUP MODAL --- */}
-      {selectedProductDetail &&
+      {/* --- VARIANT DETAIL POPUP MODAL --- */}
+      {selectedVariantDetail &&
         (() => {
-          const productImages = getProductImageUrls(selectedProductDetail);
+          const productImages = getProductImageUrls(selectedVariantDetail);
+          const attr = selectedVariantDetail.attributes || {};
+
           return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
               <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[28px] max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
                 <button
-                  onClick={() => setSelectedProductDetail(null)}
+                  onClick={() => setSelectedVariantDetail(null)}
                   className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200 shadow-2xs z-10"
                 >
                   <FiX size={16} />
@@ -988,7 +965,7 @@ export default function QuoteBuilder() {
                 <div className="w-full h-56 bg-white rounded-2xl overflow-hidden mb-3 border border-[#E5DCD0] shadow-sm">
                   <img
                     src={productImages[activeImageIndex] || productImages[0]}
-                    alt="Product Preview"
+                    alt="Variant Preview"
                     className="w-full h-full object-cover transition-all duration-300"
                   />
                 </div>
@@ -1012,12 +989,10 @@ export default function QuoteBuilder() {
                 )}
 
                 <span className="text-[9.5px] font-bold text-[#B58E58] tracking-widest uppercase mb-1 block">
-                  {selectedProductDetail.categoryName ||
-                    selectedProductDetail.CategoryName ||
-                    "Commercial Linen"}
+                  SKU: {selectedVariantDetail.sku || "N/A"}
                 </span>
                 <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
-                  {selectedProductDetail.name || selectedProductDetail.Name}
+                  {selectedVariantDetail.product_name || "Unnamed Product"}
                 </h3>
 
                 <div className="bg-white p-4 rounded-2xl border border-[#E5DCD0] mb-4 space-y-2 text-xs text-gray-700 shadow-2xs">
@@ -1028,38 +1003,59 @@ export default function QuoteBuilder() {
                     <span className="font-serif font-bold text-base text-[#B58E58]">
                       CAD $
                       {Number(
-                        selectedProductDetail.basePrice ||
-                          selectedProductDetail.BasePrice ||
-                          0,
+                        selectedVariantDetail.pricing?.price || 0,
                       ).toFixed(2)}
                     </span>
                   </div>
-                  {selectedProductDetail.shortDescription && (
-                    <div className="pt-2 border-t border-gray-100">
-                      <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">
-                        Overview
-                      </p>
-                      <p className="text-gray-600 font-light leading-relaxed">
-                        {selectedProductDetail.shortDescription}
-                      </p>
-                    </div>
-                  )}
-                  {selectedProductDetail.description && (
-                    <div className="pt-2 border-t border-gray-100">
-                      <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">
-                        Description
-                      </p>
-                      <p className="text-gray-600 font-light leading-relaxed">
-                        {selectedProductDetail.description}
-                      </p>
-                    </div>
-                  )}
+
+                  <div className="pt-2 border-t border-gray-100 grid grid-cols-2 gap-2 mt-2">
+                    {attr.size && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
+                          Size
+                        </p>
+                        <p className="text-[#031D44] font-medium">
+                          {attr.size}
+                        </p>
+                      </div>
+                    )}
+                    {attr.color && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
+                          Color
+                        </p>
+                        <p className="text-[#031D44] font-medium">
+                          {attr.color}
+                        </p>
+                      </div>
+                    )}
+                    {attr.material && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
+                          Material
+                        </p>
+                        <p className="text-[#031D44] font-medium">
+                          {attr.material}
+                        </p>
+                      </div>
+                    )}
+                    {attr.weight_gsm && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
+                          Weight (GSM)
+                        </p>
+                        <p className="text-[#031D44] font-medium">
+                          {attr.weight_gsm}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setSelectedProductDetail(null)}
+                    onClick={() => setSelectedVariantDetail(null)}
                     className="w-1/2 py-3 bg-white border border-[#E5DCD0] hover:bg-gray-50 text-[#031D44] text-[11px] font-bold tracking-widest uppercase rounded-xl transition-all cursor-pointer shadow-2xs"
                   >
                     Close
@@ -1067,8 +1063,8 @@ export default function QuoteBuilder() {
                   <button
                     type="button"
                     onClick={() => {
-                      handleAddProduct(selectedProductDetail);
-                      setSelectedProductDetail(null);
+                      handleAddVariant(selectedVariantDetail);
+                      setSelectedVariantDetail(null);
                     }}
                     className="w-1/2 py-3 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer"
                   >

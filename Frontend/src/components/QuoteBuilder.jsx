@@ -68,18 +68,113 @@ export default function QuoteBuilder() {
   const [savingAddress, setSavingAddress] = useState(false);
 
   useEffect(() => {
-    const fetchVariants = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(
+        const variantsResponse = await fetch(
           "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/variants/api.php?action=get_variants",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": "GatewayLinen@2026",
+            },
+          },
         );
-        const result = await response.json();
+        const variantsResult = await variantsResponse.json();
 
-        if (result && result.status === "success" && result.data) {
-          setAllVariants(result.data);
-        } else {
-          setAllVariants([]);
+        const productsResponse = await fetch(
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": "GatewayLinen@2026",
+            },
+          },
+        );
+        const productsResult = await productsResponse.json();
+
+        let productsList = [];
+        if (productsResult.success && productsResult.data) {
+          productsList = Array.isArray(productsResult.data)
+            ? productsResult.data
+            : productsResult.data.items || [];
         }
+
+        let rawVariants = [];
+        if (variantsResult) {
+          if (Array.isArray(variantsResult)) {
+            rawVariants = variantsResult;
+          } else if (
+            variantsResult.data &&
+            Array.isArray(variantsResult.data)
+          ) {
+            rawVariants = variantsResult.data;
+          }
+        }
+
+        const formattedVariants = rawVariants.map((variant) => {
+          const parentProduct = productsList.find(
+            (p) =>
+              (p.productId || p.ProductId || p.id) ==
+              (variant.productId || variant.product_id || variant.ProductId),
+          );
+
+          let rawImg = variant.image || variant.Image || "";
+          if (!rawImg && parentProduct) {
+            rawImg =
+              parentProduct.imageUrl ||
+              parentProduct.ImageUrl ||
+              parentProduct.image ||
+              parentProduct.Image ||
+              "";
+            if (
+              !rawImg &&
+              parentProduct.images &&
+              parentProduct.images.length > 0
+            ) {
+              rawImg =
+                parentProduct.images[0].imageUrl ||
+                parentProduct.images[0].ImageUrl ||
+                "";
+            }
+          }
+
+          let finalImg = "";
+          if (rawImg) {
+            if (rawImg.startsWith("http")) {
+              finalImg = rawImg;
+            } else if (rawImg.startsWith("/")) {
+              finalImg = `http://localhost${rawImg}`;
+            } else {
+              const cleanPath = rawImg.replace(/^\/+/, "");
+              if (cleanPath.includes("Gateway-Linen")) {
+                finalImg = `http://localhost/${cleanPath}`;
+              } else {
+                finalImg = `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
+              }
+            }
+          }
+
+          return {
+            ...variant,
+            variant_id: variant.variant_id || variant.VariantId || variant.id,
+            product_name:
+              variant.product_name ||
+              variant.VariantName ||
+              variant.Name ||
+              (parentProduct
+                ? parentProduct.name || parentProduct.Name
+                : "Product"),
+            sku: variant.sku || variant.SKU || "VAR",
+            pricing: variant.pricing || {
+              price: variant.price || variant.Price || 0,
+            },
+            resolvedImage: finalImg,
+          };
+        });
+
+        setAllVariants(formattedVariants);
       } catch (err) {
         console.error("Fetch Error:", err);
         setAllVariants([]);
@@ -88,54 +183,8 @@ export default function QuoteBuilder() {
       }
     };
 
-    fetchVariants();
+    fetchData();
   }, []);
-
-  const resolveImage = (rawImg) => {
-    if (!rawImg)
-      return "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
-    if (rawImg.startsWith("http")) return rawImg;
-    const cleanPath = rawImg.replace(/^\/+/, "");
-    return `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
-  };
-
-  const getProductImageUrls = (variant) => {
-    if (!variant)
-      return [
-        "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600",
-      ];
-    let urls = [];
-
-    if (
-      variant.images &&
-      Array.isArray(variant.images) &&
-      variant.images.length > 0
-    ) {
-      variant.images.forEach((imgObj) => {
-        const path = imgObj.imageUrl || imgObj.ImageUrl || imgObj;
-        if (path) {
-          const resolved = resolveImage(path);
-          if (!urls.includes(resolved)) urls.push(resolved);
-        }
-      });
-    }
-
-    const singleImg = variant.imageUrl || variant.ImageUrl || variant.image;
-    if (singleImg) {
-      const resolved = resolveImage(singleImg);
-      if (!urls.includes(resolved)) {
-        urls.unshift(resolved);
-      }
-    }
-
-    if (urls.length === 0) {
-      urls.push(
-        "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600",
-      );
-    }
-
-    return urls;
-  };
 
   const handleAddVariant = (variant) => {
     const variantId = variant.variant_id;
@@ -203,7 +252,7 @@ export default function QuoteBuilder() {
 
   const calculateSubtotal = () => {
     return quoteItems.reduce((total, item) => {
-      const itemPrice = Number(item.pricing?.price || 0);
+      const itemPrice = Number(item.pricing?.price || item.price || 0);
       const qty = Number(item.exactQuantity || 0);
       return total + itemPrice * qty;
     }, 0);
@@ -213,7 +262,6 @@ export default function QuoteBuilder() {
   const tax = subtotal * 0.13;
   const grandTotal = Math.max(0, subtotal + tax - discount);
 
-  // --- SUBMIT QUOTE TO DATABASE API ---
   const handleSubmitQuote = async () => {
     try {
       setSavingAddress(true);
@@ -253,78 +301,86 @@ export default function QuoteBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0EAE1] py-10 px-4 font-sans relative">
+    <div className="min-h-screen bg-[#F0EAE1] py-6 sm:py-10 px-3 sm:px-6 font-sans relative">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#031D44] mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#031D44] mb-1.5">
             B2B Quote Builder
           </h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600">
             Build your custom commercial package for special wholesale pricing.
           </p>
         </div>
 
         {/* Stepper Navigation */}
-        <div className="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-[#E5DCD0] mb-8 overflow-x-auto">
+        <div className="flex items-center bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-[#E5DCD0] mb-6 sm:mb-8 overflow-x-auto gap-2 scrollbar-none">
           {[
             { num: 1, label: "Variants", icon: FiBox },
             { num: 2, label: "Quantities", icon: FiList },
-            { num: 3, label: "Pricing & Tax", icon: FiDollarSign },
+            { num: 3, label: "Pricing", icon: FiDollarSign },
             { num: 4, label: "Details", icon: FiUser },
             { num: 5, label: "Review", icon: FiCheckCircle },
           ].map((s) => (
             <div
               key={s.num}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${step >= s.num ? "bg-[#031D44] text-white shadow-md" : "text-gray-400 bg-transparent"}`}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-colors shrink-0 ${
+                step >= s.num
+                  ? "bg-[#031D44] text-white shadow-md"
+                  : "text-gray-400 bg-transparent"
+              }`}
             >
-              <s.icon size={14} />
-              <span className="hidden md:inline">{s.label}</span>
+              <s.icon size={13} />
+              <span>{s.label}</span>
             </div>
           ))}
         </div>
 
         {warningMessage && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-5 py-3.5 rounded-2xl flex items-center justify-between text-xs font-bold shadow-sm animate-in fade-in">
-            <div className="flex items-center gap-2.5">
-              <FiAlertCircle size={16} />
+          <div className="mb-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl flex items-center justify-between text-xs font-bold shadow-sm">
+            <div className="flex items-center gap-2">
+              <FiAlertCircle size={15} />
               <span>{warningMessage}</span>
             </div>
             <button
               onClick={() => setWarningMessage("")}
               className="text-red-400 hover:text-red-700 cursor-pointer"
             >
-              <FiX size={16} />
+              <FiX size={15} />
             </button>
           </div>
         )}
 
-        <div className="bg-white rounded-[32px] shadow-xl border border-[#E5DCD0] p-6 md:p-10 min-h-[500px] relative">
+        <div className="bg-white rounded-[24px] sm:rounded-[32px] shadow-xl border border-[#E5DCD0] p-3 sm:p-8 md:p-10 min-h-[450px] relative">
           {/* STEP 1: VARIANTS */}
           {step === 1 && (
             <div className="animate-in fade-in">
-              <h2 className="text-xl font-serif font-bold text-[#031D44] mb-6 border-b border-[#E5DCD0] pb-3">
+              <h2 className="text-lg sm:text-xl font-serif font-bold text-[#031D44] mb-5 border-b border-[#E5DCD0] pb-3">
                 Select Product Variants for Quote
               </h2>
 
               {loadingVariants ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <div className="w-10 h-10 border-4 border-[#E5DCD0] border-t-[#B58E58] rounded-full animate-spin mb-4"></div>
-                  <p className="text-xs font-bold tracking-widest uppercase text-[#031D44]">
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="w-8 h-8 border-4 border-[#E5DCD0] border-t-[#B58E58] rounded-full animate-spin mb-3"></div>
+                  <p className="text-[11px] font-bold tracking-widest uppercase text-[#031D44]">
                     Loading Variants Catalog...
                   </p>
                 </div>
               ) : !Array.isArray(allVariants) || allVariants.length === 0 ? (
-                <div className="text-center py-20 text-gray-400 font-medium">
+                <div className="text-center py-16 text-xs text-gray-400 font-medium">
                   No active variants found in the database.
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
                   {allVariants.map((variant) => {
                     const variantId = variant.variant_id;
                     const isAdded = quoteItems.some(
                       (item) => item.variant_id === variantId,
                     );
-                    const itemImage = getProductImageUrls(variant)[0];
+                    const itemImage =
+                      variant.resolvedImage &&
+                      variant.resolvedImage.trim() !== ""
+                        ? variant.resolvedImage
+                        : "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
                     const variantName =
                       variant.product_name || "Unnamed Variant";
                     const sku = variant.sku || "N/A";
@@ -333,14 +389,18 @@ export default function QuoteBuilder() {
                     return (
                       <div
                         key={`var-${variantId}`}
-                        className={`flex flex-col bg-white rounded-2xl overflow-hidden border transition-all duration-300 ${isAdded ? "border-[#B58E58] shadow-md ring-2 ring-[#B58E58]/20" : "border-[#E5DCD0] hover:border-[#031D44] hover:shadow-lg"}`}
+                        className={`flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden border transition-all duration-300 ${
+                          isAdded
+                            ? "border-[#B58E58] shadow-md ring-2 ring-[#B58E58]/20"
+                            : "border-[#E5DCD0] hover:border-[#031D44] hover:shadow-md"
+                        }`}
                       >
                         <div
                           onClick={() => {
                             setSelectedVariantDetail(variant);
                             setActiveImageIndex(0);
                           }}
-                          className="h-40 overflow-hidden bg-gray-50 relative group cursor-pointer"
+                          className="h-28 sm:h-40 overflow-hidden bg-gray-50 relative group cursor-pointer"
                         >
                           <img
                             src={itemImage}
@@ -351,17 +411,17 @@ export default function QuoteBuilder() {
                                 "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
                             }}
                           />
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
-                            <FiInfo size={14} /> Quick View
+                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] sm:text-xs font-bold gap-1">
+                            <FiInfo size={13} /> Quick View
                           </div>
                           {isAdded && (
-                            <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full shadow-md">
-                              <FiCheckCircle size={16} />
+                            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-green-500 text-white p-1 rounded-full shadow-md">
+                              <FiCheckCircle size={13} />
                             </div>
                           )}
                         </div>
-                        <div className="p-4 flex flex-col flex-grow">
-                          <p className="text-[9px] text-[#B58E58] uppercase font-bold tracking-widest mb-1 line-clamp-1">
+                        <div className="p-2.5 sm:p-4 flex flex-col flex-grow">
+                          <p className="text-[8.5px] sm:text-[9px] text-[#B58E58] uppercase font-bold tracking-widest mb-0.5 truncate">
                             SKU: {sku}
                           </p>
                           <h3
@@ -369,11 +429,11 @@ export default function QuoteBuilder() {
                               setSelectedVariantDetail(variant);
                               setActiveImageIndex(0);
                             }}
-                            className="text-xs sm:text-sm font-bold text-[#031D44] mb-1 line-clamp-2 cursor-pointer hover:text-[#B58E58] transition-colors"
+                            className="text-[11px] sm:text-sm font-bold text-[#031D44] mb-1 line-clamp-2 cursor-pointer hover:text-[#B58E58] transition-colors"
                           >
                             {variantName}
                           </h3>
-                          <p className="text-xs font-bold text-[#B58E58] mb-3 flex-grow">
+                          <p className="text-[11px] sm:text-xs font-bold text-[#B58E58] mb-2.5 sm:mb-3 flex-grow">
                             CAD ${Number(price).toFixed(2)}
                           </p>
 
@@ -383,9 +443,13 @@ export default function QuoteBuilder() {
                                 ? handleRemoveVariant(variantId)
                                 : handleAddVariant(variant)
                             }
-                            className={`w-full py-2.5 rounded-xl text-[11px] font-bold tracking-widest uppercase transition-all cursor-pointer ${isAdded ? "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100" : "bg-[#031D44] text-white hover:bg-[#B58E58] shadow-md"}`}
+                            className={`w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[9.5px] sm:text-[11px] font-bold tracking-wider sm:tracking-widest uppercase transition-all cursor-pointer ${
+                              isAdded
+                                ? "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+                                : "bg-[#031D44] text-white hover:bg-[#B58E58] shadow-sm"
+                            }`}
                           >
-                            {isAdded ? "Remove Variant" : "Add to Quote"}
+                            {isAdded ? "Remove" : "Add to Quote"}
                           </button>
                         </div>
                       </div>
@@ -399,18 +463,18 @@ export default function QuoteBuilder() {
           {/* STEP 2: QUANTITIES */}
           {step === 2 && (
             <div className="animate-in fade-in">
-              <h2 className="text-xl font-serif font-bold text-[#031D44] mb-6 border-b border-[#E5DCD0] pb-3">
+              <h2 className="text-lg sm:text-xl font-serif font-bold text-[#031D44] mb-5 border-b border-[#E5DCD0] pb-3">
                 Specify Bulk Quantities
               </h2>
               {quoteItems.length === 0 ? (
-                <div className="text-center py-20">
-                  <FiBox size={48} className="mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-500 font-medium">
+                <div className="text-center py-16">
+                  <FiBox size={40} className="mx-auto text-gray-300 mb-3" />
+                  <p className="text-xs text-gray-500 font-medium">
                     Please go back and select at least one variant to continue.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   {quoteItems.map((item) => {
                     const variantId = item.variant_id;
                     const itemPrice = item.pricing?.price || 0;
@@ -419,29 +483,36 @@ export default function QuoteBuilder() {
                     return (
                       <div
                         key={`cart-${variantId}`}
-                        className="flex flex-col md:flex-row items-center gap-4 border border-[#E5DCD0] p-4 rounded-2xl bg-[#FAF7F2] shadow-sm hover:shadow-md transition-shadow"
+                        className="flex flex-col sm:flex-row items-center gap-3.5 border border-[#E5DCD0] p-3.5 rounded-2xl bg-[#FAF7F2] shadow-2xs"
                       >
                         <img
-                          src={getProductImageUrls(item)[0]}
-                          className="w-20 h-20 rounded-xl object-cover border border-gray-200"
+                          src={
+                            item.resolvedImage ||
+                            "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600"
+                          }
+                          onError={(e) => {
+                            e.target.src =
+                              "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
+                          }}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-gray-200 shrink-0"
                           alt={item.product_name}
                         />
-                        <div className="flex-1 text-center md:text-left">
-                          <p className="text-[9px] text-[#B58E58] uppercase font-bold tracking-widest mb-0.5">
+                        <div className="flex-1 text-center sm:text-left min-w-0 w-full">
+                          <p className="text-[9px] text-[#B58E58] uppercase font-bold tracking-widest mb-0.5 truncate">
                             SKU: {item.sku}
                           </p>
-                          <h3 className="font-bold text-sm text-[#031D44] mb-1">
+                          <h3 className="font-bold text-xs sm:text-sm text-[#031D44] mb-1 truncate">
                             {item.product_name}
                           </h3>
                           <p className="text-xs text-gray-600 font-medium">
-                            Est. Unit Price:{" "}
-                            <span className="text-[#B58E58]">
+                            Unit Price:{" "}
+                            <span className="text-[#B58E58] font-bold">
                               CAD ${Number(itemPrice).toFixed(2)}
                             </span>
                           </p>
                         </div>
 
-                        <div className="flex flex-col gap-2.5 w-full md:w-auto bg-white p-3 rounded-xl border border-[#E5DCD0]">
+                        <div className="flex flex-col gap-2 w-full sm:w-auto bg-white p-3 rounded-xl border border-[#E5DCD0] shrink-0">
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-[10px] text-[#031D44] font-bold uppercase tracking-wider">
                               Range:
@@ -455,7 +526,7 @@ export default function QuoteBuilder() {
                                   e.target.value,
                                 )
                               }
-                              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-[#031D44] bg-gray-50 focus:outline-none focus:border-[#B58E58] cursor-pointer"
+                              className="px-2.5 py-1 border border-gray-200 rounded-lg text-xs font-bold text-[#031D44] bg-gray-50 focus:outline-none focus:border-[#B58E58] cursor-pointer"
                             >
                               {QUANTITY_BUCKETS.map((bucket) => (
                                 <option key={bucket} value={bucket}>
@@ -466,7 +537,7 @@ export default function QuoteBuilder() {
                           </div>
                           <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100">
                             <span className="text-[10px] text-[#031D44] font-bold uppercase tracking-wider">
-                              Exact Units ({limits.min} - {limits.max}):
+                              Units ({limits.min}-{limits.max}):
                             </span>
                             <input
                               type="number"
@@ -480,17 +551,17 @@ export default function QuoteBuilder() {
                                   e.target.value,
                                 )
                               }
-                              className="w-24 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-[#031D44] bg-gray-50 text-center focus:outline-none focus:border-[#B58E58]"
+                              className="w-20 px-2.5 py-1 border border-gray-200 rounded-lg text-xs font-bold text-[#031D44] bg-gray-50 text-center focus:outline-none focus:border-[#B58E58]"
                             />
                           </div>
                         </div>
 
                         <button
                           onClick={() => handleRemoveVariant(variantId)}
-                          className="w-full md:w-auto mt-2 md:mt-0 p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer flex justify-center"
+                          className="w-full sm:w-auto p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer flex justify-center shrink-0"
                           title="Remove item"
                         >
-                          <FiTrash2 size={18} />
+                          <FiTrash2 size={16} />
                         </button>
                       </div>
                     );
@@ -502,13 +573,13 @@ export default function QuoteBuilder() {
 
           {/* STEP 3: PRICE & TAX BREAKDOWN */}
           {step === 3 && (
-            <div className="animate-in fade-in max-w-3xl mx-auto">
-              <h2 className="text-xl font-serif font-bold text-[#031D44] mb-6 border-b border-[#E5DCD0] pb-3">
+            <div className="animate-in fade-in max-w-2xl mx-auto">
+              <h2 className="text-lg sm:text-xl font-serif font-bold text-[#031D44] mb-5 border-b border-[#E5DCD0] pb-3">
                 Price & Tax Calculation Summary
               </h2>
 
-              <div className="bg-[#FAF7F2] p-6 rounded-[28px] border border-[#E5DCD0] shadow-sm mb-6 space-y-4">
-                <h3 className="text-xs font-bold text-[#031D44] uppercase tracking-widest mb-3">
+              <div className="bg-[#FAF7F2] p-4 sm:p-6 rounded-[24px] border border-[#E5DCD0] shadow-2xs mb-5 space-y-3">
+                <h3 className="text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
                   Bulk Calculation Breakdown
                 </h3>
 
@@ -519,10 +590,10 @@ export default function QuoteBuilder() {
                   return (
                     <div
                       key={`summary-${item.variant_id}`}
-                      className="flex justify-between items-center bg-white p-3.5 rounded-xl border border-gray-100"
+                      className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 text-xs"
                     >
-                      <div>
-                        <p className="text-xs font-bold text-[#031D44]">
+                      <div className="min-w-0 pr-2">
+                        <p className="font-bold text-[#031D44] truncate">
                           {item.product_name}{" "}
                           <span className="text-gray-400 font-normal">
                             ({item.sku})
@@ -532,14 +603,14 @@ export default function QuoteBuilder() {
                           {qty} Units × CAD ${itemPrice.toFixed(2)}
                         </p>
                       </div>
-                      <p className="text-xs font-bold text-[#B58E58]">
+                      <p className="font-bold text-[#B58E58] shrink-0">
                         CAD ${itemTotal.toFixed(2)}
                       </p>
                     </div>
                   );
                 })}
 
-                <div className="pt-4 border-t border-[#E5DCD0] space-y-2 text-xs text-gray-700">
+                <div className="pt-3 border-t border-[#E5DCD0] space-y-1.5 text-xs text-gray-700">
                   <div className="flex justify-between">
                     <span className="font-medium">Subtotal</span>
                     <span className="font-bold text-[#031D44]">
@@ -562,44 +633,48 @@ export default function QuoteBuilder() {
                   )}
                 </div>
 
-                <div className="pt-4 border-t-2 border-[#031D44]/10 flex justify-between items-center">
-                  <span className="text-sm font-bold text-[#031D44] uppercase tracking-widest">
+                <div className="pt-3 border-t-2 border-[#031D44]/10 flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#031D44] uppercase tracking-widest">
                     Grand Total
                   </span>
-                  <span className="text-2xl font-serif font-bold text-[#B58E58]">
+                  <span className="text-xl sm:text-2xl font-serif font-bold text-[#B58E58]">
                     CAD ${grandTotal.toFixed(2)}
                   </span>
                 </div>
               </div>
 
               {/* Coupon Code Section */}
-              <div className="bg-white p-5 rounded-2xl border border-[#E5DCD0] shadow-sm">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E5DCD0] shadow-2xs">
                 <label className="block text-[10px] uppercase tracking-widest text-[#031D44] font-bold mb-2 flex items-center gap-1.5">
                   <FiTag size={12} /> Have a Wholesale Coupon Code? (Try B2B50)
                 </label>
-                <div className="flex gap-3">
+                <div className="flex gap-2.5">
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                     placeholder="e.g. B2B50"
-                    className="flex-1 px-4 py-2.5 bg-gray-50 border border-[#E5DCD0] rounded-xl text-xs text-[#031D44] font-bold uppercase focus:outline-none focus:border-[#B58E58]"
+                    className="flex-1 px-3.5 py-2.5 bg-gray-50 border border-[#E5DCD0] rounded-xl text-xs text-[#031D44] font-bold uppercase focus:outline-none focus:border-[#B58E58]"
                   />
                   <button
                     onClick={handleApplyCoupon}
-                    className="px-6 py-2.5 bg-[#B58E58] hover:bg-[#031D44] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer shadow-md"
+                    className="px-5 py-2.5 bg-[#B58E58] hover:bg-[#031D44] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer shadow-sm"
                   >
-                    Apply Coupon
+                    Apply
                   </button>
                 </div>
                 {couponMessage.text && (
                   <div
-                    className={`mt-3 p-3 rounded-xl text-xs flex items-center gap-2 ${couponMessage.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}
+                    className={`mt-2.5 p-2.5 rounded-xl text-xs flex items-center gap-2 ${
+                      couponMessage.type === "success"
+                        ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-red-50 text-red-700 border border-red-200"
+                    }`}
                   >
                     {couponMessage.type === "success" ? (
-                      <FiCheck size={14} />
+                      <FiCheck size={13} />
                     ) : (
-                      <FiAlertCircle size={14} />
+                      <FiAlertCircle size={13} />
                     )}
                     <span className="font-medium">{couponMessage.text}</span>
                   </div>
@@ -610,14 +685,14 @@ export default function QuoteBuilder() {
 
           {/* STEP 4: COMPANY DETAILS & ADDRESS */}
           {step === 4 && (
-            <div className="animate-in fade-in max-w-3xl mx-auto">
-              <h2 className="text-xl font-serif font-bold text-[#031D44] mb-6 border-b border-[#E5DCD0] pb-3">
+            <div className="animate-in fade-in max-w-2xl mx-auto">
+              <h2 className="text-lg sm:text-xl font-serif font-bold text-[#031D44] mb-5 border-b border-[#E5DCD0] pb-3">
                 Hotel / Company Details & Shipping Address
               </h2>
-              <div className="bg-[#FAF7F2] p-6 sm:p-8 rounded-[24px] border border-[#E5DCD0] shadow-sm">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="bg-[#FAF7F2] p-4 sm:p-6 rounded-[24px] border border-[#E5DCD0] shadow-2xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -626,12 +701,12 @@ export default function QuoteBuilder() {
                       required
                       value={companyDetails.fullName}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="Sahil Mirza"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       Email Address <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -640,12 +715,12 @@ export default function QuoteBuilder() {
                       required
                       value={companyDetails.email}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="purchasing@hotel.ca"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       Phone Number <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -654,12 +729,12 @@ export default function QuoteBuilder() {
                       required
                       value={companyDetails.phone}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="+1 (555) 000-0000"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       Hotel / Business Name{" "}
                       <span className="text-red-500">*</span>
                     </label>
@@ -669,12 +744,12 @@ export default function QuoteBuilder() {
                       required
                       value={companyDetails.hotelName}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="Grand Plaza Suites"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       Address Line 1 <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -683,12 +758,12 @@ export default function QuoteBuilder() {
                       required
                       value={companyDetails.addressLine1}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="Parliament Hill / Street"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       City <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -697,12 +772,12 @@ export default function QuoteBuilder() {
                       required
                       value={companyDetails.city}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="Ottawa"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       State / Province
                     </label>
                     <input
@@ -710,12 +785,12 @@ export default function QuoteBuilder() {
                       name="stateProvince"
                       value={companyDetails.stateProvince}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="Ontario"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1">
                       Postal Code <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -724,7 +799,7 @@ export default function QuoteBuilder() {
                       required
                       value={companyDetails.postalCode}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58]"
                       placeholder="K1A 0A1"
                     />
                   </div>
@@ -735,76 +810,76 @@ export default function QuoteBuilder() {
 
           {/* STEP 5: REVIEW & SUBMIT */}
           {step === 5 && (
-            <div className="animate-in fade-in flex flex-col lg:flex-row gap-8">
-              <div className="flex-1">
-                <h2 className="text-xl font-serif font-bold text-[#031D44] mb-6 border-b border-[#E5DCD0] pb-3">
+            <div className="animate-in fade-in flex flex-col lg:flex-row gap-6">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl font-serif font-bold text-[#031D44] mb-5 border-b border-[#E5DCD0] pb-3">
                   Review Your Quote Request
                 </h2>
 
-                <div className="bg-[#FAF7F2] p-5 md:p-6 rounded-2xl border border-[#E5DCD0] mb-6 shadow-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FiUser className="text-[#B58E58]" />
-                    <h3 className="text-[11px] font-bold text-[#031D44] uppercase tracking-widest">
+                <div className="bg-[#FAF7F2] p-4 sm:p-5 rounded-2xl border border-[#E5DCD0] mb-5 shadow-2xs">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <FiUser className="text-[#B58E58]" size={14} />
+                    <h3 className="text-[10px] font-bold text-[#031D44] uppercase tracking-widest">
                       Applicant & Address Details
                     </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 bg-white p-4 rounded-xl border border-gray-100 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-white p-3.5 rounded-xl border border-gray-100 text-xs">
                     <div>
-                      <p className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">
+                      <p className="text-[9px] text-gray-400 uppercase font-bold">
                         Business
                       </p>
-                      <p className="font-bold text-[#031D44]">
+                      <p className="font-bold text-[#031D44] truncate">
                         {companyDetails.hotelName || "N/A"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">
+                      <p className="text-[9px] text-gray-400 uppercase font-bold">
                         Contact Name
                       </p>
-                      <p className="font-bold text-[#031D44]">
+                      <p className="font-bold text-[#031D44] truncate">
                         {companyDetails.fullName || "N/A"}
                       </p>
                     </div>
-                    <div className="col-span-2 pt-2 border-t border-gray-50">
-                      <p className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">
+                    <div className="sm:col-span-2 pt-2 border-t border-gray-50">
+                      <p className="text-[9px] text-gray-400 uppercase font-bold">
                         Shipping Address
                       </p>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 text-xs">
                         {companyDetails.addressLine1}, {companyDetails.city},{" "}
                         {companyDetails.stateProvince}{" "}
                         {companyDetails.postalCode}
                       </p>
                     </div>
-                    <div className="col-span-2 pt-2 border-t border-gray-50">
-                      <p className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">
-                        Contact Info
-                      </p>
-                      <p className="text-gray-700">
-                        {companyDetails.email} • {companyDetails.phone}
-                      </p>
-                    </div>
                   </div>
                 </div>
 
-                <h3 className="text-[11px] font-bold text-[#031D44] uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <FiBox className="text-[#B58E58]" /> Required Inventory
+                <h3 className="text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-2.5 flex items-center gap-2">
+                  <FiBox className="text-[#B58E58]" size={14} /> Required
+                  Inventory
                 </h3>
-                <div className="space-y-3 bg-white p-4 rounded-2xl border border-[#E5DCD0] shadow-sm">
+                <div className="space-y-2.5 bg-white p-3.5 rounded-2xl border border-[#E5DCD0] shadow-2xs">
                   {quoteItems.map((item) => {
                     const itemPrice = item.pricing?.price || 0;
                     return (
                       <div
                         key={`review-${item.variant_id}`}
-                        className="flex justify-between items-center border-b border-gray-100 last:border-0 pb-3 last:pb-0"
+                        className="flex justify-between items-center border-b border-gray-100 last:border-0 pb-2.5 last:pb-0 text-xs"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
                           <img
-                            src={getProductImageUrls(item)[0]}
-                            className="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                            src={
+                              item.resolvedImage ||
+                              "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600"
+                            }
+                            onError={(e) => {
+                              e.target.src =
+                                "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
+                            }}
+                            className="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0"
                             alt="product"
                           />
-                          <div>
-                            <p className="text-xs font-bold text-[#031D44] line-clamp-1">
+                          <div className="min-w-0">
+                            <p className="font-bold text-[#031D44] truncate">
                               {item.product_name}
                             </p>
                             <p className="text-[9px] text-gray-500 uppercase tracking-widest">
@@ -812,7 +887,7 @@ export default function QuoteBuilder() {
                             </p>
                           </div>
                         </div>
-                        <p className="text-xs font-bold text-[#B58E58] whitespace-nowrap">
+                        <p className="font-bold text-[#B58E58] shrink-0">
                           CAD ${(itemPrice * item.exactQuantity).toFixed(2)}
                         </p>
                       </div>
@@ -821,13 +896,13 @@ export default function QuoteBuilder() {
                 </div>
               </div>
 
-              <div className="lg:w-[35%]">
-                <div className="bg-[#031D44] p-6 rounded-2xl shadow-xl sticky top-6 text-white">
-                  <h3 className="text-sm font-serif font-bold mb-4 border-b border-white/20 pb-3 flex items-center gap-2">
-                    <FiList className="text-[#B58E58]" /> Final Totals
+              <div className="w-full lg:w-[320px] shrink-0">
+                <div className="bg-[#031D44] p-5 sm:p-6 rounded-2xl shadow-xl sticky top-6 text-white">
+                  <h3 className="text-xs font-serif font-bold mb-3.5 border-b border-white/20 pb-2.5 flex items-center gap-2">
+                    <FiList className="text-[#B58E58]" size={14} /> Final Totals
                   </h3>
 
-                  <div className="space-y-3 text-xs text-gray-300 mb-5">
+                  <div className="space-y-2.5 text-xs text-gray-300 mb-4">
                     <div className="flex justify-between">
                       <span>Base Subtotal</span>
                       <span className="font-medium text-white">
@@ -848,12 +923,12 @@ export default function QuoteBuilder() {
                     )}
                   </div>
 
-                  <div className="border-t border-white/20 pt-4 mb-6">
+                  <div className="border-t border-white/20 pt-3.5 mb-5">
                     <div className="flex justify-between items-end">
-                      <span className="font-bold text-gray-200 uppercase tracking-widest text-[10px]">
+                      <span className="font-bold text-gray-200 uppercase tracking-widest text-[9px]">
                         Grand Total
                       </span>
-                      <span className="text-xl font-serif font-bold text-[#B58E58]">
+                      <span className="text-lg sm:text-xl font-serif font-bold text-[#B58E58]">
                         CAD ${grandTotal.toFixed(2)}
                       </span>
                     </div>
@@ -862,13 +937,13 @@ export default function QuoteBuilder() {
                   <button
                     onClick={handleSubmitQuote}
                     disabled={savingAddress}
-                    className="w-full py-4 bg-[#B58E58] hover:bg-white text-white hover:text-[#031D44] rounded-xl text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg"
+                    className="w-full py-3.5 bg-[#B58E58] hover:bg-white text-white hover:text-[#031D44] rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
                   >
                     {savingAddress ? (
                       "Transmitting Quote..."
                     ) : (
                       <>
-                        <FiSend size={14} /> Send to Admin
+                        <FiSend size={13} /> Send to Admin
                       </>
                     )}
                   </button>
@@ -879,21 +954,21 @@ export default function QuoteBuilder() {
 
           {/* STEP 6: SUCCESS */}
           {step === 6 && (
-            <div className="animate-in zoom-in text-center py-12 px-4 max-w-lg mx-auto">
-              <div className="w-24 h-24 bg-[#F7F2EB] text-[#B58E58] border-4 border-white shadow-xl rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiCheckCircle size={48} />
+            <div className="animate-in zoom-in text-center py-10 px-3 max-w-md mx-auto">
+              <div className="w-20 h-20 bg-[#F7F2EB] text-[#B58E58] border-4 border-white shadow-lg rounded-full flex items-center justify-center mx-auto mb-5">
+                <FiCheckCircle size={40} />
               </div>
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#031D44] mb-3">
+              <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#031D44] mb-2.5">
                 Quote Transmitted!
               </h2>
-              <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+              <p className="text-xs sm:text-sm text-gray-600 mb-6 leading-relaxed">
                 Your commercial bulk inquiry and shipping address have been
                 successfully saved to your profile and sent to the Gateway Linen
                 Wholesale Division.
               </p>
               <button
                 onClick={() => navigate("/dashboard")}
-                className="px-8 py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-md transition-colors cursor-pointer"
+                className="px-6 py-3 bg-[#031D44] hover:bg-[#B58E58] text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-md transition-colors cursor-pointer"
               >
                 Go to Dashboard
               </button>
@@ -902,12 +977,12 @@ export default function QuoteBuilder() {
 
           {/* Bottom Navigation Buttons */}
           {step < 6 && (
-            <div className="flex justify-between items-center mt-10 pt-6 border-t border-[#E5DCD0]">
+            <div className="flex justify-between items-center mt-8 pt-5 border-t border-[#E5DCD0]">
               <button
                 onClick={() => (step > 1 ? setStep(step - 1) : navigate("/"))}
-                className="flex items-center gap-2 px-4 py-2 text-[11px] font-bold text-gray-500 hover:text-[#031D44] uppercase tracking-widest transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100 rounded-lg"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-[10px] sm:text-[11px] font-bold text-gray-500 hover:text-[#031D44] uppercase tracking-widest transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100 rounded-lg"
               >
-                <FiArrowLeft size={14} /> {step === 1 ? "Cancel" : "Go Back"}
+                <FiArrowLeft size={13} /> {step === 1 ? "Cancel" : "Go Back"}
               </button>
 
               {step < 5 && (
@@ -936,9 +1011,9 @@ export default function QuoteBuilder() {
                     setWarningMessage("");
                     setStep(step + 1);
                   }}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#031D44] text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-[#B58E58] transition-colors cursor-pointer shadow-md"
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-[#031D44] text-white rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-widest hover:bg-[#B58E58] transition-colors cursor-pointer shadow-sm"
                 >
-                  Proceed Next <FiArrowRight size={14} />
+                  Proceed Next <FiArrowRight size={13} />
                 </button>
               )}
             </div>
@@ -949,58 +1024,48 @@ export default function QuoteBuilder() {
       {/* --- VARIANT DETAIL POPUP MODAL --- */}
       {selectedVariantDetail &&
         (() => {
-          const productImages = getProductImageUrls(selectedVariantDetail);
+          const productImages = [
+            selectedVariantDetail.resolvedImage ||
+              "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600",
+          ];
           const attr = selectedVariantDetail.attributes || {};
 
           return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-              <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[28px] max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+              <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[24px] max-w-md w-full p-5 sm:p-6 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
                 <button
+                  type="button"
                   onClick={() => setSelectedVariantDetail(null)}
-                  className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200 shadow-2xs z-10"
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-white p-1.5 rounded-full transition-colors cursor-pointer border border-gray-200 shadow-2xs z-10"
                 >
-                  <FiX size={16} />
+                  <FiX size={15} />
                 </button>
 
-                <div className="w-full h-56 bg-white rounded-2xl overflow-hidden mb-3 border border-[#E5DCD0] shadow-sm">
+                <div className="w-full h-48 sm:h-52 bg-white rounded-xl overflow-hidden mb-3 border border-[#E5DCD0] shadow-2xs">
                   <img
                     src={productImages[activeImageIndex] || productImages[0]}
+                    onError={(e) => {
+                      e.target.src =
+                        "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
+                    }}
                     alt="Variant Preview"
                     className="w-full h-full object-cover transition-all duration-300"
                   />
                 </div>
 
-                {productImages.length > 1 && (
-                  <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-                    {productImages.map((imgUrl, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveImageIndex(i)}
-                        className={`w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all cursor-pointer ${activeImageIndex === i ? "border-[#B58E58] ring-2 ring-[#B58E58]/30 scale-105" : "border-[#E5DCD0] opacity-70 hover:opacity-100"}`}
-                      >
-                        <img
-                          src={imgUrl}
-                          alt={`Thumb ${i}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <span className="text-[9.5px] font-bold text-[#B58E58] tracking-widest uppercase mb-1 block">
+                <span className="text-[9px] font-bold text-[#B58E58] tracking-widest uppercase mb-1 block">
                   SKU: {selectedVariantDetail.sku || "N/A"}
                 </span>
-                <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+                <h3 className="text-lg font-serif font-bold text-[#031D44] mb-2">
                   {selectedVariantDetail.product_name || "Unnamed Product"}
                 </h3>
 
-                <div className="bg-white p-4 rounded-2xl border border-[#E5DCD0] mb-4 space-y-2 text-xs text-gray-700 shadow-2xs">
+                <div className="bg-white p-3.5 rounded-xl border border-[#E5DCD0] mb-4 space-y-2 text-xs text-gray-700 shadow-2xs">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-[#031D44]">
                       Base Wholesale Price:
                     </span>
-                    <span className="font-serif font-bold text-base text-[#B58E58]">
+                    <span className="font-serif font-bold text-sm sm:text-base text-[#B58E58]">
                       CAD $
                       {Number(
                         selectedVariantDetail.pricing?.price || 0,
@@ -1014,17 +1079,17 @@ export default function QuoteBuilder() {
                         <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
                           Size
                         </p>
-                        <p className="text-[#031D44] font-medium">
+                        <p className="text-[#031D44] font-medium text-xs">
                           {attr.size}
                         </p>
                       </div>
                     )}
                     {attr.color && (
                       <div>
-                        <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
+                        <p className="text-[9px] font-bold uppercase text-gray-400 musium mb-0.5">
                           Color
                         </p>
-                        <p className="text-[#031D44] font-medium">
+                        <p className="text-[#031D44] font-medium text-xs">
                           {attr.color}
                         </p>
                       </div>
@@ -1034,7 +1099,7 @@ export default function QuoteBuilder() {
                         <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
                           Material
                         </p>
-                        <p className="text-[#031D44] font-medium">
+                        <p className="text-[#031D44] font-medium text-xs">
                           {attr.material}
                         </p>
                       </div>
@@ -1044,7 +1109,7 @@ export default function QuoteBuilder() {
                         <p className="text-[9px] font-bold uppercase text-gray-400 mb-0.5">
                           Weight (GSM)
                         </p>
-                        <p className="text-[#031D44] font-medium">
+                        <p className="text-[#031D44] font-medium text-xs">
                           {attr.weight_gsm}
                         </p>
                       </div>
@@ -1052,11 +1117,11 @@ export default function QuoteBuilder() {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-2.5">
                   <button
                     type="button"
                     onClick={() => setSelectedVariantDetail(null)}
-                    className="w-1/2 py-3 bg-white border border-[#E5DCD0] hover:bg-gray-50 text-[#031D44] text-[11px] font-bold tracking-widest uppercase rounded-xl transition-all cursor-pointer shadow-2xs"
+                    className="w-1/2 py-2.5 bg-white border border-[#E5DCD0] hover:bg-gray-50 text-[#031D44] text-[10px] font-bold tracking-widest uppercase rounded-xl transition-all cursor-pointer shadow-2xs"
                   >
                     Close
                   </button>
@@ -1066,7 +1131,7 @@ export default function QuoteBuilder() {
                       handleAddVariant(selectedVariantDetail);
                       setSelectedVariantDetail(null);
                     }}
-                    className="w-1/2 py-3 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer"
+                    className="w-1/2 py-2.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-[10px] font-bold tracking-widest uppercase rounded-xl shadow-sm transition-all cursor-pointer"
                   >
                     Add to Quote
                   </button>

@@ -1059,14 +1059,17 @@ require_once __DIR__ . '/../includes/sidebar.php';
     }
 
     @media print {
-        html, body, .main, .content { background: #fff !important; color: #111 !important; }
-        .category-page { max-width: none; }
+        @page { size: landscape; margin: 10mm; }
+        html, body, .main, .content { background: #fff !important; color: #111 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        .category-page { max-width: none !important; width: 100% !important; }
         .category-page-header, .category-stats, .category-filters, .export-bar, .category-actions,
-        .shortcut-help-box, .notice, .modal-backdrop, .no-print { display: none !important; }
-        .category-content { border: 0; }
-        .category-table { min-width: 0; }
-        .category-table th, .category-table td { color: #111 !important; background: #fff !important; border-color: #ccc !important; }
-        .category-image { border-color: #ccc; }
+        .shortcut-help-box, .notice, .modal-backdrop, .no-print, th:last-child, td:last-child, .category-image { display: none !important; }
+        .category-content { border: 0 !important; background: none !important; box-shadow: none !important; }
+        .category-table-wrapper { overflow: visible !important; }
+        .category-table { width: 100% !important; min-width: 0 !important; border-collapse: collapse !important; }
+        .category-table th, .category-table td { color: #111 !important; background: #fff !important; border: 1px solid #ddd !important; padding: 8px !important; font-size: 11px !important; }
+        .category-table th { background: #f2f2f2 !important; }
+        .child-row { display: table-row !important; background: #f9f9f9 !important; }
     }
 </style>
 
@@ -1083,7 +1086,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         <span class="current">Categories</span>
                     </div>
                     <h1>Categories</h1>
-                    <p>Manage category image, details, products, status, reports and keyboard shortcuts.</p>
+                    <p>Manage category details, products, status, reports and keyboard shortcuts.</p>
                 </div>
 
                 <div class="header-actions">
@@ -1147,7 +1150,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 <div class="category-content-header">
                     <div class="category-content-title">
                         <h2>Category List</h2>
-                        <p>Image, name, slug, description, product count, status and created date are visible here.</p>
+                        <p>Name, slug, description, product count, status and created date are visible here.</p>
                     </div>
 
                     <div class="category-filters">
@@ -1211,7 +1214,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                             </thead>
                             <tbody>
                                 <?php 
-                                $mainOrderNo = 1; // Main categories ke liye counter
+                                $mainOrderNo = 1;
                                 foreach ($parentCategories as $category): 
                                 ?>
                                     <?php
@@ -1220,7 +1223,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     $slug = (string)($category['Slug'] ?? '');
                                     $description = trim((string)($category['Description'] ?? ''));
                                     $productCount = (int)($category['ProductCount'] ?? 0);
-                                    $currentMainOrder = $mainOrderNo++; // 1, 2, 3...
+                                    $currentMainOrder = $mainOrderNo++;
                                     $isActive = !empty($category['IsActive']);
                                     $image = categoryImageUrl($category['ImageUrl'] ?? '');
                                     $createdAt = dateValue($category['CreatedAt'] ?? '');
@@ -1239,14 +1242,12 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                         data-slug="<?= e(strtolower($slug)) ?>"
                                         data-description="<?= e(strtolower($description)) ?>">
 
-                                        <!-- MAIN CATEGORY CONTINUOUS ORDER (1, 2, 3...) -->
                                         <td>
                                             <span class="order-box">
                                                 <?= $currentMainOrder ?>
                                             </span>
                                         </td>
 
-                                        <!-- CATEGORY NAME & IMAGE -->
                                         <td>
                                             <div class="category-main">
                                                 <?php if ($hasChildren): ?>
@@ -1288,21 +1289,18 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                             </div>
                                         </td>
 
-                                        <!-- DESCRIPTION -->
                                         <td>
                                             <div class="category-description">
                                                 <?= $description !== '' ? e($description) : '—' ?>
                                             </div>
                                         </td>
 
-                                        <!-- PRODUCTS -->
                                         <td>
                                             <span class="product-count">
                                                 ▣ <?= $productCount ?>
                                             </span>
                                         </td>
 
-                                        <!-- STATUS -->
                                         <td>
                                             <?php if ($isActive): ?>
                                                 <span class="category-status category-status-active">
@@ -1315,15 +1313,12 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                             <?php endif; ?>
                                         </td>
 
-                                        <!-- CREATED -->
                                         <td>
                                             <div class="category-date"><?= e($createdAt) ?></div>
                                         </td>
 
-                                        <!-- ACTIONS -->
                                         <td>
                                             <div class="category-actions">
-                                                <!-- VIEW -->
                                                 <button
                                                     type="button"
                                                     class="category-action detail-btn"
@@ -1340,10 +1335,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                     ◉
                                                 </button>
 
-                                                <!-- EDIT -->
                                                 <a href="edit.php?id=<?= $categoryId ?>" class="category-action edit-btn" title="Edit Category">✎</a>
 
-                                                <!-- DELETE -->
                                                 <?php if ($productCount === 0 && !$hasChildren): ?>
                                                     <form method="POST" action="delete.php" class="delete-form" style="display:inline">
                                                         <input type="hidden" name="category_id" value="<?= $categoryId ?>">
@@ -1357,10 +1350,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                         </td>
                                     </tr>
 
-                                    <!-- CHILD SUB-CATEGORY ROWS (1, 2, 3... RESET PER PARENT) -->
+                                    <!-- CHILD SUB-CATEGORY ROWS -->
                                     <?php if ($hasChildren): ?>
                                         <?php 
-                                        $childOrderNo = 1; // Har parent ke andar child counter 1 se shuru hoga
+                                        $childOrderNo = 1;
                                         foreach ($childCategoriesMap[$categoryId] as $child): 
                                         ?>
                                             <?php
@@ -1369,7 +1362,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                             $childSlug = (string)($child['Slug'] ?? '');
                                             $childDescription = trim((string)($child['Description'] ?? ''));
                                             $childProdCount = (int)($child['ProductCount'] ?? 0);
-                                            $currentChildOrder = $childOrderNo++; // 1, 2, 3...
+                                            $currentChildOrder = $childOrderNo++;
                                             $childIsActive = !empty($child['IsActive']);
                                             $childImage = categoryImageUrl($child['ImageUrl'] ?? '');
                                             $childCreatedAt = dateValue($child['CreatedAt'] ?? '');
@@ -1385,7 +1378,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                 data-slug="<?= e(strtolower($childSlug)) ?>"
                                                 data-description="<?= e(strtolower($childDescription)) ?>">
 
-                                                <!-- CHILD CONTINUOUS ORDER (1, 2, 3...) -->
                                                 <td>
                                                     <span class="order-box child-order-box" title="Subcategory #<?= $currentChildOrder ?>">
                                                         <?= $currentChildOrder ?>
@@ -1453,7 +1445,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                                                 <td>
                                                     <div class="category-actions">
-                                                        <!-- VIEW -->
                                                         <button
                                                             type="button"
                                                             class="category-action detail-btn"
@@ -1470,10 +1461,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                                             ◉
                                                         </button>
 
-                                                        <!-- EDIT -->
                                                         <a href="edit.php?id=<?= $childId ?>" class="category-action edit-btn" title="Edit Subcategory">✎</a>
 
-                                                        <!-- DELETE -->
                                                         <?php if ($childProdCount === 0): ?>
                                                             <form method="POST" action="delete.php" class="delete-form" style="display:inline">
                                                                 <input type="hidden" name="category_id" value="<?= $childId ?>">
@@ -1502,7 +1491,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 </div>
             </div>
 
-            <!-- SHORTCUTS (D = DELETE, E = EDIT) -->
+            <!-- SHORTCUTS -->
             <div class="shortcut-help-box" id="shortcutHelpBox">
                 <div class="shortcut-help-title">
                     <span>⌨</span>
@@ -1751,6 +1740,22 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     return;
                 }
 
+                let pageSize = prompt("Choose PDF Page Size:\n1. A4 (Default)\n2. A3\n3. Custom (Width x Height in mm)", "A4");
+                if (!pageSize) return;
+
+                let format = 'a4';
+                if (pageSize.toLowerCase() === 'a3') {
+                    format = 'a3';
+                } else if (pageSize.toLowerCase() === 'custom' || pageSize.includes(',')) {
+                    let dims = prompt("Enter width and height in mm separated by comma (e.g., 150,200):", "150,200");
+                    if (dims) {
+                        let parts = dims.split(',');
+                        if (parts.length === 2) {
+                            format = [parseFloat(parts[0]), parseFloat(parts[1])];
+                        }
+                    }
+                }
+
                 const body = visibleRows().map(function(row) {
                     return [
                         row.querySelector('.order-box')?.innerText.trim() || '',
@@ -1763,7 +1768,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     ];
                 });
 
-                const doc = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                const doc = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: format });
                 doc.setFontSize(16);
                 doc.text('GatewayLinen - Categories', 14, 14);
                 doc.setFontSize(9);
@@ -1775,7 +1780,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         head: [['Order', 'Category', 'Slug', 'Description', 'Products', 'Status', 'Created']],
                         body: body,
                         styles: { fontSize: 7, cellPadding: 2 },
-                        headStyles: { fontSize: 7 }
+                        headStyles: { fontSize: 7, fillColor: [16, 185, 129] }
                     });
                 }
 
@@ -1855,7 +1860,6 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 });
             });
 
-            /* KEYBOARD SHORTCUTS: D = DELETE, E = EDIT */
             document.addEventListener('keydown', function(e) {
                 const tag = (e.target?.tagName || '').toLowerCase();
                 const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
@@ -1876,7 +1880,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     searchInput?.select();
                 } else if (key === 'C') {
                     statusFilter?.focus();
-                } else if (key === 'D') { // D = DELETE
+                } else if (key === 'D') {
                     const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
                     const del = selected?.querySelector('.delete-category-btn');
                     if (del) {
@@ -1884,7 +1888,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     } else if (selected) {
                         alert('This category cannot be deleted because it contains products or sub-categories.');
                     }
-                } else if (key === 'E') { // E = EDIT
+                } else if (key === 'E') {
                     const selected = document.querySelector('.category-row.keyboard-selected') || visibleRows()[0];
                     selected?.querySelector('.edit-btn')?.click();
                 } else if (key === 'P') {

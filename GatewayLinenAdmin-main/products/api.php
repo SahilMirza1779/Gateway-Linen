@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY, x-api-key');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -771,21 +771,11 @@ function deleteProduct($conn, int $productId): void
         response(false, 'Product not found.', null, 404);
     }
 
-    // --- CASCADING DELETE LOGIC ADDED HERE ---
-    // 1. Delete associated images from ProductImages table
     sqlsrv_query($conn, "DELETE FROM dbo.ProductImages WHERE ProductId = ?", [$productId]);
-
-    // 2. Delete associated variants from ProductVariants table
     sqlsrv_query($conn, "DELETE FROM dbo.ProductVariants WHERE ProductId = ?", [$productId]);
-
-    // 3. Delete from CartItems (Agar kisi user ne isko cart me rakha ho)
     sqlsrv_query($conn, "DELETE FROM dbo.CartItems WHERE ProductId = ?", [$productId]);
-
-    // 4. Delete from QuoteItems (Agar kisi ki bulk inquiry me ye add ho)
     sqlsrv_query($conn, "DELETE FROM dbo.QuoteItems WHERE ProductId = ?", [$productId]);
-    // -----------------------------------------
 
-    // Finally, delete the main product
     $sql = "DELETE FROM dbo.Products WHERE ProductId = ?";
     $stmt = sqlsrv_query($conn, $sql, [$productId]);
 

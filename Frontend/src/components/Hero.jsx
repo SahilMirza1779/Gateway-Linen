@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiArrowRight,
@@ -12,6 +12,28 @@ const Hero = () => {
   const navigate = useNavigate();
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const [heroImage, setHeroImage] = useState(
+    "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1920&auto=format&fit=crop",
+  );
+
+  useEffect(() => {
+    const fetchHeroImage = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/settings/api.php?action=get_hero_image",
+        );
+        const result = await response.json();
+        if (result.success && result.imageUrl) {
+          setHeroImage(result.imageUrl);
+        }
+      } catch (error) {
+        console.error("Error fetching dynamic hero image:", error);
+      }
+    };
+
+    fetchHeroImage();
+  }, []);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -78,7 +100,7 @@ const Hero = () => {
           {/* Background Image with Rich Overlay */}
           <div className="absolute inset-0 z-0 bg-[#031D44]">
             <img
-              src="https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1920&auto=format&fit=crop"
+              src={heroImage}
               alt="Luxury Hospitality Linen"
               className="w-full h-full object-cover opacity-80 scale-105 transition-transform duration-1000"
             />

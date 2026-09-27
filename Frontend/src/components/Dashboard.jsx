@@ -17,6 +17,7 @@ import {
   FiDownload,
   FiFileText,
   FiDollarSign,
+  FiStar,
 } from "react-icons/fi";
 
 const Dashboard = () => {
@@ -33,7 +34,7 @@ const Dashboard = () => {
         const parsed = JSON.parse(storedUser);
         const id =
           parsed.UserId || parsed.userId || parsed.id || parsed.user_id;
-        if (id) return id;
+        if (id) return Number(id);
       }
     } catch (err) {
       console.error(err);
@@ -81,6 +82,86 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+
+  // ==========================================
+  // PRODUCT REVIEW MODAL STATES & FUNCTIONS
+  // ==========================================
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedProductToReview, setSelectedProductToReview] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState({ type: "", text: "" });
+
+  const handleOpenReview = (item) => {
+    const pId =
+      item.productId || item.ProductId || item.id || item.product_id || 1;
+    const pName = item.name || item.Name || item.product_name || "Product";
+
+    setSelectedProductToReview({ id: Number(pId), name: pName });
+    setRating(5);
+    setComment("");
+    setReviewMessage({ type: "", text: "" });
+    setIsReviewModalOpen(true);
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!comment.trim()) {
+      setReviewMessage({
+        type: "error",
+        text: "Please write a review comment.",
+      });
+      return;
+    }
+
+    setReviewLoading(true);
+    setReviewMessage({ type: "", text: "" });
+
+    const userId = getActiveUserId();
+    const productId = selectedProductToReview ? selectedProductToReview.id : 0;
+
+    try {
+      const response = await fetch(
+        "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/reviews/api.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            product_id: Number(productId),
+            user_id: Number(userId),
+            rating: Number(rating),
+            comment: comment.trim(),
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setReviewMessage({ type: "success", text: result.message });
+        setTimeout(() => {
+          setIsReviewModalOpen(false);
+        }, 2000);
+      } else {
+        setReviewMessage({
+          type: "error",
+          text: result.message || "Failed to submit review.",
+        });
+      }
+    } catch (error) {
+      console.error("Review Submit Error:", error);
+      setReviewMessage({
+        type: "error",
+        text: "Server error. Please try again later.",
+      });
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+  // ==========================================
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -847,7 +928,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* BUYING HISTORY SECTION (ORDERS) */}
+        {/* BUYING HISTORY SECTION (ORDERS) + WRITE REVIEW */}
         <div className="bg-[#F7F2EB] rounded-[24px] md:rounded-[32px] p-5 sm:p-8 border border-[#E5DCD0] shadow-xl mb-6 md:mb-8">
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#E5DCD0] text-[#031D44]">
             <FiShoppingBag size={18} className="text-[#B58E58]" />
@@ -929,6 +1010,14 @@ const Dashboard = () => {
                               Qty: {item.cartQuantity} × CAD $
                               {Number(item.price).toFixed(2)}
                             </p>
+
+                            {/* --- WRITE A REVIEW BUTTON --- */}
+                            <button
+                              onClick={() => handleOpenReview(item)}
+                              className="mt-1.5 text-[10px] text-[#B58E58] hover:text-[#031D44] underline font-bold transition-colors cursor-pointer inline-block"
+                            >
+                              Write a Review
+                            </button>
                           </div>
                           <div className="text-xs font-bold text-[#031D44]">
                             CAD ${(item.cartQuantity * item.price).toFixed(2)}
@@ -969,6 +1058,97 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* --- WRITE A REVIEW MODAL --- */}
+      {isReviewModalOpen && selectedProductToReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[24px] max-w-md w-full p-6 sm:p-8 shadow-2xl relative animate-in zoom-in-95">
+            <button
+              onClick={() => setIsReviewModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
+            >
+              <FiX size={16} />
+            </button>
+
+            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-1">
+              Write a Review
+            </h3>
+            <p className="text-xs text-gray-500 mb-5 pb-4 border-b border-[#E5DCD0]">
+              For:{" "}
+              <span className="font-bold text-[#B58E58]">
+                {selectedProductToReview.name}
+              </span>
+            </p>
+
+            {reviewMessage.text && (
+              <div
+                className={`mb-4 p-3 rounded-xl text-xs flex items-center gap-2 ${reviewMessage.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}
+              >
+                {reviewMessage.type === "success" ? (
+                  <FiCheckCircle size={14} />
+                ) : (
+                  <FiAlertTriangle size={14} />
+                )}
+                <span className="font-medium">{reviewMessage.text}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                  Your Rating <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className="focus:outline-none transition-transform hover:scale-110 cursor-pointer"
+                    >
+                      <FiStar
+                        size={26}
+                        className={`${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"} transition-colors`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                  Your Feedback <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows="4"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#E5DCD0] rounded-xl text-xs focus:outline-none focus:border-[#B58E58] resize-none shadow-2xs"
+                  placeholder="Tell us what you think about this product..."
+                ></textarea>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="w-1/2 py-2.5 bg-white border border-[#E5DCD0] hover:bg-gray-50 text-gray-700 text-[11px] font-bold tracking-widest uppercase rounded-xl transition-all cursor-pointer shadow-2xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={reviewLoading}
+                  className="w-1/2 py-2.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {reviewLoading ? "Submitting..." : "Submit Review"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ADD / EDIT ADDRESS MODAL */}
       {showAddressModal && (
@@ -1135,7 +1315,7 @@ const Dashboard = () => {
                 onClick={() => setShowDeleteModal(false)}
                 className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full transition-colors cursor-pointer bg-white border border-gray-200"
               >
-                <FiX size5={16} />
+                <FiX size={16} />
               </button>
             </div>
 

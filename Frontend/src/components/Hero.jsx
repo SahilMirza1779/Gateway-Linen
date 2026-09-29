@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FiArrowRight,
-  FiTruck,
-  FiAward,
-  FiX,
-  FiCheckCircle,
-} from "react-icons/fi";
+import { FiArrowRight, FiX, FiCheckCircle } from "react-icons/fi";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -93,91 +87,66 @@ const Hero = () => {
   };
 
   return (
-    <section className="w-full bg-[#F0EAE1] py-4 md:py-8 px-3 md:px-10 font-sans">
-      <div className="max-w-[1536px] mx-auto">
-        {/* Main Hero Wrapper */}
-        <div className="relative w-full h-[460px] sm:h-[500px] md:h-[620px] rounded-[24px] md:rounded-[32px] overflow-hidden shadow-xl flex items-center">
-          {/* Background Image with Rich Overlay */}
-          <div className="absolute inset-0 z-0 bg-[#031D44]">
-            <img
-              src={heroImage}
-              alt="Luxury Hospitality Linen"
-              className="w-full h-full object-cover opacity-80 scale-105 transition-transform duration-1000"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#031D44]/95 via-[#031D44]/75 to-transparent"></div>
-          </div>
+    <>
+      {/* EDEN TEXTILE CLONE HERO SECTION */}
+      <section className="relative w-full h-[520px] md:h-[620px] lg:h-[680px] bg-[#031D44] font-sans flex items-center">
+        <div className="absolute inset-0 z-0 w-full h-full">
+          <img
+            src={heroImage}
+            alt="Luxury Hospitality Linen"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-black/45"></div>
+        </div>
 
-          {/* Content Box */}
-          <div className="relative z-10 px-5 sm:px-10 md:px-16 lg:px-20 max-w-2xl text-white">
-            <div className="inline-flex items-center gap-2 bg-[#B58E58]/20 border border-[#B58E58]/40 px-3 py-1 rounded-full mb-3 md:mb-6 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-[#B58E58] animate-ping"></span>
-              <span className="text-[#B58E58] text-[9px] md:text-xs font-bold tracking-[0.2em] uppercase">
-                Exclusively For Hotels & Spas
-              </span>
-            </div>
+        {/* Content Box - Shifted more to the Left and moved Down */}
+        <div className="relative z-10 w-full max-w-[1450px] mx-auto px-6 sm:px-10 md:px-16 flex justify-start pt-12 md:pt-20">
+          <div className="bg-transparent p-6 md:p-10 lg:p-12 max-w-[620px] border-l-8 border-[#B58E58] rounded-none">
+            <span className="text-[#B58E58] text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase mb-3 block">
+              EXCLUSIVELY FOR HOTELS & SPAS
+            </span>
 
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-serif font-bold leading-tight mb-3 md:mb-6">
-              Elevate Your <br />
-              <span className="text-[#B58E58]">Hospitality</span> Experience
+            <h1 className="text-3xl md:text-4xl lg:text-[50px] font-serif font-bold text-white leading-[1.15] mb-5 drop-shadow-lg">
+              Premium Linens <br />
+              for <span className="text-[#B58E58]">Hotels & Healthcare</span>
             </h1>
 
-            <p className="text-[#F0EAE1]/90 text-xs sm:text-sm md:text-base font-light mb-6 md:mb-8 leading-relaxed max-w-lg">
-              Supply your establishment with world-class commercial linens,
-              premium Egyptian cotton sheets, and ultra-plush hotel towels
-              crafted for ultimate guest comfort.
+            <p className="text-xs md:text-sm text-gray-200 font-light mb-8 leading-relaxed drop-shadow-md">
+              Equip your establishment with world-class commercial linens,
+              durable Egyptian cotton sheets, and ultra-plush towels designed
+              for superior comfort and longevity.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 md:gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
               <button
                 onClick={() => navigate("/products")}
-                className="bg-[#B58E58] hover:bg-[#9c7949] text-white px-5 sm:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl text-[11px] md:text-sm font-bold tracking-widest uppercase transition-all flex items-center gap-2 md:gap-3 group shadow-xl shadow-[#B58E58]/30 cursor-pointer"
+                className="w-full sm:w-auto bg-[#B58E58] hover:bg-white hover:text-[#031D44] text-white px-7 py-3.5 text-xs font-bold tracking-widest uppercase transition-colors flex items-center justify-center gap-2 group cursor-pointer rounded-none shadow-md"
               >
-                Explore Collection
+                Shop Collection
                 <FiArrowRight
                   className="group-hover:translate-x-1.5 transition-transform"
-                  size={16}
+                  size={15}
                 />
               </button>
 
-              {/* 🔴 YAHAN CHANGE KIYA HAI: Direct QuoteBuilder par bhejega */}
               <button
-                onClick={() => navigate("/quote-builder")}
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 sm:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl text-[11px] md:text-sm font-bold tracking-widest uppercase backdrop-blur-md transition-all cursor-pointer"
+                onClick={() => setShowQuoteModal(true)}
+                className="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#031D44] px-7 py-3.5 text-xs font-bold tracking-widest uppercase transition-colors cursor-pointer rounded-none text-center shadow-md"
               >
                 Request a Quote
               </button>
             </div>
           </div>
-
-          {/* Floating Trust Badges */}
-          <div className="absolute bottom-6 right-6 z-10 hidden lg:flex items-center gap-4 bg-[#031D44]/80 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-2xl">
-            <div className="flex items-center gap-3 px-3 border-r border-white/10">
-              <FiAward className="text-[#B58E58]" size={24} />
-              <div>
-                <h4 className="text-xs font-bold text-white">5-Star Quality</h4>
-                <p className="text-[10px] text-gray-300">
-                  Hotel Grade Durability
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-3">
-              <FiTruck className="text-[#B58E58]" size={24} />
-              <div>
-                <h4 className="text-xs font-bold text-white">Fast Delivery</h4>
-                <p className="text-[10px] text-gray-300">Across Canada</p>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Mobile Optimized Quote Request Modal (Code as it is rakha hai) */}
+      {/* QUOTE MODAL (Fully Intact) */}
       {showQuoteModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
-          <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-3xl max-w-lg w-full p-4 sm:p-6 md:p-8 shadow-2xl relative border border-[#E5DCD0] max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[250] flex items-center justify-center p-3">
+          <div className="bg-[#FAF7F2] rounded-none max-w-lg w-full p-6 md:p-8 shadow-2xl relative border border-[#E5DCD0] max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowQuoteModal(false)}
-              className="absolute top-4 right-4 md:top-6 md:right-6 text-gray-400 hover:text-[#031D44] bg-white p-2 rounded-full transition-colors cursor-pointer shadow-sm border border-gray-100"
+              className="absolute top-4 right-4 md:top-6 md:right-6 text-gray-400 hover:text-[#031D44] bg-white p-2 rounded-none transition-colors cursor-pointer shadow-sm border border-gray-100"
             >
               <FiX size={16} />
             </button>
@@ -222,7 +191,7 @@ const Hero = () => {
                         setFormData({ ...formData, fullName: e.target.value })
                       }
                       placeholder="Enter your full name"
-                      className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                      className="w-full bg-white text-xs px-3 py-2.5 rounded-none border border-gray-200 focus:outline-none focus:border-[#031D44] shadow-sm"
                     />
                   </div>
                   <div>
@@ -237,7 +206,7 @@ const Hero = () => {
                         setFormData({ ...formData, email: e.target.value })
                       }
                       placeholder="name@company.ca"
-                      className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                      className="w-full bg-white text-xs px-3 py-2.5 rounded-none border border-gray-200 focus:outline-none focus:border-[#031D44] shadow-sm"
                     />
                   </div>
                 </div>
@@ -254,11 +223,10 @@ const Hero = () => {
                       setFormData({ ...formData, company: e.target.value })
                     }
                     placeholder="Enter your hotel or business name"
-                    className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs"
+                    className="w-full bg-white text-xs px-3 py-2.5 rounded-none border border-gray-200 focus:outline-none focus:border-[#031D44] shadow-sm"
                   />
                 </div>
 
-                {/* Product Interest Input with Quick-Click Suggestion Badges */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-[#031D44]">
@@ -279,17 +247,16 @@ const Hero = () => {
                       })
                     }
                     placeholder="Type or click categories below..."
-                    className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs mb-2"
+                    className="w-full bg-white text-xs px-3 py-2.5 rounded-none border border-gray-200 focus:outline-none focus:border-[#031D44] shadow-sm mb-2"
                   />
 
-                  {/* Clickable Quick Category Pills */}
                   <div className="flex flex-wrap gap-1">
                     {availableCategories.map((cat, idx) => (
                       <button
                         type="button"
                         key={idx}
                         onClick={() => handleCategoryClick(cat)}
-                        className="text-[9px] font-medium bg-white hover:bg-[#031D44] hover:text-white text-[#031D44] border border-[#E5DCD0] px-2 py-1 rounded-lg transition-colors shadow-2xs cursor-pointer"
+                        className="text-[9px] font-medium bg-white hover:bg-[#031D44] hover:text-white text-[#031D44] border border-gray-200 px-2 py-1 rounded-none transition-colors shadow-sm cursor-pointer"
                       >
                         + {cat}
                       </button>
@@ -297,7 +264,6 @@ const Hero = () => {
                   </div>
                 </div>
 
-                {/* Estimated Quantity Range */}
                 <div>
                   <label className="block text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-[#031D44] mb-1.5">
                     Estimated Quantity Range
@@ -309,10 +275,10 @@ const Hero = () => {
                         onClick={() =>
                           setFormData({ ...formData, quantity: range })
                         }
-                        className={`px-2.5 py-2 text-center rounded-xl text-[10px] md:text-[11px] font-medium cursor-pointer transition-all border ${
+                        className={`px-2.5 py-2 text-center rounded-none text-[10px] md:text-[11px] font-medium cursor-pointer transition-all border ${
                           formData.quantity === range
-                            ? "bg-[#B58E58] text-white border-[#B58E58] shadow-md"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-[#B58E58]"
+                            ? "bg-[#031D44] text-white border-[#031D44]"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-[#031D44]"
                         }`}
                       >
                         {range}
@@ -332,13 +298,13 @@ const Hero = () => {
                       setFormData({ ...formData, message: e.target.value })
                     }
                     placeholder="Mention custom embroidery, delivery dates..."
-                    className="w-full bg-white text-xs px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#B58E58] shadow-2xs resize-none"
+                    className="w-full bg-white text-xs px-3 py-2.5 rounded-none border border-gray-200 focus:outline-none focus:border-[#031D44] shadow-sm resize-none"
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-lg transition-all cursor-pointer"
+                  className="w-full py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-xs font-bold tracking-widest uppercase rounded-none shadow-md transition-all cursor-pointer"
                 >
                   Submit Quote Request
                 </button>
@@ -347,7 +313,7 @@ const Hero = () => {
           </div>
         </div>
       )}
-    </section>
+    </>
   );
 };
 

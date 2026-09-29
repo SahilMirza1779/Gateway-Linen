@@ -26,20 +26,15 @@ import { WishlistProvider } from "./context/WishlistContext";
 import WishlistDrawer from "./components/WishlistDrawer";
 import ProductsPage from "./components/ProductsPage";
 import QuoteBuilder from "./components/QuoteBuilder";
-import BulkOrder from "./components/BulkOrder"; // NAYA IMPORT
-import OrderHistory from "./components/OrderHistory"; // NAYA IMPORT
+import BulkOrder from "./components/BulkOrder";
+import OrderHistory from "./components/OrderHistory";
 import {
   FiArrowRight,
-  FiTruck,
-  FiPercent,
-  FiShield,
-  FiClock,
-  FiAward,
-  FiHeadphones,
+  FiUserPlus,
+  FiLogIn,
   FiStar,
-  FiCheckCircle,
-  FiHelpCircle,
-  FiSend,
+  FiChevronLeft,
+  FiChevronRight,
 } from "react-icons/fi";
 
 // --- Scroll To Top Helper ---
@@ -51,81 +46,77 @@ const ScrollToTop = () => {
   return null;
 };
 
-// --- Promotional Banners Component (Mobile Optimized) ---
-const PromotionalBanners = () => {
+// --- Eden Style: Create Your Account Banner with Real Mockup ---
+const AccountSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-8 md:py-12 px-4 md:px-10 bg-[#F0EAE1] font-sans">
-      <div className="max-w-[1300px] mx-auto">
-        <div className="text-center mb-6 md:mb-10">
-          <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase">
-            Special Curated Offers
-          </span>
-          <h2 className="text-xl md:text-3xl font-serif font-bold text-[#031D44] mt-1">
-            Exclusive Linen & Hospitality Deals
-          </h2>
-        </div>
+    <section className="py-12 md:py-16 px-4 md:px-10 bg-white font-sans border-t border-gray-100">
+      <div className="max-w-[1300px] mx-auto bg-[#FAF7F2] border border-[#E5DCD0] rounded-[24px] p-6 sm:p-10 md:p-14 relative overflow-hidden shadow-sm">
+        <div className="absolute right-0 bottom-0 w-80 h-80 bg-[#B58E58]/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          <div className="lg:col-span-2 bg-[#F7F2EB] border border-[#E5DCD0] rounded-[24px] md:rounded-[32px] p-6 md:p-12 relative overflow-hidden flex flex-col justify-between shadow-xl group">
-            <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-[#B58E58]/10 rounded-full blur-2xl group-hover:scale-110 transition-transform"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
+          {/* Left Side: Laptop & Mobile Mockup with real preview images */}
+          <div className="lg:col-span-7 relative flex justify-center items-center">
+            <div className="relative w-full max-w-[560px] flex items-end">
+              {/* Laptop Mockup */}
+              <div className="w-[85%] bg-[#2D3748] p-3 rounded-t-xl shadow-2xl border border-gray-700">
+                <div className="bg-white rounded overflow-hidden aspect-[16/10] relative">
+                  <img
+                    src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop"
+                    alt="Laptop Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                    <span className="bg-white/90 px-3 py-1 text-[10px] font-bold text-[#031D44] uppercase tracking-wider shadow">
+                      Gateway Linen B2B
+                    </span>
+                  </div>
+                </div>
+                <div className="h-2 bg-[#1A202C] rounded-b-xl -mx-3 -mb-3 mt-2"></div>
+              </div>
 
-            <div className="relative z-10 max-w-lg">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#031D44] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider rounded-full mb-3 md:mb-5 shadow-2xs">
-                <FiPercent size={12} /> Commercial Partner Program
-              </span>
-              <h3 className="text-xl md:text-4xl font-serif font-bold text-[#031D44] mb-2 md:mb-3 leading-tight">
-                Hospitality Grade Bulk Supply & Custom Linens
-              </h3>
-              <p className="text-xs md:text-sm text-gray-600 font-light mb-6 md:mb-8 leading-relaxed">
-                Equipping hotels, spas, and healthcare facilities across Canada
-                with premium, durable, commercial-grade linen solutions at
-                wholesale pricing.
-              </p>
-              <button
-                onClick={() => navigate("/products")}
-                className="inline-flex items-center gap-2 px-5 py-3 md:px-6 md:py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] md:text-xs font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer"
-              >
-                Explore Commercial <FiArrowRight size={16} />
-              </button>
+              {/* Mobile Mockup overlapping on right */}
+              <div className="w-[30%] bg-[#1A202C] p-2 rounded-2xl shadow-2xl border border-gray-700 absolute -right-2 -bottom-4 hidden sm:block">
+                <div className="bg-white rounded-xl overflow-hidden aspect-[9/18] relative">
+                  <img
+                    src="https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=400&auto=format&fit=crop"
+                    alt="Mobile Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 md:gap-6">
-            <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[22px] md:rounded-[28px] p-5 md:p-6 relative overflow-hidden shadow-md flex flex-col justify-between group">
-              <div className="relative z-10">
-                <span className="text-[9px] font-bold text-[#B58E58] tracking-widest uppercase">
-                  New Season
-                </span>
-                <h4 className="text-base md:text-lg font-serif font-bold text-[#031D44] mt-1 mb-1.5 md:mb-2">
-                  Organic Cotton Bed Sheets
-                </h4>
-                <p className="text-xs text-gray-600 font-light mb-3 md:mb-4">
-                  Experience unmatched breathability and softness for superior
-                  sleep.
-                </p>
-                <button
-                  onClick={() => navigate("/products")}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#031D44] hover:text-[#B58E58] transition-colors cursor-pointer group-hover:translate-x-1 duration-300"
-                >
-                  Shop Collection <FiArrowRight size={14} />
-                </button>
-              </div>
-            </div>
+          {/* Right Side: Create Your Account Content & Buttons */}
+          <div className="lg:col-span-5 text-center lg:text-left">
+            <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase block mb-2">
+              CLIENT PORTAL & BENEFITS
+            </span>
+            <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] mb-3 md:mb-4">
+              Create Your Account
+            </h2>
+            <p className="text-xs md:text-sm text-gray-600 font-light mb-6 md:mb-8 leading-relaxed">
+              Sign up to get access to exclusive offers, the opportunity for
+              preferred pricing, detailed account records, order history
+              tracking, and more!
+            </p>
 
-            <div className="bg-[#031D44] text-white rounded-[22px] md:rounded-[28px] p-5 md:p-6 relative overflow-hidden shadow-md flex items-center gap-4">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-[#B58E58]/20 text-[#B58E58] rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-                <FiTruck size={22} />
-              </div>
-              <div>
-                <h4 className="text-xs md:text-sm font-serif font-bold mb-0.5 md:mb-1">
-                  Free Pan-Canada Delivery
-                </h4>
-                <p className="text-[10px] md:text-[11px] text-gray-300 font-light leading-relaxed">
-                  Complimentary shipping on all orders above CAD $100.
-                </p>
-              </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <button
+                onClick={() => navigate("/register")}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#4A5D4E] hover:bg-[#031D44] text-white text-xs font-bold tracking-widest uppercase rounded-full shadow-md transition-all cursor-pointer"
+              >
+                <FiUserPlus size={15} /> SIGN UP NOW
+              </button>
+
+              <button
+                onClick={() => navigate("/login")}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white border-2 border-[#031D44] text-[#031D44] hover:bg-[#031D44] hover:text-white text-xs font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer"
+              >
+                <FiLogIn size={15} /> SIGN IN
+              </button>
             </div>
           </div>
         </div>
@@ -134,328 +125,442 @@ const PromotionalBanners = () => {
   );
 };
 
-// --- Flash Sale & Trust Badges ---
-const FlashSaleAndTrust = () => {
+// --- Blog Section ---
+const BlogSection = () => {
   const navigate = useNavigate();
 
+  const blogs = [
+    {
+      date: "September 22, 2026",
+      title: "Building a Smarter Linen Budget...",
+      image:
+        "https://images.unsplash.com/photo-1621252179027-94459d278660?q=80&w=800&auto=format&fit=crop",
+      link: "/blog/linen-budget",
+    },
+    {
+      date: "September 15, 2026",
+      title: "Creating a Memorable Fall...",
+      image:
+        "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800&auto=format&fit=crop",
+      link: "/blog/memorable-fall",
+    },
+    {
+      date: "September 8, 2026",
+      title: "Table Napkin Selection Guide for Fal...",
+      image:
+        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop",
+      link: "/blog/napkin-guide",
+    },
+  ];
+
   return (
-    <section className="py-8 md:py-10 px-4 md:px-10 bg-[#F0EAE1] font-sans border-t border-[#E5DCD0]">
+    <section className="py-16 md:py-24 px-4 md:px-10 bg-white font-sans border-t border-gray-100">
       <div className="max-w-[1300px] mx-auto">
-        <div className="bg-gradient-to-r from-[#031D44] to-[#14336B] rounded-[24px] md:rounded-[32px] p-6 md:p-10 text-white shadow-xl mb-8 md:mb-12 flex flex-col lg:flex-row items-center justify-between gap-6 md:gap-8 relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-96 h-96 bg-[#B58E58]/10 rounded-full blur-3xl"></div>
-
-          <div className="relative z-10 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#B58E58] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider rounded-full mb-2 md:mb-3">
-              <FiClock size={12} /> Limited Time Wholesale Event
-            </div>
-            <h3 className="text-xl md:text-3xl font-serif font-bold mb-2">
-              Grand Hotel & Spa Clearance Sale
-            </h3>
-            <p className="text-xs text-gray-300 font-light max-w-xl">
-              Get up to 40% off on commercial-grade pool towels, duvet covers,
-              and luxury mattress pads. Valid for registered B2B partners and
-              retail shoppers.
-            </p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 md:mb-12 gap-6">
+          <div>
+            <span className="text-sm md:text-base text-gray-400 font-light mb-2 block">
+              Learn More About Industry News and Insights
+            </span>
+            <h2 className="text-2xl md:text-[40px] font-bold text-[#4A5568] tracking-tight">
+              Latest From the Blog
+            </h2>
           </div>
-
           <button
-            onClick={() => navigate("/products")}
-            className="relative z-10 px-6 py-3.5 md:px-8 md:py-4 bg-[#B58E58] hover:bg-white hover:text-[#031D44] text-white text-xs font-bold tracking-widest uppercase rounded-xl md:rounded-2xl shadow-lg transition-all cursor-pointer whitespace-nowrap"
+            onClick={() => navigate("/blog")}
+            className="px-8 py-3 bg-[#4A5D4E] hover:bg-[#031D44] text-white text-sm font-bold rounded-full transition-colors cursor-pointer"
           >
-            Grab Deals Now
+            View All
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <div className="bg-[#F7F2EB] p-5 md:p-6 rounded-[20px] md:rounded-[24px] border border-[#E5DCD0] flex items-center gap-4 shadow-sm">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#031D44]/10 text-[#031D44] rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-              <FiShield size={20} className="text-[#B58E58]" />
-            </div>
-            <div>
-              <h4 className="text-xs font-serif font-bold text-[#031D44] mb-0.5">
-                100% Secure Checkout
-              </h4>
-              <p className="text-[10px] md:text-[11px] text-gray-500 font-light">
-                Encrypted 256-bit payment gateway
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+          {blogs.map((blog, index) => (
+            <div key={index} className="flex flex-col group">
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-5 bg-gray-100">
+                <img
+                  src={blog.image}
+                  alt={blog.title}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <p className="text-xs md:text-sm text-gray-400 font-light mb-2">
+                {blog.date}
               </p>
+              <h3 className="text-lg md:text-xl font-medium text-[#4A5568] mb-5 truncate w-full">
+                {blog.title}
+              </h3>
+              <div>
+                <button
+                  onClick={() => navigate(blog.link)}
+                  className="inline-block px-8 py-2.5 border border-[#4A5568] text-[#4A5568] hover:bg-[#4A5568] hover:text-white text-xs font-bold rounded-full transition-colors cursor-pointer"
+                >
+                  Read more
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="bg-[#F7F2EB] p-5 md:p-6 rounded-[20px] md:rounded-[24px] border border-[#E5DCD0] flex items-center gap-4 shadow-sm">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#031D44]/10 text-[#031D44] rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-              <FiAward size={20} className="text-[#B58E58]" />
-            </div>
-            <div>
-              <h4 className="text-xs font-serif font-bold text-[#031D44] mb-0.5">
-                Hospitality Grade
-              </h4>
-              <p className="text-[10px] md:text-[11px] text-gray-500 font-light">
-                Built for heavy commercial laundry
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-[#F7F2EB] p-5 md:p-6 rounded-[20px] md:rounded-[24px] border border-[#E5DCD0] flex items-center gap-4 shadow-sm">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#031D44]/10 text-[#031D44] rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-              <FiTruck size={20} className="text-[#B58E58]" />
-            </div>
-            <div>
-              <h4 className="text-xs font-serif font-bold text-[#031D44] mb-0.5">
-                Express Shipping
-              </h4>
-              <p className="text-[10px] md:text-[11px] text-gray-500 font-light">
-                Fast dispatch across North America
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-[#F7F2EB] p-5 md:p-6 rounded-[20px] md:rounded-[24px] border border-[#E5DCD0] flex items-center gap-4 shadow-sm">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-[#031D44]/10 text-[#031D44] rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-              <FiHeadphones size={20} className="text-[#B58E58]" />
-            </div>
-            <div>
-              <h4 className="text-xs font-serif font-bold text-[#031D44] mb-0.5">
-                Dedicated Support
-              </h4>
-              <p className="text-[10px] md:text-[11px] text-gray-500 font-light">
-                B2B wholesale customer assistance
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
   );
 };
 
-// --- Testimonials & Partners Component ---
-const TestimonialsAndPartners = () => {
-  return (
-    <section className="py-10 md:py-14 px-4 md:px-10 bg-[#F0EAE1] font-sans border-t border-[#E5DCD0]">
-      <div className="max-w-[1300px] mx-auto">
-        <div className="text-center mb-8 md:mb-10">
-          <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase">
-            Trusted Worldwide
-          </span>
-          <h2 className="text-xl md:text-3xl font-serif font-bold text-[#031D44] mt-1">
-            What Hotel & Spa Partners Say
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-14">
-          <div className="bg-[#F7F2EB] p-6 md:p-8 rounded-[22px] md:rounded-[28px] border border-[#E5DCD0] shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex text-amber-500 gap-1 mb-3 md:mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <FiStar key={i} size={14} fill="currentColor" />
-                ))}
-              </div>
-              <p className="text-xs text-gray-700 font-light leading-relaxed mb-4 md:mb-6">
-                "Gateway Linen has been our primary supplier for over 2 years.
-                Their pool towels and bed sheets withstand heavy commercial
-                washing without losing softness."
-              </p>
-            </div>
-            <div className="flex items-center gap-3 pt-3 md:pt-4 border-t border-[#E5DCD0]">
-              <div className="w-9 h-9 md:w-10 md:h-10 bg-[#031D44] text-[#B58E58] font-bold rounded-full flex items-center justify-center text-xs">
-                MR
-              </div>
-              <div>
-                <h4 className="text-xs font-serif font-bold text-[#031D44]">
-                  Marcus Reynolds
-                </h4>
-                <p className="text-[10px] text-gray-500">
-                  Operations Director, Grand Plaza Hotel
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#F7F2EB] p-6 md:p-8 rounded-[22px] md:rounded-[28px] border border-[#E5DCD0] shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex text-amber-500 gap-1 mb-3 md:mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <FiStar key={i} size={14} fill="currentColor" />
-                ))}
-              </div>
-              <p className="text-xs text-gray-700 font-light leading-relaxed mb-4 md:mb-6">
-                "Exceptional quality and reliable wholesale pricing. Their
-                delivery across Canada is remarkably fast, and customer support
-                is always responsive."
-              </p>
-            </div>
-            <div className="flex items-center gap-3 pt-3 md:pt-4 border-t border-[#E5DCD0]">
-              <div className="w-9 h-9 md:w-10 md:h-10 bg-[#031D44] text-[#B58E58] font-bold rounded-full flex items-center justify-center text-xs">
-                SL
-              </div>
-              <div>
-                <h4 className="text-xs font-serif font-bold text-[#031D44]">
-                  Sophia Laurent
-                </h4>
-                <p className="text-[10px] text-gray-500">
-                  Manager, Serenity Luxury Spa & Resort
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#F7F2EB] p-6 md:p-8 rounded-[22px] md:rounded-[28px] border border-[#E5DCD0] shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex text-amber-500 gap-1 mb-3 md:mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <FiStar key={i} size={14} fill="currentColor" />
-                ))}
-              </div>
-              <p className="text-xs text-gray-700 font-light leading-relaxed mb-4 md:mb-6">
-                "The custom branding and bulk order discounts helped us furnish
-                50+ rooms effortlessly. Highly recommend Gateway Linen for
-                hospitality needs!"
-              </p>
-            </div>
-            <div className="flex items-center gap-3 pt-3 md:pt-4 border-t border-[#E5DCD0]">
-              <div className="w-9 h-9 md:w-10 md:h-10 bg-[#031D44] text-[#B58E58] font-bold rounded-full flex items-center justify-center text-xs">
-                DK
-              </div>
-              <div>
-                <h4 className="text-xs font-serif font-bold text-[#031D44]">
-                  David Kennedy
-                </h4>
-                <p className="text-[10px] text-gray-500">
-                  Procurement Head, Metro Suites
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[#FFFDF9] border border-[#E5DCD0] rounded-[20px] md:rounded-[24px] p-5 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 shadow-xs">
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 text-green-700 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-              <FiCheckCircle size={22} />
-            </div>
-            <div>
-              <h4 className="text-xs md:text-sm font-serif font-bold text-[#031D44]">
-                Verified B2B Global Supplier & Manufacturer
-              </h4>
-              <p className="text-[11px] md:text-xs text-gray-500 font-light">
-                Audited facilities, strict quality control, and direct factory
-                wholesale rates.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 md:gap-3 text-[11px] md:text-xs font-bold text-[#031D44] whitespace-nowrap">
-            <span className="px-3 py-1.5 md:px-4 md:py-2 bg-[#F7F2EB] rounded-xl border border-[#E5DCD0]">
-              ISO 9001 Certified
-            </span>
-            <span className="px-3 py-1.5 md:px-4 md:py-2 bg-[#F7F2EB] rounded-xl border border-[#E5DCD0]">
-              OEKO-TEX Standard
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// --- B2B FAQ & Quick Quote Component ---
-const B2BFaqAndNewsletter = () => {
+// --- Eden Style "About Us" Section ---
+const AboutUsSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-10 md:py-14 px-4 md:px-10 bg-[#F0EAE1] font-sans border-t border-[#E5DCD0]">
-      <div className="max-w-[1300px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10 items-start">
-        <div>
-          <div className="mb-4 md:mb-6">
-            <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase flex items-center gap-1.5">
-              <FiHelpCircle size={14} /> Got Questions?
-            </span>
-            <h2 className="text-xl md:text-2xl font-serif font-bold text-[#031D44] mt-1">
-              Frequently Asked Questions
+    <section className="py-12 md:py-20 px-4 md:px-10 bg-white font-sans border-t border-gray-100">
+      <div className="max-w-[1300px] mx-auto flex flex-col lg:flex-row items-center">
+        <div className="w-full lg:w-3/5 h-[350px] md:h-[500px] relative">
+          <img
+            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop"
+            alt="Gateway Linen Facility"
+            className="w-full h-full object-cover shadow-md"
+          />
+        </div>
+
+        <div className="w-full lg:w-2/5 lg:-ml-16 relative z-10 mt-8 lg:mt-0">
+          <div className="bg-[#FAF7F2] p-8 md:p-12 lg:p-14 border border-[#E5DCD0] shadow-xl rounded-none">
+            <h2 className="text-2xl md:text-[32px] font-serif font-bold text-[#031D44] mb-4 leading-tight">
+              Comforts your guests will love
             </h2>
+            <p className="text-sm text-gray-600 font-light leading-relaxed mb-8">
+              Gateway Linen is a trusted leader in textile manufacturing and
+              supply in Canada. We specialize in terry, linens, and premium
+              amenities for hospitality, healthcare, and beyond. With decades of
+              experience, we have dedicated ourselves to providing exceptional
+              quality, comfort, and service.
+            </p>
+            <button
+              onClick={() => navigate("/about")}
+              className="inline-block px-8 py-3 border border-[#031D44] text-[#031D44] hover:bg-[#031D44] hover:text-white text-xs font-bold uppercase tracking-widest rounded-full transition-colors cursor-pointer"
+            >
+              About Us
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// --- Shop Products by Industry ---
+const ShopByIndustry = () => {
+  const navigate = useNavigate();
+
+  const industries = [
+    {
+      name: "Salons & Spas",
+      image:
+        "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=800&auto=format&fit=crop",
+      link: "/products",
+    },
+    {
+      name: "Food Service",
+      image:
+        "https://images.unsplash.com/photo-1414235077428-33898dd1c739?q=80&w=800&auto=format&fit=crop",
+      link: "/products",
+    },
+    {
+      name: "Healthcare",
+      image:
+        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800&auto=format&fit=crop",
+      link: "/products",
+    },
+    {
+      name: "Hospitality",
+      image:
+        "https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=800&auto=format&fit=crop",
+      link: "/products",
+    },
+  ];
+
+  const scrollLeft = () => {
+    document
+      .getElementById("industry-slider")
+      .scrollBy({ left: -400, behavior: "smooth" });
+  };
+
+  const scrollRight = () => {
+    document
+      .getElementById("industry-slider")
+      .scrollBy({ left: 400, behavior: "smooth" });
+  };
+
+  return (
+    <section className="py-16 md:py-24 px-4 md:px-10 bg-white font-sans border-t border-gray-100 overflow-hidden">
+      <div className="max-w-[1300px] mx-auto relative">
+        <div className="mb-8 md:mb-12">
+          <span className="text-sm md:text-base text-gray-400 font-light mb-2 block">
+            Explore Our Offerings
+          </span>
+          <h2 className="text-2xl md:text-[40px] font-bold text-[#4A5568] tracking-tight">
+            Shop Products by Industry
+          </h2>
+        </div>
+
+        <button
+          onClick={scrollLeft}
+          className="absolute left-0 top-[60%] -translate-y-1/2 -ml-4 md:-ml-6 z-10 bg-white shadow-lg p-3 rounded-none border border-gray-100 text-gray-600 hover:bg-[#031D44] hover:text-white transition-colors cursor-pointer hidden md:block"
+        >
+          <FiChevronLeft size={24} />
+        </button>
+        <button
+          onClick={scrollRight}
+          className="absolute right-0 top-[60%] -translate-y-1/2 -mr-4 md:-mr-6 z-10 bg-white shadow-lg p-3 rounded-none border border-gray-100 text-gray-600 hover:bg-[#031D44] hover:text-white transition-colors cursor-pointer hidden md:block"
+        >
+          <FiChevronRight size={24} />
+        </button>
+
+        <div
+          id="industry-slider"
+          className="flex gap-6 md:gap-8 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {industries.map((ind, i) => (
+            <div
+              key={i}
+              onClick={() => navigate(ind.link)}
+              className="min-w-[280px] md:min-w-[380px] lg:min-w-[420px] snap-start group cursor-pointer flex flex-col"
+            >
+              <div className="w-full aspect-[4/3] mb-5 overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
+                <img
+                  src={ind.image}
+                  alt={ind.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <div className="flex justify-between items-center text-[#4A5568] transition-colors border-b border-transparent pb-1">
+                <h3 className="text-base md:text-lg font-medium">{ind.name}</h3>
+                <FiArrowRight
+                  size={20}
+                  className="text-gray-400 group-hover:text-[#031D44] transition-colors"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// --- The Gateway Difference ---
+const TheDifferenceSection = () => {
+  const navigate = useNavigate();
+
+  return (
+    <section className="py-16 md:py-24 px-4 md:px-10 bg-white font-sans border-t border-gray-100">
+      <div className="max-w-[1300px] mx-auto">
+        <div className="mb-10 md:mb-14">
+          <span className="text-sm md:text-base text-gray-500 font-light mb-2 block">
+            Designed to Deliver Excellence
+          </span>
+          <h2 className="text-2xl md:text-[40px] font-bold text-[#4A5568] tracking-tight">
+            The Gateway Difference
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+          <div className="flex flex-col group">
+            <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-sm">
+              <img
+                src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=800&auto=format&fit=crop"
+                alt="Lasting Impressions"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
+            <h3 className="text-lg md:text-xl font-medium text-[#4A5568] mb-3">
+              Designed For Lasting Impressions
+            </h3>
+            <p className="text-sm text-gray-600 font-light leading-relaxed mb-6 flex-grow">
+              From luxurious linens to premium amenities, we blend comfort and
+              durability, upholding the highest standards in every aspect.
+            </p>
+            <div>
+              <button
+                onClick={() => navigate("/about")}
+                className="inline-block px-6 py-2.5 border border-[#4A5568] text-[#4A5568] hover:bg-[#4A5568] hover:text-white text-sm font-medium rounded-full transition-colors cursor-pointer"
+              >
+                Read more
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-3 md:space-y-4">
-            <div className="bg-[#F7F2EB] p-4 md:p-5 rounded-2xl border border-[#E5DCD0]">
-              <h4 className="text-xs font-serif font-bold text-[#031D44] mb-1">
-                What is the minimum order quantity for wholesale pricing?
-              </h4>
-              <p className="text-[11px] text-gray-600 font-light">
-                For wholesale and commercial partners, our minimum order value
-                starts at CAD $250 with tiered discounts for bulk hotel
-                supplies.
-              </p>
+          <div className="flex flex-col group">
+            <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-sm">
+              <img
+                src="https://images.unsplash.com/photo-1612423284934-2850a4ea6b0f?q=80&w=800&auto=format&fit=crop"
+                alt="Innovation in Every Thread"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
             </div>
-
-            <div className="bg-[#F7F2EB] p-4 md:p-5 rounded-2xl border border-[#E5DCD0]">
-              <h4 className="text-xs font-serif font-bold text-[#031D44] mb-1">
-                Do you offer custom logo embroidery for hotels and spas?
-              </h4>
-              <p className="text-[11px] text-gray-600 font-light">
-                Yes! We provide custom embroidery and branding on all our
-                premium pool towels, bathrobes, and bed linens.
-              </p>
+            <h3 className="text-lg md:text-xl font-medium text-[#4A5568] mb-3">
+              Innovation in Every Thread
+            </h3>
+            <p className="text-sm text-gray-600 font-light leading-relaxed mb-6 flex-grow">
+              We carefully curate, evaluate, and assess comforts to balance
+              elegance and reliability, making a difference where it matters
+              most.
+            </p>
+            <div>
+              <button
+                onClick={() => navigate("/about")}
+                className="inline-block px-6 py-2.5 border border-[#4A5568] text-[#4A5568] hover:bg-[#4A5568] hover:text-white text-sm font-medium rounded-full transition-colors cursor-pointer"
+              >
+                Read more
+              </button>
             </div>
+          </div>
 
-            <div className="bg-[#F7F2EB] p-4 md:p-5 rounded-2xl border border-[#E5DCD0]">
-              <h4 className="text-xs font-serif font-bold text-[#031D44] mb-1">
-                What is the standard delivery time across Canada?
-              </h4>
-              <p className="text-[11px] text-gray-600 font-light">
-                Standard commercial deliveries across major Canadian provinces
-                take between 3 to 5 business days.
-              </p>
+          <div className="flex flex-col group">
+            <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-sm">
+              <img
+                src="https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?q=80&w=800&auto=format&fit=crop"
+                alt="Style with Substance"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
+            <h3 className="text-lg md:text-xl font-medium text-[#4A5568] mb-3">
+              Style with Substance
+            </h3>
+            <p className="text-sm text-gray-600 font-light leading-relaxed mb-6 flex-grow">
+              With decades of experience, we have dedicated ourselves to
+              providing exceptional quality, comfort, and outstanding
+              service—and we are committed to continuing this service for many
+              years to come.
+            </p>
+            <div>
+              <button
+                onClick={() => navigate("/about")}
+                className="inline-block px-6 py-2.5 border border-[#4A5568] text-[#4A5568] hover:bg-[#4A5568] hover:text-white text-sm font-medium rounded-full transition-colors cursor-pointer"
+              >
+                Read more
+              </button>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  );
+};
 
-        <div className="bg-[#031D44] text-white p-6 md:p-10 rounded-[24px] md:rounded-[32px] shadow-xl relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute right-0 bottom-0 w-64 h-64 bg-[#B58E58]/20 rounded-full blur-3xl"></div>
+// --- Eden Style Testimonials Slider ---
+const TestimonialsSlider = () => {
+  const testimonials = [
+    {
+      author: "Social Services Provider in Vancouver",
+      company: "Social Services Provider in Vancouver NA",
+      text: '"We received our order, and were very pleased with the quality of the items. We also appreciated your customer service. Thank you for informing us about the back ordered towels, and the samples being shipped separately."',
+      initials: "",
+    },
+    {
+      author: "Byron Bradley",
+      company:
+        "The Mustard Seed Senior Director Development and Government Relations",
+      text: '"Gateway Linen was an exceptional partner, and we highly recommend their high-quality products and organization to anyone looking for textiles. Thank you for your generosity and for helping make 24 families feel comfortable and cozy in their new homes."',
+      logo: true,
+    },
+    {
+      author: "Marcus Reynolds",
+      company: "Operations Director, Grand Plaza Hotel",
+      text: '"Gateway Linen has been our primary supplier for over 2 years. Their pool towels and bed sheets withstand heavy commercial washing without losing softness. Exceptional wholesale partner."',
+      initials: "MR",
+    },
+  ];
 
-          <div className="relative z-10">
-            <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase">
-              B2B Quick Inquiry
-            </span>
-            <h3 className="text-lg md:text-2xl font-serif font-bold mt-1 mb-2 md:mb-3">
-              Request a Custom Wholesale Quote
-            </h3>
-            <p className="text-xs text-gray-300 font-light mb-5 md:mb-6 leading-relaxed">
-              Are you managing a hotel, hospital, or spa? Get personalized
-              pricing and samples shipped directly to your facility.
-            </p>
+  const scrollLeft = () => {
+    document
+      .getElementById("testimonial-slider")
+      .scrollBy({ left: -400, behavior: "smooth" });
+  };
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert(
-                  "Thank you! Our wholesale team will contact you shortly.",
-                );
-              }}
-              className="space-y-3"
+  const scrollRight = () => {
+    document
+      .getElementById("testimonial-slider")
+      .scrollBy({ left: 400, behavior: "smooth" });
+  };
+
+  return (
+    <section className="py-16 md:py-24 px-4 md:px-10 bg-[#EBF0EC] font-sans border-t border-gray-100 relative overflow-hidden">
+      <div className="max-w-[1400px] mx-auto relative">
+        <div className="text-center mb-12">
+          <span className="text-sm text-gray-500 font-light block mb-2">
+            Trusted by Our Valued Customers
+          </span>
+          <h2 className="text-3xl md:text-[44px] font-bold text-[#4A5568] tracking-tight">
+            Testimonials
+          </h2>
+        </div>
+
+        <button
+          onClick={scrollLeft}
+          className="absolute left-0 top-[55%] -translate-y-1/2 -ml-2 md:-ml-4 z-10 bg-white shadow-lg p-3 rounded-none border border-gray-100 text-gray-400 hover:text-[#4A5568] transition-colors cursor-pointer"
+        >
+          <FiChevronLeft size={24} />
+        </button>
+        <button
+          onClick={scrollRight}
+          className="absolute right-0 top-[55%] -translate-y-1/2 -mr-2 md:-mr-4 z-10 bg-white shadow-lg p-3 rounded-none border border-gray-100 text-gray-400 hover:text-[#4A5568] transition-colors cursor-pointer"
+        >
+          <FiChevronRight size={24} />
+        </button>
+
+        <div
+          id="testimonial-slider"
+          className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory px-4 md:px-8"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {testimonials.map((test, index) => (
+            <div
+              key={index}
+              className="min-w-[300px] md:min-w-[450px] lg:min-w-[550px] bg-white rounded-2xl p-8 md:p-10 shadow-sm snap-center flex flex-col justify-between"
             >
-              <input
-                required
-                type="email"
-                placeholder="Enter your business email"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-xs text-white placeholder-gray-400 focus:outline-none focus:border-[#B58E58]"
-              />
-              <button
-                type="submit"
-                className="w-full py-3.5 bg-[#B58E58] hover:bg-white hover:text-[#031D44] text-white text-xs font-bold tracking-widest uppercase rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <FiSend size={14} /> Submit Quote Request
-              </button>
-            </form>
-          </div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-4">
+                  {test.logo ? (
+                    <div className="w-12 h-12 flex items-center justify-center text-[#B58E58] font-bold text-[10px] leading-tight text-center">
+                      THE MUSTARD SEED
+                    </div>
+                  ) : test.initials ? (
+                    <div className="w-12 h-12 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center font-bold text-sm">
+                      {test.initials}
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                  )}
 
-          <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/10 relative z-10 flex items-center justify-between text-[11px] text-gray-300">
-            <span>Need immediate assistance?</span>
-            <button
-              onClick={() => navigate("/contact")}
-              className="font-bold text-[#B58E58] hover:underline cursor-pointer"
-            >
-              Contact Sales Team &rarr;
-            </button>
-          </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[#4A5568]">
+                      {test.author}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 font-light mt-0.5 max-w-[200px] md:max-w-[250px]">
+                      {test.company}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex text-amber-400 gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <FiStar key={i} size={16} fill="currentColor" />
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-500 font-light leading-relaxed flex-grow">
+                {test.text}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -467,11 +572,13 @@ const Home = () => {
     <>
       <Hero />
       <CategoryGrid />
-      <PromotionalBanners />
+      <BlogSection />
+      <AccountSection />
       <FeaturedProducts />
-      <FlashSaleAndTrust />
-      <TestimonialsAndPartners />
-      <B2BFaqAndNewsletter />
+      <AboutUsSection />
+      <ShopByIndustry />
+      <TheDifferenceSection />
+      <TestimonialsSlider />
       <WholesaleSection />
     </>
   );
@@ -499,7 +606,6 @@ const AppLayout = () => {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* NAYE ROUTES */}
               <Route path="/categories" element={<CategoryGrid />} />
               <Route
                 path="/category/:categoryName"

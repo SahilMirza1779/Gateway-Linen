@@ -1,222 +1,260 @@
 import { Link } from "react-router-dom";
-import { FiPhone, FiMail, FiMapPin } from "react-icons/fi";
-import logo from "../assets/GatewayLinen-logo.png";
+import {
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiFacebook,
+  FiInstagram,
+  FiLinkedin,
+  FiArrowUp,
+} from "react-icons/fi";
 
 const Footer = () => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <footer className="w-full bg-[#031D44] text-white pt-8 md:pt-16 pb-6 md:pb-8 border-t-[4px] border-[#B58E58] font-sans relative overflow-hidden">
-      {/* Background Decorative Gold Glow */}
-      <div className="absolute right-0 bottom-0 w-96 h-96 bg-[#B58E58]/10 rounded-full blur-3xl pointer-events-none"></div>
+    <footer className="font-sans border-t border-gray-100">
+      {/* Top Section - Need Help? */}
+      <div className="bg-[#FAF7F2] py-12 md:py-16 text-center border-b border-gray-200">
+        <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] mb-3">
+          Need Help?
+        </h2>
+        <p className="text-sm text-gray-500 font-light mb-8">
+          Find quick answers to common questions in our FAQ.
+        </p>
+        <Link
+          to="/contact"
+          className="inline-block px-8 py-3 bg-[#4A5D4E] hover:bg-[#031D44] text-white text-sm font-bold rounded-full transition-colors cursor-pointer"
+        >
+          Visit FAQs
+        </Link>
+      </div>
 
-      <div className="max-w-[1536px] mx-auto px-4 md:px-10 relative z-10">
-        {/* Main Footer Grid - Mobile par 2 columns, Laptop par 4 columns */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 mb-8 md:mb-16">
-          {/* Col 1: Brand Info (Mobile par full span) */}
-          <div className="col-span-2 sm:col-span-1 lg:col-span-1 flex flex-col items-start">
-            <div className="bg-white px-3.5 py-2 rounded-xl inline-flex items-center justify-center mb-3 md:mb-6 shadow-md border border-[#B58E58]/30">
-              <img
-                src={logo}
-                alt="Gateway Linen"
-                className="h-7 sm:h-10 w-auto object-contain"
+      {/* Main Footer Content */}
+      <div className="bg-white py-12 md:py-20 px-6 md:px-12 max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-6">
+        {/* Column 1: Let's Keep In Touch (Client Details Updated) */}
+        <div className="lg:col-span-2">
+          <h4 className="text-[#031D44] font-bold text-base mb-6">
+            Let's Keep In Touch
+          </h4>
+
+          <div className="space-y-4 text-sm text-gray-500 font-light mb-8">
+            <a
+              href="mailto:gatewaylinen@gmail.com"
+              className="flex items-center gap-3 hover:text-[#B58E58] transition-colors"
+            >
+              <FiMail size={16} className="text-gray-400" />{" "}
+              tapu_parikh@yahoo.com / gatewaylinen@gmail.com
+            </a>
+            <a
+              href="tel:+12049794044"
+              className="flex items-center gap-3 hover:text-[#B58E58] transition-colors"
+            >
+              <FiPhone size={16} className="text-gray-400" /> +1 (204) 979-4044
+            </a>
+            <div className="flex items-start gap-3">
+              <FiMapPin size={16} className="text-gray-400 mt-1 shrink-0" />
+              <p>
+                9 Mapleridge crescent,
+                <br />
+                Brandon R7A6P8, Manitoba, Canada
+              </p>
+            </div>
+          </div>
+
+          {/* Social Icons */}
+          <div className="flex items-center gap-3">
+            <a
+              href="#"
+              className="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center hover:bg-[#031D44] hover:text-white transition-colors"
+            >
+              <FiFacebook size={18} />
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center hover:bg-[#031D44] hover:text-white transition-colors"
+            >
+              <FiInstagram size={18} />
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center hover:bg-[#031D44] hover:text-white transition-colors"
+            >
+              <FiLinkedin size={18} />
+            </a>
+          </div>
+        </div>
+
+        {/* Column 2: General */}
+        <div>
+          <h4 className="text-[#031D44] font-bold text-base mb-6">General</h4>
+          <ul className="space-y-3 text-sm text-gray-500 font-light">
+            <li>
+              <Link
+                to="/about"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                About Us
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/contact"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Contact Us
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/login"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                My Account
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/blog"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Blog & News
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/sustainability"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Sustainability
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/products"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Shop All Products
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Column 3: Support */}
+        <div>
+          <h4 className="text-[#031D44] font-bold text-base mb-6">Support</h4>
+          <ul className="space-y-3 text-sm text-gray-500 font-light">
+            <li>
+              <Link
+                to="/faq"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                FAQ's
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/care"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Product Care Instructions
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/returns"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Request a Return
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/privacy"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/code-of-conduct"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Supplier Code of Conduct
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/terms"
+                className="hover:text-[#B58E58] transition-colors"
+              >
+                Terms of Use
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Column 4: Newsletter & Shop For Home */}
+        <div className="flex flex-col justify-between">
+          <div>
+            <h4 className="text-[#031D44] font-bold text-base mb-4">
+              Shop For Your Home at
+            </h4>
+            <h3 className="text-3xl font-serif text-gray-400 mb-8 tracking-wider">
+              Gateway<span className="text-xl">+</span>Home{" "}
+              <span className="text-[10px] uppercase align-top">Linen Co.</span>
+            </h3>
+          </div>
+
+          <div>
+            <h4 className="text-[#031D44] font-bold text-sm mb-4">
+              Subscribe to Our Newsletter
+            </h4>
+            <form className="flex w-full" onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="email"
+                placeholder="Email address"
+                className="flex-grow bg-white border border-gray-300 rounded-l-full px-4 py-2.5 text-sm focus:outline-none focus:border-[#4A5D4E]"
+                required
               />
-            </div>
-            <p className="text-gray-300 text-[11px] md:text-[13px] leading-relaxed font-light mb-3 md:mb-6">
-              Premium linen solutions for hotels, resorts, healthcare, and
-              hospitality facilities across North America.
-            </p>
-            <div className="inline-flex items-center gap-1.5 bg-[#B58E58]/20 px-2.5 py-1 rounded-full border border-[#B58E58]/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#B58E58]"></span>
-              <span className="text-[8.5px] md:text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
-                B2B Commercial Partner
-              </span>
-            </div>
+              <button
+                type="submit"
+                className="bg-[#4A5D4E] hover:bg-[#031D44] text-white px-6 py-2.5 rounded-r-full text-sm font-bold transition-colors cursor-pointer"
+              >
+                Submit
+              </button>
+            </form>
           </div>
+        </div>
+      </div>
 
-          {/* Col 2: Quick Links */}
-          <div>
-            <h4 className="text-white text-xs md:text-[15px] font-serif font-bold mb-3 md:mb-6 tracking-wide border-l-2 border-[#B58E58] pl-2.5">
-              Quick Links
-            </h4>
-            <ul className="flex flex-col space-y-2 md:space-y-3 text-[11px] md:text-[13px] text-gray-300 font-light">
-              <li>
-                <Link
-                  to="/"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/products"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  All Products
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/category/towels"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  Towels
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/category/bed-sheets"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  Bed Sheets
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/category/mattress-pads"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  Mattress Pads
-                </Link>
-              </li>
-            </ul>
+      {/* Bottom Bar */}
+      <div className="bg-gray-400 text-white py-4 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center text-xs font-light relative">
+        <p>Copyright © 2026 Gateway Linen. All rights reserved.</p>
+
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
+          <div className="bg-[#031D44] text-white px-2 py-1 text-[10px] font-bold rounded">
+            VISA
           </div>
-
-          {/* Col 3: Company */}
-          <div>
-            <h4 className="text-white text-xs md:text-[15px] font-serif font-bold mb-3 md:mb-6 tracking-wide border-l-2 border-[#B58E58] pl-2.5">
-              Company
-            </h4>
-            <ul className="flex flex-col space-y-2 md:space-y-3 text-[11px] md:text-[13px] text-gray-300 font-light">
-              <li>
-                <Link
-                  to="/contact"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/contact"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/contact"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  FAQ / Support
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/contact"
-                  onClick={() =>
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                  className="hover:text-[#B58E58] transition-colors block cursor-pointer"
-                >
-                  Request a Quote
-                </Link>
-              </li>
-            </ul>
+          <div className="bg-[#0070BA] text-white px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1">
+            <i>PayPal</i>
           </div>
-
-          {/* Col 4: Contact Info (Mobile par full span) */}
-          <div className="col-span-2 sm:col-span-1 lg:col-span-1">
-            <h4 className="text-white text-xs md:text-[15px] font-serif font-bold mb-3 md:mb-6 tracking-wide border-l-2 border-[#B58E58] pl-2.5">
-              Contact Us
-            </h4>
-            <ul className="flex flex-col space-y-2.5 md:space-y-3.5 text-[11px] md:text-[13px] text-gray-300 font-light">
-              <li className="flex items-start gap-2.5">
-                <FiMapPin
-                  size={15}
-                  className="text-[#B58E58] mt-0.5 shrink-0"
-                />
-                <span className="leading-relaxed">
-                  9 Mapleridge crescent, Brandon R7A6P8, Manitoba, Canada
-                </span>
-              </li>
-
-              <li className="flex items-center gap-2.5">
-                <FiPhone size={15} className="text-[#B58E58] shrink-0" />
-                <a
-                  href="tel:+12049794044"
-                  className="hover:text-white transition-colors"
-                >
-                  +1 (204) 979-4044
-                </a>
-              </li>
-
-              <li className="flex items-start gap-2.5">
-                <FiMail size={15} className="text-[#B58E58] mt-0.5 shrink-0" />
-                <div className="flex flex-col space-y-0.5">
-                  <a
-                    href="mailto:tapu_parikh@yahoo.com"
-                    className="hover:text-white transition-colors break-all"
-                  >
-                    tapu_parikh@yahoo.com
-                  </a>
-                  <a
-                    href="mailto:gatewaylinen@gmail.com"
-                    className="hover:text-white transition-colors break-all"
-                  >
-                    gatewaylinen@gmail.com
-                  </a>
-                </div>
-              </li>
-            </ul>
+          <div className="bg-orange-500 text-white px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1">
+            <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+            <div className="w-2 h-2 bg-yellow-400 rounded-full -ml-1"></div>
           </div>
         </div>
 
-        {/* Bottom Section - Copyright & Legal */}
-        <div className="border-t border-white/10 pt-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] md:text-[12px] text-gray-400 font-light">
-          <p>
-            © {new Date().getFullYear()} Gateway Linen. All rights reserved.
-          </p>
-          <div className="flex gap-3 items-center">
-            <Link
-              to="/contact"
-              className="hover:text-[#B58E58] transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <span>•</span>
-            <Link
-              to="/contact"
-              className="hover:text-[#B58E58] transition-colors"
-            >
-              Terms & Conditions
-            </Link>
-          </div>
-        </div>
+        <button
+          onClick={scrollToTop}
+          className="absolute right-6 -top-16 w-14 h-14 bg-green-50 text-green-800 rounded-full flex flex-col items-center justify-center shadow-lg hover:bg-green-100 transition-colors cursor-pointer border border-green-200"
+        >
+          <FiArrowUp size={16} />
+          <span className="text-[10px] font-bold mt-0.5">Top</span>
+        </button>
       </div>
     </footer>
   );

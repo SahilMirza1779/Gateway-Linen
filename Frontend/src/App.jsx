@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -35,6 +35,8 @@ import {
   FiStar,
   FiChevronLeft,
   FiChevronRight,
+  FiLayout,
+  FiShoppingBag,
 } from "react-icons/fi";
 
 // --- Scroll To Top Helper ---
@@ -49,6 +51,32 @@ const ScrollToTop = () => {
 // --- Eden Style: Create Your Account Banner with Real Mockup ---
 const AccountSection = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  // Smart User Status Check (Error-Free)
+  useEffect(() => {
+    const checkUserStatus = () => {
+      const storedUser = localStorage.getItem("user");
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      setUser((prev) => {
+        if (JSON.stringify(prev) !== JSON.stringify(parsedUser)) {
+          return parsedUser;
+        }
+        return prev;
+      });
+    };
+
+    const timer = setTimeout(() => {
+      checkUserStatus();
+    }, 0);
+
+    window.addEventListener("storage", checkUserStatus);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("storage", checkUserStatus);
+    };
+  }, []);
 
   return (
     <section className="py-12 md:py-16 px-4 md:px-10 bg-white font-sans border-t border-gray-100">
@@ -89,35 +117,75 @@ const AccountSection = () => {
             </div>
           </div>
 
-          {/* Right Side: Create Your Account Content & Buttons */}
+          {/* Right Side: Dynamic Content Based on Login Status */}
           <div className="lg:col-span-5 text-center lg:text-left">
-            <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase block mb-2">
-              CLIENT PORTAL & BENEFITS
-            </span>
-            <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] mb-3 md:mb-4">
-              Create Your Account
-            </h2>
-            <p className="text-xs md:text-sm text-gray-600 font-light mb-6 md:mb-8 leading-relaxed">
-              Sign up to get access to exclusive offers, the opportunity for
-              preferred pricing, detailed account records, order history
-              tracking, and more!
-            </p>
+            {user ? (
+              /* ================= LOGGED IN UI ================= */
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="inline-flex items-center gap-2 bg-[#B58E58]/10 px-3 py-1 rounded-full mb-4 border border-[#B58E58]/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B58E58]"></span>
+                  <p className="text-[#B58E58] text-[9px] font-bold uppercase tracking-[0.2em]">
+                    Welcome Back, {user.fullName?.split(" ")[0] || "Partner"}
+                  </p>
+                </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <button
-                onClick={() => navigate("/register")}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#4A5D4E] hover:bg-[#031D44] text-white text-xs font-bold tracking-widest uppercase rounded-full shadow-md transition-all cursor-pointer"
-              >
-                <FiUserPlus size={15} /> SIGN UP NOW
-              </button>
+                <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] mb-3 md:mb-4">
+                  Your B2B Portal
+                </h2>
 
-              <button
-                onClick={() => navigate("/login")}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white border-2 border-[#031D44] text-[#031D44] hover:bg-[#031D44] hover:text-white text-xs font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer"
-              >
-                <FiLogIn size={15} /> SIGN IN
-              </button>
-            </div>
+                <p className="text-xs md:text-sm text-gray-600 font-light mb-6 md:mb-8 leading-relaxed">
+                  Access your personalized wholesale dashboard. Track active
+                  shipments, review past invoices, and easily re-order our
+                  latest premium collections with your exclusive pricing.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-xs font-bold tracking-widest uppercase rounded-full shadow-md transition-all cursor-pointer"
+                  >
+                    <FiLayout size={15} /> Account Dashboard
+                  </button>
+                  <button
+                    onClick={() => navigate("/products")}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white border-2 border-[#E5DCD0] text-[#031D44] hover:border-[#031D44] hover:bg-gray-50 text-xs font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer shadow-sm"
+                  >
+                    <FiShoppingBag size={15} /> Browse Catalog
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* ================= LOGGED OUT UI ================= */
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase block mb-2">
+                  CLIENT PORTAL & BENEFITS
+                </span>
+                <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] mb-3 md:mb-4">
+                  Create Your Account
+                </h2>
+                <p className="text-xs md:text-sm text-gray-600 font-light mb-6 md:mb-8 leading-relaxed">
+                  Sign up to get access to exclusive offers, the opportunity for
+                  preferred pricing, detailed account records, order history
+                  tracking, and more!
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                  <button
+                    onClick={() => navigate("/register")}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#4A5D4E] hover:bg-[#031D44] text-white text-xs font-bold tracking-widest uppercase rounded-full shadow-md transition-all cursor-pointer"
+                  >
+                    <FiUserPlus size={15} /> SIGN UP NOW
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/login")}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white border-2 border-[#031D44] text-[#031D44] hover:bg-[#031D44] hover:text-white text-xs font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer"
+                  >
+                    <FiLogIn size={15} /> SIGN IN
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

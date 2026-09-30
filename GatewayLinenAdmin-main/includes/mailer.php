@@ -1,7 +1,7 @@
 <?php
 // GatewayLinenadmin-main/includes/mailer.php
 
-function sendWelcomeEmail($to, $fullName, $plainPassword)
+function sendWelcomeEmail($to, $fullName)
 {
     $senderEmail = "gatewaylinen@gmail.com";
     $appPassword = "lndx lhfo iqyv ztqp";
@@ -22,13 +22,12 @@ function sendWelcomeEmail($to, $fullName, $plainPassword)
             <div class='container'>
                 <h2>Welcome to Gateway Linen!</h2>
                 <p>Hello <b>{$fullName}</b>,</p>
-                <p>Thank you for registering an account with Gateway Linen. We are excited to have you.</p>
+                <p>Thank you for registering an account with Gateway Linen. We are excited to have you as our wholesale partner.</p>
                 <div class='credentials'>
-                    <p><b>Your Login Credentials:</b></p>
-                    <p><b>Email:</b> {$to}</p>
-                    <p><b>Password:</b> {$plainPassword}</p>
+                    <p><b>Your Registered Email:</b> {$to}</p>
+                    <p style='color: #28a745; font-weight: bold;'>You can now log in securely using your email OTP. No passwords to remember!</p>
                 </div>
-                <p>You can now sign in to your dashboard anytime.</p>
+                <p>You can now sign in to your dashboard anytime using just your email.</p>
                 <p>Best regards,<br><b>Gateway Linen Team</b></p>
             </div>
         </body>
@@ -102,7 +101,7 @@ function sendWelcomeEmail($to, $fullName, $plainPassword)
 
     $headers  = "MIME-Version: 1.0\r\n";
     $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: Gateway Linen Support <{$senderEmail}>\r\n";
+    $headers .= "From: Gateway Linen <{$senderEmail}>\r\n";
     $headers .= "To: <{$to}>\r\n";
     $headers .= "Subject: {$subject}\r\n\r\n";
 
@@ -121,25 +120,23 @@ function sendWelcomeEmail($to, $fullName, $plainPassword)
     }
 }
 
-// GatewayLinenadmin-main/includes/mailer.php (Existing code ke niche add karein)
-
-function sendOTPEmail($to, $fullName, $otp)
+function sendLoginOTPEmail($to, $fullName, $otp)
 {
     $senderEmail = "gatewaylinen@gmail.com";
     $appPassword = "lndx lhfo iqyv ztqp";
-    $subject = "Your Password Reset OTP";
+    $subject = "Gateway Linen - Your Secure Login OTP";
 
     $messageBody = "
         <html>
         <body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
             <div style='background-color: #ffffff; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto; border-top: 4px solid #031D44;'>
-                <h2 style='color: #031D44;'>Password Reset Request</h2>
+                <h2 style='color: #031D44;'>Secure Login Authentication</h2>
                 <p>Hello <b>{$fullName}</b>,</p>
-                <p>We received a request to reset your Gateway Linen password. Your 6-digit OTP is:</p>
-                <div style='background-color: #FAFAFA; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin: 20px 0; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; color: #031D44;'>
+                <p style='color: #555; font-size: 14px;'>This OTP is for your login and it's 100% secure. Please do not share it with anyone.</p>
+                <div style='background-color: #FAF7F2; padding: 15px; border-radius: 8px; border: 1px solid #B58E58; margin: 20px 0; text-align: center; font-size: 28px; letter-spacing: 5px; font-weight: bold; color: #031D44;'>
                     {$otp}
                 </div>
-                <p>This OTP is valid for 10 minutes. If you didn't request this, please ignore this email.</p>
+                <p style='color: #777; font-size: 12px;'>This OTP is valid for 10 minutes. If you didn't request this, please ignore this email.</p>
                 <p>Best regards,<br><b>Gateway Linen Team</b></p>
             </div>
         </body>
@@ -190,66 +187,4 @@ function sendOTPEmail($to, $fullName, $otp)
     @fwrite($socket, "QUIT\r\n");
     @fclose($socket);
     return strpos($data_res, '250') !== false;
-}
-
-function sendPasswordChangedEmail($to, $fullName)
-{
-    $senderEmail = "gatewaylinen@gmail.com";
-    $appPassword = "lndx lhfo iqyv ztqp";
-    $subject = "Password Changed Successfully";
-
-    $messageBody = "
-        <html>
-        <body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
-            <div style='background-color: #ffffff; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto; border-top: 4px solid #008000;'>
-                <h2 style='color: #008000;'>Password Updated</h2>
-                <p>Hello <b>{$fullName}</b>,</p>
-                <p>Your Gateway Linen account password has been changed successfully.</p>
-                <p>If you did not make this change, please contact support immediately.</p>
-                <p>Best regards,<br><b>Gateway Linen Team</b></p>
-            </div>
-        </body>
-        </html>
-    ";
-
-    $context = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true]]);
-    $socket = @stream_socket_client("ssl://smtp.gmail.com:465", $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context);
-    if (!$socket) return false;
-    $readResponse = function ($sock) {
-        $res = '';
-        while ($line = @fgets($sock, 515)) {
-            $res .= $line;
-            if (substr($line, 3, 1) === ' ') break;
-        }
-        return $res;
-    };
-    $readResponse($socket);
-    @fwrite($socket, "EHLO smtp.gmail.com\r\n");
-    $readResponse($socket);
-    @fwrite($socket, "AUTH LOGIN\r\n");
-    $readResponse($socket);
-    @fwrite($socket, base64_encode($senderEmail) . "\r\n");
-    $readResponse($socket);
-    @fwrite($socket, base64_encode($appPassword) . "\r\n");
-    $auth = $readResponse($socket);
-    if (strpos($auth, '235') === false) {
-        @fclose($socket);
-        return false;
-    }
-    @fwrite($socket, "MAIL FROM: <{$senderEmail}>\r\n");
-    $readResponse($socket);
-    @fwrite($socket, "RCPT TO: <{$to}>\r\n");
-    $rcpt = $readResponse($socket);
-    if (strpos($rcpt, '250') === false) {
-        @fclose($socket);
-        return false;
-    }
-    @fwrite($socket, "DATA\r\n");
-    $readResponse($socket);
-    $headers = "MIME-Version: 1.0\r\nContent-type: text/html; charset=UTF-8\r\nFrom: Gateway Linen <{$senderEmail}>\r\nTo: <{$to}>\r\nSubject: {$subject}\r\n\r\n";
-    @fwrite($socket, $headers . $messageBody . "\r\n.\r\n");
-    $readResponse($socket);
-    @fwrite($socket, "QUIT\r\n");
-    @fclose($socket);
-    return true;
 }

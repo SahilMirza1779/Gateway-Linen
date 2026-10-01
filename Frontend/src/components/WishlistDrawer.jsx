@@ -1,100 +1,148 @@
+import { FiX, FiTrash2, FiHeart, FiShoppingCart } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../context/WishlistContext";
-import { FiX, FiTrash2, FiShoppingCart } from "react-icons/fi";
 import { useCart } from "../context/CartContext";
 
 const WishlistDrawer = () => {
+  const navigate = useNavigate();
   const {
-    wishlistItems,
     isWishlistOpen,
     toggleWishlistDrawer,
+    wishlistItems,
     removeFromWishlist,
   } = useWishlist();
-  const { addToCart } = useCart();
+  const { addToCart, toggleCart } = useCart();
 
   if (!isWishlistOpen) return null;
 
+  const handleMoveToCart = (item) => {
+    // Add to cart with default quantity 1
+    addToCart({ ...item, quantity: 1 });
+    // Remove from wishlist
+    removeFromWishlist(item.id);
+    // Close wishlist and open cart optionally (if you want seamless flow)
+    toggleWishlistDrawer();
+    setTimeout(() => {
+      toggleCart();
+    }, 300);
+  };
+
   return (
-    <div className="fixed inset-0 z-[250] flex justify-end font-sans">
+    <div className="fixed inset-0 z-[300] flex justify-end font-sans">
+      {/* Dark Overlay */}
       <div
         onClick={toggleWishlistDrawer}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer"
       ></div>
 
-      <div className="relative w-full max-w-md bg-[#FAF7F2] h-full shadow-2xl flex flex-col z-10 border-l border-[#E5DCD0] animate-in slide-in-from-right duration-300">
+      {/* Drawer Panel */}
+      <div className="relative w-full sm:w-[400px] h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="bg-[#031D44] text-white px-6 py-5 flex justify-between items-center shadow-md">
-          <h2 className="text-base font-serif font-bold tracking-wide">
-            Your Saved Wishlist
+        <div className="flex justify-between items-center p-5 border-b border-[#E5DCD0] bg-[#FAF7F2]">
+          <h2 className="text-lg font-serif font-bold text-[#031D44] flex items-center gap-2">
+            <FiHeart className="text-[#B58E58]" /> Your Wishlist
+            <span className="bg-[#B58E58] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full ml-1 font-sans">
+              {wishlistItems.length}
+            </span>
           </h2>
           <button
             onClick={toggleWishlistDrawer}
-            className="text-gray-300 hover:text-white bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer"
+            className="p-2 bg-white border border-[#E5DCD0] text-gray-500 hover:text-[#031D44] hover:bg-gray-50 rounded-full transition-colors cursor-pointer shadow-sm"
           >
             <FiX size={18} />
           </button>
         </div>
 
-        {/* Wishlist Items List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Wishlist Items (Scrollable Body) */}
+        <div className="flex-1 overflow-y-auto p-5 bg-white custom-scrollbar">
           {wishlistItems.length === 0 ? (
-            <div className="text-center py-24 text-gray-500 font-light text-sm">
-              Your wishlist is currently empty.
+            <div className="flex flex-col items-center justify-center h-full text-center opacity-70">
+              <div className="w-20 h-20 bg-[#FAF7F2] rounded-full flex items-center justify-center mb-4">
+                <FiHeart size={32} className="text-[#B58E58]" />
+              </div>
+              <p className="text-[#031D44] font-bold text-lg mb-2">
+                Wishlist is empty
+              </p>
+              <p className="text-xs text-gray-500 mb-6 font-light">
+                Save your favorite hotel linens here for later.
+              </p>
+              <button
+                onClick={() => {
+                  toggleWishlistDrawer();
+                  navigate("/products");
+                }}
+                className="px-6 py-3 bg-[#031D44] text-white text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-[#B58E58] transition-colors shadow-md cursor-pointer"
+              >
+                Browse Products
+              </button>
             </div>
           ) : (
-            wishlistItems.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-4 rounded-2xl border border-[#E5DCD0] shadow-2xs flex gap-4 items-center"
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-16 h-16 object-cover rounded-xl border border-[#E5DCD0] shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-bold text-[#031D44] truncate">
-                    {item.name}
-                  </h4>
-                  <p className="text-xs font-bold text-[#B58E58] mt-1">
-                    {item.price}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
+            <div className="space-y-4">
+              {wishlistItems.map((item, index) => (
+                <div
+                  key={item.id || index}
+                  className="flex gap-4 p-3 bg-white border border-[#E5DCD0] rounded-2xl shadow-sm relative group"
+                >
+                  {/* Product Image */}
+                  <div
                     onClick={() => {
-                      addToCart(
-                        item,
-                        1,
-                        "Standard",
-                        Number(item.price.replace(/[^0-9.]/g, "")) || 20,
-                      );
-                      removeFromWishlist(item.id);
+                      toggleWishlistDrawer();
+                      navigate(`/product/${item.id}`);
                     }}
-                    className="p-2 bg-[#031D44] text-white rounded-xl hover:bg-[#B58E58] transition-colors cursor-pointer shadow-2xs"
-                    title="Move to Cart"
+                    className="w-20 h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-[#E5DCD0] cursor-pointer"
                   >
-                    <FiShoppingCart size={14} />
-                  </button>
+                    <img
+                      src={
+                        item.image ||
+                        item.resolvedImages?.[0] ||
+                        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=300&auto=format&fit=crop"
+                      }
+                      alt={item.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="flex-1 flex flex-col justify-between py-1">
+                    <div
+                      className="pr-6 cursor-pointer"
+                      onClick={() => {
+                        toggleWishlistDrawer();
+                        navigate(`/product/${item.id}`);
+                      }}
+                    >
+                      <h4 className="text-[13px] font-bold text-[#031D44] line-clamp-2 leading-tight hover:text-[#B58E58] transition-colors">
+                        {item.name}
+                      </h4>
+                      <p className="text-sm font-bold text-[#B58E58] mt-1.5">
+                        ${" "}
+                        {parseFloat(item.price || item.basePrice || 0).toFixed(
+                          2,
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="mt-3">
+                      <button
+                        onClick={() => handleMoveToCart(item)}
+                        className="w-full py-2 bg-[#FAF7F2] border border-[#031D44] text-[#031D44] hover:bg-[#031D44] hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                      >
+                        <FiShoppingCart size={12} /> Add to Cart
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Remove Button */}
                   <button
                     onClick={() => removeFromWishlist(item.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                    className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors cursor-pointer bg-white rounded-full p-1 shadow-xs border border-transparent hover:border-red-100"
                   >
                     <FiTrash2 size={14} />
                   </button>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 bg-white border-t border-[#E5DCD0] shadow-inner">
-          <button
-            onClick={toggleWishlistDrawer}
-            className="w-full py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-md transition-all cursor-pointer"
-          >
-            Close Wishlist
-          </button>
         </div>
       </div>
     </div>

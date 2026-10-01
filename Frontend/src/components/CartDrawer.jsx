@@ -1,126 +1,174 @@
-import { useCart } from "../context/CartContext";
-import { FiX, FiTrash2 } from "react-icons/fi";
+import { FiX, FiTrash2, FiMinus, FiPlus, FiShoppingBag } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 const CartDrawer = () => {
-  const { cartItems, isCartOpen, toggleCart, removeFromCart, updateQuantity } =
-    useCart();
   const navigate = useNavigate();
+  const { isCartOpen, toggleCart, cartItems, updateQuantity, removeFromCart } =
+    useCart();
 
   if (!isCartOpen) return null;
 
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (total, item) =>
+      total + parseFloat(item.price || item.basePrice || 0) * item.quantity,
     0,
   );
 
+  const handleCheckout = () => {
+    toggleCart();
+    navigate("/checkout");
+  };
+
   return (
-    <div className="fixed inset-0 z-[250] flex justify-end font-sans">
+    <div className="fixed inset-0 z-[300] flex justify-end font-sans">
+      {/* Dark Overlay */}
       <div
         onClick={toggleCart}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer"
       ></div>
 
-      <div className="relative w-full max-w-md bg-[#FAF7F2] h-full shadow-2xl flex flex-col z-10 border-l border-[#E5DCD0] animate-in slide-in-from-right duration-300">
+      {/* Drawer Panel */}
+      <div className="relative w-full sm:w-[400px] h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="bg-[#031D44] text-white px-6 py-5 flex justify-between items-center shadow-md">
-          <h2 className="text-base font-serif font-bold tracking-wide">
-            Your Shopping Cart
+        <div className="flex justify-between items-center p-5 border-b border-[#E5DCD0] bg-[#FAF7F2]">
+          <h2 className="text-lg font-serif font-bold text-[#031D44] flex items-center gap-2">
+            <FiShoppingBag className="text-[#B58E58]" /> Shopping Cart
+            <span className="bg-[#031D44] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full ml-1 font-sans">
+              {cartItems.length}
+            </span>
           </h2>
           <button
             onClick={toggleCart}
-            className="text-gray-300 hover:text-white bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer"
+            className="p-2 bg-white border border-[#E5DCD0] text-gray-500 hover:text-[#031D44] hover:bg-gray-50 rounded-full transition-colors cursor-pointer shadow-sm"
           >
             <FiX size={18} />
           </button>
         </div>
 
-        {/* Cart Items List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Cart Items (Scrollable Body) */}
+        <div className="flex-1 overflow-y-auto p-5 bg-white custom-scrollbar">
           {cartItems.length === 0 ? (
-            <div className="text-center py-24 text-gray-500 font-light text-sm">
-              Your shopping cart is empty.
+            <div className="flex flex-col items-center justify-center h-full text-center opacity-70">
+              <div className="w-20 h-20 bg-[#FAF7F2] rounded-full flex items-center justify-center mb-4">
+                <FiShoppingBag size={32} className="text-[#B58E58]" />
+              </div>
+              <p className="text-[#031D44] font-bold text-lg mb-2">
+                Your cart is empty
+              </p>
+              <p className="text-xs text-gray-500 mb-6 font-light">
+                Looks like you haven't added any premium linens yet.
+              </p>
+              <button
+                onClick={() => {
+                  toggleCart();
+                  navigate("/products");
+                }}
+                className="px-6 py-3 bg-[#031D44] text-white text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-[#B58E58] transition-colors shadow-md cursor-pointer"
+              >
+                Start Shopping
+              </button>
             </div>
           ) : (
-            cartItems.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-4 rounded-2xl border border-[#E5DCD0] shadow-2xs flex gap-4 items-center"
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-16 h-16 object-cover rounded-xl border border-[#E5DCD0] shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-bold text-[#031D44] truncate">
-                    {item.name}
-                  </h4>
-                  <p className="text-[10px] text-gray-500 mt-0.5">
-                    Size: {item.size || "Standard"}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <div className="flex items-center border border-[#E5DCD0] rounded-lg bg-gray-50 overflow-hidden">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
-                        }
-                        className="px-2 py-0.5 text-xs font-bold hover:bg-gray-200 cursor-pointer"
-                      >
-                        -
-                      </button>
-                      <span className="px-3 text-xs font-bold text-[#031D44]">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
-                        }
-                        className="px-2 py-0.5 text-xs font-bold hover:bg-gray-200 cursor-pointer"
-                      >
-                        +
-                      </button>
+            <div className="space-y-4">
+              {cartItems.map((item, index) => (
+                <div
+                  key={item.id || index}
+                  className="flex gap-4 p-3 bg-white border border-[#E5DCD0] rounded-2xl shadow-sm relative group"
+                >
+                  {/* Product Image */}
+                  <div className="w-20 h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-[#E5DCD0]">
+                    <img
+                      src={
+                        item.image ||
+                        item.resolvedImages?.[0] ||
+                        "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=300&auto=format&fit=crop"
+                      }
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="flex-1 flex flex-col justify-between py-1">
+                    <div className="pr-6">
+                      <h4 className="text-[13px] font-bold text-[#031D44] line-clamp-2 leading-tight">
+                        {item.name}
+                      </h4>
+                      <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider font-medium">
+                        Unit: {item.unit || "EACH"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-end justify-between mt-3">
+                      {/* Quantity Selector */}
+                      <div className="flex items-center bg-[#FAF7F2] border border-[#E5DCD0] rounded-lg">
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity - 1)
+                          }
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-[#031D44] hover:bg-gray-100 rounded-l-lg transition-colors cursor-pointer"
+                        >
+                          <FiMinus size={12} />
+                        </button>
+                        <span className="w-8 text-center text-xs font-bold text-[#031D44]">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-[#031D44] hover:bg-gray-100 rounded-r-lg transition-colors cursor-pointer"
+                        >
+                          <FiPlus size={12} />
+                        </button>
+                      </div>
+
+                      {/* Price */}
+                      <div className="text-right">
+                        <span className="text-sm font-bold text-[#B58E58]">
+                          ${" "}
+                          {(
+                            parseFloat(item.price || item.basePrice || 0) *
+                            item.quantity
+                          ).toFixed(2)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold text-[#B58E58] mb-2">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </p>
+
+                  {/* Remove Button */}
                   <button
                     onClick={() => removeFromCart(item.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                    className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors cursor-pointer bg-white rounded-full p-1 shadow-xs border border-transparent hover:border-red-100"
                   >
                     <FiTrash2 size={14} />
                   </button>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Footer & Checkout */}
+        {/* Footer (Sticky Checkout Box) */}
         {cartItems.length > 0 && (
-          <div className="p-6 bg-white border-t border-[#E5DCD0] shadow-inner space-y-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="font-bold text-gray-600 uppercase tracking-widest text-xs">
+          <div className="border-t border-[#E5DCD0] bg-[#FAF7F2] p-5">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-600">
                 Subtotal
               </span>
-              <span className="font-serif font-bold text-lg text-[#031D44]">
+              <span className="text-xl font-serif font-bold text-[#031D44]">
                 ${subtotal.toFixed(2)}
               </span>
             </div>
-            <p className="text-[10px] text-gray-400 font-light">
-              Shipping and commercial taxes calculated at checkout.
+            <p className="text-[10px] text-gray-500 mb-5 font-light">
+              Taxes and shipping calculated at checkout.
             </p>
             <button
-              onClick={() => {
-                toggleCart();
-                navigate("/checkout");
-              }}
-              className="w-full py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-md transition-all cursor-pointer"
+              onClick={handleCheckout}
+              className="w-full py-4 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all shadow-md cursor-pointer"
             >
-              Proceed to Checkout
+              Proceed To Checkout
             </button>
           </div>
         )}

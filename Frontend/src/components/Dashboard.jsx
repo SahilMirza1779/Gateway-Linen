@@ -649,7 +649,7 @@ const Dashboard = () => {
                 Customer Portal
               </span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#031D44]">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#031D44]">
               Account Dashboard
             </h1>
             <p className="text-xs text-gray-500 font-light mt-1">
@@ -659,22 +659,22 @@ const Dashboard = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-red-50 text-red-600 border border-[#E5DCD0] hover:border-red-200 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-2xs"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-red-50 text-red-600 border border-[#E5DCD0] hover:border-red-200 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-2xs"
           >
             <FiLogOut size={15} /> Secure Logout
           </button>
         </div>
 
         {/* Profile Details Card */}
-        <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-[32px] p-6 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
-          <div className="flex items-center gap-4 mb-8 pb-6 border-b border-[#E5DCD0]">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center text-xl md:text-2xl font-bold shadow-md">
+        <div className="bg-[#FAF7F2] rounded-[20px] md:rounded-[32px] p-5 sm:p-8 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
+          <div className="flex items-center gap-4 mb-6 md:mb-8 pb-5 md:pb-6 border-b border-[#E5DCD0]">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center text-lg sm:text-xl md:text-2xl font-bold shadow-md shrink-0">
               {formData.fullName
                 ? formData.fullName.charAt(0).toUpperCase()
                 : "U"}
             </div>
-            <div>
-              <h2 className="text-xl font-serif font-bold text-[#031D44]">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-serif font-bold text-[#031D44] truncate">
                 {formData.fullName || "User Profile"}
               </h2>
               <p className="text-xs text-[#4A5D4E] font-medium flex items-center gap-1.5 mt-1">
@@ -691,10 +691,10 @@ const Dashboard = () => {
             </div>
           )}
 
-          <form onSubmit={handleUpdate} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <form onSubmit={handleUpdate} className="space-y-4 md:space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
               <div>
-                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5 sm:mb-2">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -713,7 +713,7 @@ const Dashboard = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5 sm:mb-2">
                   Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -732,7 +732,7 @@ const Dashboard = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-2">
+                <label className="block text-[10px] font-bold text-[#031D44] uppercase tracking-widest mb-1.5 sm:mb-2">
                   Phone Number
                 </label>
                 <div className="relative">
@@ -764,14 +764,14 @@ const Dashboard = () => {
         </div>
 
         {/* SAVED SHIPPING ADDRESSES SECTION */}
-        <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-[32px] p-6 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
+        <div className="bg-[#FAF7F2] rounded-[20px] md:rounded-[32px] p-5 sm:p-8 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#E5DCD0]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white text-[#031D44] rounded-xl flex items-center justify-center shrink-0 border border-[#E5DCD0] shadow-2xs">
                 <FiMapPin size={18} className="text-[#B58E58]" />
               </div>
               <div>
-                <h2 className="text-lg font-serif font-bold text-[#031D44]">
+                <h2 className="text-base sm:text-lg font-serif font-bold text-[#031D44]">
                   Saved Shipping Addresses
                 </h2>
                 <p className="text-[11px] text-gray-500 font-light">
@@ -853,13 +853,13 @@ const Dashboard = () => {
         </div>
 
         {/* BULK QUOTES SECTION */}
-        <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-[32px] p-6 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
+        <div className="bg-[#FAF7F2] rounded-[20px] md:rounded-[32px] p-5 sm:p-8 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#E5DCD0] text-[#031D44]">
             <div className="w-10 h-10 bg-white text-[#031D44] rounded-xl flex items-center justify-center shrink-0 border border-[#E5DCD0] shadow-2xs">
               <FiFileText size={18} className="text-[#B58E58]" />
             </div>
             <div>
-              <h2 className="text-lg font-serif font-bold text-[#031D44]">
+              <h2 className="text-base sm:text-lg font-serif font-bold text-[#031D44]">
                 My Bulk Commercial Quotes
               </h2>
               <p className="text-[11px] text-gray-500 font-light">
@@ -915,7 +915,7 @@ const Dashboard = () => {
                       </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
                       <span className="text-base font-serif font-bold text-[#031D44]">
                         CAD ${Number(quote.totalAmount).toFixed(2)}
                       </span>
@@ -937,13 +937,13 @@ const Dashboard = () => {
         </div>
 
         {/* BUYING HISTORY SECTION (ORDERS) */}
-        <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-[32px] p-6 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
+        <div className="bg-[#FAF7F2] rounded-[20px] md:rounded-[32px] p-5 sm:p-8 md:p-10 border border-[#E5DCD0] shadow-sm mb-8">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#E5DCD0] text-[#031D44]">
             <div className="w-10 h-10 bg-white text-[#031D44] rounded-xl flex items-center justify-center shrink-0 border border-[#E5DCD0] shadow-2xs">
               <FiShoppingBag size={18} className="text-[#B58E58]" />
             </div>
             <div>
-              <h2 className="text-lg font-serif font-bold text-[#031D44]">
+              <h2 className="text-base sm:text-lg font-serif font-bold text-[#031D44]">
                 Buying History & Orders
               </h2>
               <p className="text-[11px] text-gray-500 font-light">
@@ -1007,39 +1007,40 @@ const Dashboard = () => {
                       order.items.map((item, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-4 bg-[#FAF7F2] p-3 rounded-xl border border-[#E5DCD0]"
+                          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#FAF7F2] p-3 rounded-xl border border-[#E5DCD0]"
                         >
-                          <div className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-[#E5DCD0] flex items-center justify-center shrink-0">
-                            {item.image ? (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <FiShoppingBag
-                                className="text-gray-400"
-                                size={18}
-                              />
-                            )}
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-12 h-12 bg-white rounded-lg overflow-hidden border border-[#E5DCD0] flex items-center justify-center shrink-0">
+                              {item.image ? (
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <FiShoppingBag
+                                  className="text-gray-400"
+                                  size={18}
+                                />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-[#031D44] truncate">
+                                {item.name}
+                              </p>
+                              <p className="text-[10px] text-gray-500 font-light mt-0.5">
+                                Qty: {item.cartQuantity} × CAD $
+                                {Number(item.price).toFixed(2)}
+                              </p>
+                              <button
+                                onClick={() => handleOpenReview(item)}
+                                className="mt-1 text-[10px] text-[#B58E58] hover:text-[#031D44] underline font-bold transition-colors cursor-pointer inline-block"
+                              >
+                                Write a Review
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-[#031D44] truncate">
-                              {item.name}
-                            </p>
-                            <p className="text-[10px] text-gray-500 font-light mt-0.5">
-                              Qty: {item.cartQuantity} × CAD $
-                              {Number(item.price).toFixed(2)}
-                            </p>
-
-                            <button
-                              onClick={() => handleOpenReview(item)}
-                              className="mt-1 text-[10px] text-[#B58E58] hover:text-[#031D44] underline font-bold transition-colors cursor-pointer inline-block"
-                            >
-                              Write a Review
-                            </button>
-                          </div>
-                          <div className="text-xs font-bold text-[#031D44]">
+                          <div className="text-xs font-bold text-[#031D44] self-end sm:self-center">
                             CAD ${(item.cartQuantity * item.price).toFixed(2)}
                           </div>
                         </div>
@@ -1058,7 +1059,7 @@ const Dashboard = () => {
 
         {/* DANGER ZONE - DELETE ACCOUNT */}
         <div className="pt-2">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-red-50 border border-red-200 p-6 rounded-[24px] shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-red-50 border border-red-200 p-6 rounded-[20px] md:rounded-[24px] shadow-sm">
             <div>
               <h3 className="text-sm font-bold text-red-700 flex items-center gap-2">
                 <FiAlertTriangle size={18} /> Delete Account Permanently
@@ -1082,7 +1083,7 @@ const Dashboard = () => {
       {/* --- WRITE A REVIEW MODAL --- */}
       {isReviewModalOpen && selectedProductToReview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#FAF7F2] border border-[#E5DCD0] rounded-[24px] max-w-md w-full p-8 shadow-2xl relative animate-in zoom-in-95">
+          <div className="bg-[#FAF7F2] border border-[#E5DCD0] rounded-[24px] max-w-md w-full p-6 md:p-8 shadow-2xl relative animate-in zoom-in-95">
             <button
               onClick={() => setIsReviewModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-[#031D44] bg-white p-2 rounded-full transition-colors cursor-pointer border border-[#E5DCD0] shadow-sm"

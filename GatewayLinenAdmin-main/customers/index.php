@@ -30,14 +30,6 @@ function e($value)
     return htmlspecialchars((string) $value, ENT_QUOTES, "UTF-8");
 }
 
-function dateValue($value): string
-{
-    if ($value instanceof DateTimeInterface) {
-        return $value->format('d M Y, h:i A');
-    }
-    return !empty($value) ? date('d M Y, h:i A', strtotime($value)) : '—';
-}
-
 /*
 |--------------------------------------------------------------------------
 | HANDLE BLOCK / UNBLOCK ACTION
@@ -116,354 +108,732 @@ require_once __DIR__ . "/../includes/sidebar.php";
 ?>
 
 <style>
-    :root {
-        --bg-page: #0a1119;
-        --bg-card: #111b26;
-        --bg-card-alt: #0f1823;
-        --bg-input: #0d1620;
-        --bg-hover: #16222e;
-        --border: #1e2d3d;
-        --border-soft: #182636;
-        --text-hi: #f0f4f8;
-        --text-body: #a8b8c8;
-        --text-mute: #5f7488;
-        --green: #10b981;
-        --green-soft: rgba(16, 185, 129, .12);
-        --blue: #38bdf8;
-        --blue-soft: rgba(56, 189, 248, .15);
-        --red: #ef4444;
-        --red-soft: rgba(239, 68, 68, .12);
-        --radius: 10px;
-    }
+/* =========================================================
+   GatewayLinen Customers Management
+   Theme system follows the same pattern as Categories:
+   - Light variables on .customers-page
+   - Dark variables when html/body has data-theme="dark"
+     or .dark / .dark-mode
+   - Parent layout also changes so there is no dark/white mix
+   ========================================================= */
 
-    html, body, .main, .content {
-        background: var(--bg-page) !important;
-        color: var(--text-body) !important;
-    }
+.customers-page,
+.customers-page * { box-sizing: border-box; }
 
-    .customers-page {
-        width: 100%;
-        max-width: 1600px;
-        margin: 0 auto;
-        padding: 0;
-    }
+.customers-page {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0;
+    font-size: 13px;
 
-    .customers-page * { box-sizing: border-box; }
+    /* LIGHT THEME */
+    --cust-page: #f3f6fa;
+    --cust-card: #ffffff;
+    --cust-card-alt: #f8fafc;
+    --cust-input: #ffffff;
+    --cust-hover: #f8fafc;
+    --cust-border: #dce4ec;
+    --cust-border-soft: #e8edf3;
+    --cust-text: #162334;
+    --cust-body: #536579;
+    --cust-muted: #7b8da1;
+    --cust-green: #059669;
+    --cust-green-soft: rgba(5,150,105,.10);
+    --cust-red: #dc2626;
+    --cust-red-soft: rgba(220,38,38,.09);
+    --cust-blue: #0284c7;
+    --cust-blue-soft: rgba(2,132,199,.09);
+    --cust-shadow: 0 5px 18px rgba(15,23,42,.05);
+    --cust-overlay: rgba(15,23,42,.60);
+}
 
-    /* HEADER */
-    .page-header {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 24px;
-        margin-bottom: 20px;
-        padding-bottom: 18px;
-        border-bottom: 1px solid var(--border);
-    }
+/* =========================================================
+   DARK THEME - EXACT CATEGORY STYLE
+   ========================================================= */
+html[data-theme="dark"] .customers-page,
+body[data-theme="dark"] .customers-page,
+html.dark .customers-page,
+body.dark .customers-page,
+html.dark-mode .customers-page,
+body.dark-mode .customers-page,
+html.theme-dark .customers-page,
+body.theme-dark .customers-page {
+    --cust-page: #0a1119;
+    --cust-card: #111b26;
+    --cust-card-alt: #0f1823;
+    --cust-input: #0d1620;
+    --cust-hover: #142333;
+    --cust-border: #1e2d3d;
+    --cust-border-soft: #182636;
+    --cust-text: #f0f4f8;
+    --cust-body: #a8b8c8;
+    --cust-muted: #6f8295;
+    --cust-green: #10b981;
+    --cust-green-soft: rgba(16,185,129,.12);
+    --cust-red: #ef4444;
+    --cust-red-soft: rgba(239,68,68,.12);
+    --cust-blue: #38bdf8;
+    --cust-blue-soft: rgba(56,189,248,.12);
+    --cust-shadow: none;
+    --cust-overlay: rgba(0,0,0,.72);
+}
 
-    .breadcrumb {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-        color: var(--text-mute);
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .3px;
-    }
-    .breadcrumb .current { color: var(--green); }
+/* =========================================================
+   LIGHT THEME - EXPLICIT
+   ========================================================= */
+html[data-theme="light"] .customers-page,
+body[data-theme="light"] .customers-page,
+html.light .customers-page,
+body.light .customers-page,
+html.light-mode .customers-page,
+body.light-mode .customers-page,
+html.theme-light .customers-page,
+body.theme-light .customers-page {
+    --cust-page: #f3f6fa;
+    --cust-card: #ffffff;
+    --cust-card-alt: #f8fafc;
+    --cust-input: #ffffff;
+    --cust-hover: #f8fafc;
+    --cust-border: #dce4ec;
+    --cust-border-soft: #e8edf3;
+    --cust-text: #162334;
+    --cust-body: #536579;
+    --cust-muted: #7b8da1;
+    --cust-green: #059669;
+    --cust-green-soft: rgba(5,150,105,.10);
+    --cust-red: #dc2626;
+    --cust-red-soft: rgba(220,38,38,.09);
+    --cust-blue: #0284c7;
+    --cust-blue-soft: rgba(2,132,199,.09);
+    --cust-shadow: 0 5px 18px rgba(15,23,42,.05);
+    --cust-overlay: rgba(15,23,42,.60);
+}
 
-    .page-title {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 26px;
-        font-weight: 800;
-    }
+/* PAGE + CONTENT AREA */
+.customers-page {
+    background: var(--cust-page);
+    color: var(--cust-body);
+}
 
-    .page-subtitle {
-        margin: 6px 0 0;
-        color: var(--text-mute);
-        font-size: 12px;
-    }
+/* The page shell follows the selected theme too. */
+html[data-theme="light"] body .main,
+html[data-theme="light"] body .content,
+body[data-theme="light"] .main,
+body[data-theme="light"] .content,
+html.light .main,
+html.light .content,
+body.light .main,
+body.light .content,
+html.light-mode .main,
+html.light-mode .content,
+body.light-mode .main,
+body.light-mode .content,
+html.theme-light .main,
+html.theme-light .content,
+body.theme-light .main,
+body.theme-light .content {
+    background: #f3f6fa !important;
+    color: #536579 !important;
+}
 
-    /* BUTTONS */
-    .header-actions, .filters-wrap, .export-bar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    .header-actions { justify-content: flex-end; }
+html[data-theme="dark"] body .main,
+html[data-theme="dark"] body .content,
+body[data-theme="dark"] .main,
+body[data-theme="dark"] .content,
+html.dark .main,
+html.dark .content,
+body.dark .main,
+body.dark .content,
+html.dark-mode .main,
+html.dark-mode .content,
+body.dark-mode .main,
+body.dark-mode .content,
+html.theme-dark .main,
+html.theme-dark .content,
+body.theme-dark .main,
+body.theme-dark .content {
+    background: #0a1119 !important;
+    color: #a8b8c8 !important;
+}
 
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        min-height: 38px;
-        padding: 0 13px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--bg-input);
-        color: var(--text-body) !important;
-        font-size: 11px;
-        font-weight: 800;
-        text-decoration: none;
-        cursor: pointer;
-        transition: .18s;
-    }
-    .btn:hover {
-        border-color: var(--green);
-        background: var(--green-soft);
-        color: var(--green) !important;
-    }
-    .btn-blue { color: var(--blue) !important; }
+/* HEADER */
+.page-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:28px;
+    margin:0 0 18px;
+    padding:0 0 16px;
+    border-bottom:1px solid var(--cust-border);
+}
+.breadcrumb {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-bottom:7px;
+    color:var(--cust-muted);
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.45px;
+}
+.breadcrumb .current { color:var(--cust-green); }
 
-    /* STATS */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
+.page-title {
+    margin:0;
+    color:var(--cust-text);
+    font-size:30px;
+    font-weight:900;
+    letter-spacing:-.5px;
+}
+.page-subtitle {
+    margin:7px 0 0;
+    color:var(--cust-muted);
+    font-size:13px;
+    font-weight:600;
+}
+
+.header-actions,
+.filters-wrap,
+.export-bar {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.header-actions { justify-content:flex-end; }
+
+.btn {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    min-height:44px;
+    padding:0 15px;
+    border:1px solid var(--cust-border);
+    border-radius:9px;
+    background:var(--cust-card);
+    color:var(--cust-text) !important;
+    font-size:13px;
+    font-weight:900;
+    text-decoration:none;
+    cursor:pointer;
+    transition:.16s ease;
+    box-shadow:none;
+}
+.btn:hover {
+    border-color:var(--cust-green);
+    background:var(--cust-green-soft);
+    color:var(--cust-green) !important;
+}
+.btn small,
+.key-hint {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:21px;
+    height:21px;
+    padding:0 4px;
+    border:1px solid currentColor;
+    border-radius:4px;
+    font:800 9px/1 monospace;
+    opacity:.9;
+    background:transparent;
+    color:inherit;
+}
+
+/* STATS */
+.stats-grid {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+    margin-bottom:16px;
+}
+.stat-item {
+    display:flex;
+    align-items:center;
+    gap:14px;
+    min-height:92px;
+    padding:18px 20px;
+    background:var(--cust-card);
+    border:1px solid var(--cust-border);
+    border-radius:10px;
+    box-shadow:var(--cust-shadow);
+}
+.stat-icon {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:52px;
+    height:52px;
+    flex:0 0 52px;
+    border-radius:11px;
+    background:var(--cust-green-soft);
+    color:var(--cust-green);
+    font-size:18px;
+    font-weight:900;
+}
+.stat-label {
+    color:var(--cust-muted);
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+}
+.stat-value {
+    margin-top:2px;
+    color:var(--cust-text);
+    font-size:23px;
+    font-weight:900;
+}
+
+/* NOTICE */
+.alert-msg {
+    padding:12px 14px;
+    margin-bottom:14px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:800;
+}
+.alert-success {
+    background:var(--cust-green-soft);
+    color:var(--cust-green);
+    border:1px solid rgba(16,185,129,.30);
+}
+.alert-error {
+    background:var(--cust-red-soft);
+    color:var(--cust-red);
+    border:1px solid rgba(239,68,68,.30);
+}
+
+/* CONTENT CARD */
+.table-card {
+    background:var(--cust-card);
+    border:1px solid var(--cust-border);
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:var(--cust-shadow);
+}
+.content-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:20px;
+    background:var(--cust-card);
+    border-bottom:1px solid var(--cust-border);
+}
+.content-title h2 {
+    margin:0;
+    color:var(--cust-text);
+    font-size:17px;
+    font-weight:900;
+}
+.content-title p {
+    margin:4px 0 0;
+    color:var(--cust-muted);
+    font-size:12px;
+    font-weight:600;
+}
+
+/* SEARCH + FILTER */
+.search-wrap {
+    position:relative;
+    width:340px;
+}
+.search-icon {
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--cust-muted);
+    pointer-events:none;
+}
+.search-input,
+.status-filter {
+    height:44px;
+    border:1px solid var(--cust-border) !important;
+    border-radius:9px;
+    outline:none;
+    background:var(--cust-input) !important;
+    color:var(--cust-text) !important;
+    font-size:12px;
+    font-weight:600;
+}
+.search-input {
+    width:100%;
+    padding:0 45px 0 36px;
+}
+.search-input::placeholder { color:var(--cust-muted) !important; }
+.status-filter {
+    min-width:170px;
+    padding:0 12px;
+}
+.status-filter option {
+    background:var(--cust-input);
+    color:var(--cust-text);
+}
+.search-input:focus,
+.status-filter:focus {
+    border-color:var(--cust-green) !important;
+    box-shadow:0 0 0 3px rgba(16,185,129,.12);
+}
+.search-shortcut-badge {
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    min-width:21px;
+    padding:3px 5px;
+    background:var(--cust-card-alt);
+    border:1px solid var(--cust-border);
+    border-radius:4px;
+    color:var(--cust-muted);
+    font-size:9px;
+    font-weight:800;
+    text-align:center;
+    pointer-events:none;
+}
+
+/* SUMMARY */
+.table-summary {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 20px;
+    background:var(--cust-card-alt);
+    border-bottom:1px solid var(--cust-border);
+}
+.result-text {
+    color:var(--cust-muted);
+    font-size:11.5px;
+    font-weight:700;
+}
+.result-text strong { color:var(--cust-text); }
+
+/* TABLE */
+.table-wrapper {
+    width:100%;
+    overflow-x:auto;
+    background:var(--cust-card);
+}
+.data-table {
+    width:100%;
+    min-width:1100px;
+    border-collapse:collapse;
+    text-align:left;
+    background:var(--cust-card);
+}
+.data-table th {
+    height:46px;
+    padding:0 16px;
+    background:var(--cust-card-alt);
+    color:var(--cust-muted);
+    font-size:10.5px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    border-bottom:1px solid var(--cust-border);
+    white-space:nowrap;
+}
+.data-table td {
+    padding:14px 16px;
+    background:var(--cust-card);
+    color:var(--cust-body);
+    font-size:12.5px;
+    border-bottom:1px solid var(--cust-border-soft);
+    vertical-align:middle;
+}
+.data-table tr:hover td { background:var(--cust-hover); }
+.data-table tr.keyboard-selected {
+    outline:2px solid var(--cust-green);
+    outline-offset:-2px;
+    background:var(--cust-green-soft);
+}
+.order-box {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:36px;
+    height:32px;
+    padding:0 8px;
+    border-radius:6px;
+    background:var(--cust-card-alt);
+    border:1px solid var(--cust-border);
+    color:var(--cust-text);
+    font-size:11px;
+    font-weight:800;
+}
+.customer-name {
+    color:var(--cust-text);
+    font-weight:800;
+    font-size:13px;
+}
+.customer-email {
+    margin-top:2px;
+    color:var(--cust-muted);
+    font-size:11px;
+}
+
+/* STATUS */
+.badge {
+    display:inline-flex;
+    align-items:center;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:10.5px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+.badge-active {
+    background:var(--cust-green-soft);
+    color:var(--cust-green);
+    border:1px solid rgba(16,185,129,.22);
+}
+.badge-inactive {
+    background:var(--cust-red-soft);
+    color:var(--cust-red);
+    border:1px solid rgba(239,68,68,.22);
+}
+
+/* ACTIONS */
+.action-links {
+    display:flex;
+    gap:6px;
+    align-items:center;
+    justify-content:flex-end;
+}
+.action-btn {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;
+    height:34px;
+    border-radius:7px;
+    border:1px solid var(--cust-border);
+    background:var(--cust-input);
+    color:var(--cust-text);
+    cursor:pointer;
+    text-decoration:none;
+    font-size:12px;
+    transition:.15s ease;
+}
+.action-btn:hover {
+    border-color:var(--cust-blue);
+    color:var(--cust-blue);
+    background:var(--cust-blue-soft);
+}
+.action-btn.btn-block-action:hover {
+    border-color:var(--cust-red);
+    color:var(--cust-red);
+    background:var(--cust-red-soft);
+}
+.action-btn.btn-unblock-action:hover {
+    border-color:var(--cust-green);
+    color:var(--cust-green);
+    background:var(--cust-green-soft);
+}
+
+.empty-state,
+.no-result {
+    text-align:center;
+    padding:60px 20px;
+    color:var(--cust-muted);
+    background:var(--cust-card);
+}
+.empty-state h3,
+.no-result h3 {
+    margin:0 0 7px;
+    color:var(--cust-text);
+}
+.empty-state p,
+.no-result p {
+    margin:0;
+    color:var(--cust-muted);
+}
+
+/* PAGINATION */
+.table-footer {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:14px 20px;
+    background:var(--cust-card-alt);
+    border-top:1px solid var(--cust-border);
+}
+.pagination-controls {
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+.page-item {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:32px;
+    height:32px;
+    padding:0 8px;
+    border:1px solid var(--cust-border);
+    border-radius:6px;
+    background:var(--cust-input);
+    color:var(--cust-text);
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+.page-item:hover {
+    border-color:var(--cust-green);
+    color:var(--cust-green);
+}
+.rows-per-page {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--cust-muted);
+    font-size:12px;
+    font-weight:600;
+}
+.rows-select {
+    height:32px;
+    padding:0 8px;
+    border:1px solid var(--cust-border) !important;
+    border-radius:6px;
+    background:var(--cust-input) !important;
+    color:var(--cust-text) !important;
+    font-size:12px;
+}
+.rows-select option {
+    background:var(--cust-input);
+    color:var(--cust-text);
+}
+
+/* MODAL */
+.custom-modal-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:var(--cust-overlay);
+    backdrop-filter:blur(3px);
+}
+.custom-modal-overlay.show { display:flex; }
+.custom-modal-box {
+    width:100%;
+    max-width:400px;
+    padding:24px;
+    text-align:center;
+    background:var(--cust-card);
+    border:1px solid var(--cust-border);
+    border-radius:14px;
+    box-shadow:0 20px 40px rgba(0,0,0,.20);
+}
+.custom-modal-title {
+    margin-bottom:8px;
+    color:var(--cust-text);
+    font-size:17px;
+    font-weight:900;
+}
+.custom-modal-desc {
+    margin-bottom:20px;
+    color:var(--cust-muted);
+    font-size:13px;
+    line-height:1.5;
+}
+.custom-modal-desc b { color:var(--cust-text); }
+.custom-modal-actions {
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+.modal-btn {
+    padding:9px 18px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+}
+.modal-btn-cancel {
+    background:var(--cust-card-alt);
+    color:var(--cust-text);
+    border:1px solid var(--cust-border);
+}
+.modal-btn-cancel:hover {
+    background:var(--cust-hover);
+}
+.modal-btn-confirm {
+    color:#fff !important;
+    border:1px solid transparent;
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+@media print {
+    html,body,.main,.content,.customers-page {
+        background:#fff !important;
+        color:#111 !important;
     }
+    .sidebar,
+    .side-bar,
+    .topbar,
+    .top-bar,
+    .header,
+    .navbar,
+    .header-actions,
+    .filters-wrap,
+    .action-links,
+    .table-footer,
+    .custom-modal-overlay {
+        display:none !important;
+    }
+    .table-card,
     .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 15px 17px;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        box-shadow:none !important;
+        border:1px solid #ccc !important;
+        background:#fff !important;
     }
-    .stat-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        border-radius: 9px;
-        background: var(--green-soft);
-        color: var(--green);
-        font-size: 15px;
-        font-weight: 800;
-    }
-    .stat-label {
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-    .stat-value {
-        margin-top: 2px;
-        color: var(--text-hi);
-        font-size: 20px;
-        font-weight: 800;
-    }
-
-    /* NOTICE */
-    .alert-msg {
-        padding: 12px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 14px;
-    }
-    .alert-success { background: var(--green-soft); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, .3); }
-    .alert-error { background: var(--red-soft); color: #fca5a5; border: 1px solid rgba(239, 68, 68, .3); }
-
-    /* CONTENT BOX */
-    .table-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, .18);
-    }
-    .content-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 17px 20px;
-        border-bottom: 1px solid var(--border);
-    }
-    .content-title h2 { margin: 0; color: var(--text-hi); font-size: 16px; }
-    .content-title p { margin: 4px 0 0; color: var(--text-mute); font-size: 11px; }
-
-    /* SEARCH & FILTER */
-    .search-wrap { position: relative; width: 280px; }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-mute); pointer-events: none; }
-    .search-input, .status-filter {
-        height: 36px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        outline: none;
-        background: var(--bg-input);
-        color: var(--text-hi);
-        font-size: 12px;
-    }
-    .search-input { width: 100%; padding: 0 12px 0 34px; }
-    .status-filter { min-width: 125px; padding: 0 10px; }
-    .search-input:focus, .status-filter:focus {
-        border-color: var(--green);
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, .1);
-    }
-
-    /* EXPORT BAR */
-    .export-bar {
-        padding: 10px 20px;
-        border-bottom: 1px solid var(--border);
-        background: var(--bg-card-alt);
-    }
-    .export-label {
-        margin-right: auto;
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-    }
-
-    /* SUMMARY */
-    .table-summary {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 11px 20px;
-        border-bottom: 1px solid var(--border);
-    }
-    .result-text { color: var(--text-mute); font-size: 11px; font-weight: 600; }
-    .result-text strong { color: var(--text-hi); }
-
-    /* TABLE */
-    .table-wrapper { width: 100%; overflow-x: auto; }
-    .data-table { width: 100%; min-width: 1100px; border-collapse: collapse; text-align: left; }
     .data-table th {
-        height: 44px;
-        background: var(--bg-card-alt);
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .6px;
-        padding: 0 16px;
-        border-bottom: 1px solid var(--border);
-        white-space: nowrap;
+        background:#f1f1f1 !important;
+        color:#111 !important;
     }
     .data-table td {
-        padding: 13px 16px;
-        border-bottom: 1px solid var(--border-soft);
-        font-size: 12px;
-        color: var(--text-body);
-        vertical-align: middle;
+        background:#fff !important;
+        color:#222 !important;
     }
-    .data-table tr:hover td { background: var(--bg-hover); }
-    .data-table tr.keyboard-selected {
-        outline: 2px solid var(--green);
-        outline-offset: -2px;
-        background: var(--green-soft);
-    }
+}
 
-    .order-box {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 42px;
-        height: 28px;
-        padding: 0 9px;
-        border-radius: 7px;
-        background: var(--bg-input);
-        border: 1px solid var(--border);
-        color: var(--green);
-        font-size: 11px;
-        font-weight: 800;
+/* RESPONSIVE */
+@media (max-width:1000px) {
+    .stats-grid { grid-template-columns:1fr; }
+    .page-header,
+    .content-header {
+        align-items:stretch;
+        flex-direction:column;
     }
-
-    .customer-name { color: var(--text-hi); font-weight: 700; font-size: 13px; }
-    .customer-email { font-size: 10.5px; color: var(--text-mute); margin-top: 2px; }
-
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
+    .header-actions,
+    .filters-wrap {
+        justify-content:flex-start;
     }
-    .badge-active { background: var(--green-soft); color: var(--green); border: 1px solid rgba(16, 185, 129, .2); }
-    .badge-inactive { background: var(--red-soft); color: var(--red); border: 1px solid rgba(239, 68, 68, .2); }
-
-    .action-links { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
-    .btn-action {
-        padding: 6px 12px;
-        border-radius: 7px;
-        font-size: 11px;
-        font-weight: 700;
-        text-decoration: none;
-        border: 1px solid var(--border);
-        background: var(--bg-input);
-        color: var(--text-body);
-        cursor: pointer;
+    .search-wrap { width:min(100%,420px); }
+}
+@media (max-width:650px) {
+    .customers-page { padding:0 8px; }
+    .page-title { font-size:23px; }
+    .table-summary,
+    .table-footer {
+        flex-direction:column;
+        align-items:flex-start;
     }
-    .btn-action:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
-    .btn-block { border-color: rgba(239, 68, 68, 0.4); color: var(--red); }
-    .btn-block:hover { background: var(--red-soft); border-color: var(--red); color: var(--red); }
-    .btn-unblock { border-color: rgba(16, 185, 129, 0.4); color: var(--green); }
-    .btn-unblock:hover { background: var(--green-soft); border-color: var(--green); color: var(--green); }
-
-    .empty-state, .no-result { text-align: center; padding: 60px 20px; color: var(--text-mute); }
-
-    /* SHORTCUTS BOX */
-    .shortcut-help-box {
-        margin-top: 16px;
-        padding: 16px 20px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--bg-card);
+    .pagination-controls {
+        width:100%;
+        justify-content:flex-end;
     }
-    .shortcut-help-box.hidden { display: none; }
-    .shortcut-help-title {
-        display: flex; align-items: center; gap: 9px; margin-bottom: 12px; color: var(--text-hi); font-size: 13px; font-weight: 800;
-    }
-    .shortcut-help-title small { margin-left: auto; color: var(--text-mute); font: 600 10px monospace; }
-    .shortcut-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-    .shortcut-item {
-        display: flex; align-items: center; gap: 9px; padding: 8px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-input);
-    }
-    .shortcut-key {
-        display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 25px; padding: 0 7px; border-radius: 5px;
-        background: #0a1119; border: 1px solid var(--border); color: var(--green); font: 800 10px monospace;
-    }
-    .shortcut-desc { color: var(--text-body); font-size: 11px; font-weight: 600; }
-
-    /* MODAL */
-    .custom-modal-overlay {
-        display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, .75); backdrop-filter: blur(4px); z-index: 99999; justify-content: center; align-items: center; padding: 20px;
-    }
-    .custom-modal-overlay.show { display: flex; }
-    .custom-modal-box {
-        background: var(--bg-card); border: 1px solid var(--border); padding: 22px; border-radius: 14px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6); text-align: center;
-    }
-    .custom-modal-title { color: var(--text-hi); font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .custom-modal-desc { color: var(--text-mute); font-size: 12.5px; margin-bottom: 20px; line-height: 1.4; }
-    .custom-modal-actions { display: flex; gap: 10px; justify-content: center; }
-    .modal-btn { padding: 8px 18px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; border: none; }
-    .modal-btn-cancel { background: var(--bg-input); color: var(--text-mute); border: 1px solid var(--border); }
-    .modal-btn-cancel:hover { background: var(--bg-hover); color: var(--text-hi); }
-    .modal-btn-confirm { color: #ffffff; }
-
-    @media print {
-        @page { size: landscape; margin: 10mm; }
-        html, body, .main, .content { background: #fff !important; color: #111 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-        .customers-page { max-width: none !important; width: 100% !important; }
-        .page-header, .stats-grid, .content-header, .export-bar, .shortcut-help-box, .alert-msg, .custom-modal-overlay, th:last-child, td:last-child { display: none !important; }
-        .table-card { border: 0 !important; background: none !important; box-shadow: none !important; }
-        .table-wrapper { overflow: visible !important; }
-        .data-table { width: 100% !important; min-width: 0 !important; border-collapse: collapse !important; }
-        .data-table th, .data-table td { color: #111 !important; background: #fff !important; border: 1px solid #ddd !important; padding: 8px !important; font-size: 11px !important; }
-        .data-table th { background: #f2f2f2 !important; }
-    }
+}
 </style>
 
 <main class="main">
@@ -478,11 +848,11 @@ require_once __DIR__ . "/../includes/sidebar.php";
                         <span class="current">Customers</span>
                     </div>
                     <h1 class="page-title">Customers Management</h1>
-                    <p class="page-subtitle">View and manage registered users, block/unblock accounts, and shortcuts.</p>
+                    <p class="page-subtitle">View and manage registered users, block or unblock user accounts, and review status.</p>
                 </div>
 
                 <div class="header-actions">
-                    <button type="button" class="btn btn-blue" id="printBtn">🖨 Print <small>P</small></button>
+                    <button type="button" class="btn" id="printBtn">🖨 Print <small>P</small></button>
                     <button type="button" class="btn" id="pdfBtn">↓ PDF <small>V</small></button>
                     <button type="button" class="btn" id="excelBtn">↓ Excel <small>X</small></button>
                 </div>
@@ -513,7 +883,7 @@ require_once __DIR__ . "/../includes/sidebar.php";
                 </div>
 
                 <div class="stat-item">
-                    <div class="stat-icon">○</div>
+                    <div class="stat-icon" style="background: var(--red-soft); color: var(--red);">○</div>
                     <div>
                         <div class="stat-label">Blocked Accounts</div>
                         <div class="stat-value"><?= $blockedCount ?></div>
@@ -525,29 +895,24 @@ require_once __DIR__ . "/../includes/sidebar.php";
                 <div class="content-header">
                     <div class="content-title">
                         <h2>Customer List</h2>
-                        <p>Search through user records and manage user statuses.</p>
+                        <p>Search through user records and manage account statuses.</p>
                     </div>
 
                     <div class="filters-wrap">
                         <div class="search-wrap">
                             <span class="search-icon">⌕</span>
-                            <input type="search" id="customerSearch" class="search-input" placeholder="Search name, email, company..." autocomplete="off">
+                            <input type="search" id="customerSearch" class="search-input" placeholder="Search name, email..." autocomplete="off">
+                            <span class="search-shortcut-badge">B</span>
                         </div>
 
-                        <select id="customerStatusFilter" class="status-filter">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Blocked</option>
-                        </select>
+                        <div style="position: relative; display: inline-block;">
+                            <select id="customerStatusFilter" class="status-filter" title="Status Filter (Press C)">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Blocked</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-
-                <!-- EXPORT BAR -->
-                <div class="export-bar">
-                    <span class="export-label">Reports & Export</span>
-                    <button type="button" class="btn" id="printBtn2">🖨 Print</button>
-                    <button type="button" class="btn" id="pdfBtn2">↓ PDF</button>
-                    <button type="button" class="btn" id="excelBtn2">↓ Excel</button>
                 </div>
 
                 <div class="table-summary">
@@ -588,7 +953,7 @@ require_once __DIR__ . "/../includes/sidebar.php";
                                     $email = (string)($cust["Email"] ?? '');
                                     $phone = (string)($cust["Phone"] ?? 'N/A');
                                     $company = (string)($cust["CompanyName"] ?? 'N/A');
-                                    $regDate = isset($cust["CreatedAt"]) && is_object($cust["CreatedAt"]) ? $cust["CreatedAt"]->format('Y-m-d') : 'N/A';
+                                    $regDate = isset($cust["CreatedAt"]) && is_object($cust["CreatedAt"]) ? $cust["CreatedAt"]->format('d M Y, h:i A') : 'N/A';
                                     $statusStr = $isActive ? 'active' : 'inactive';
                                     $searchStr = strtolower($fullName . ' ' . $email . ' ' . $phone . ' ' . $company);
                                 ?>
@@ -615,16 +980,16 @@ require_once __DIR__ . "/../includes/sidebar.php";
                                         <td><?= e($regDate) ?></td>
                                         <td style="text-align:right;">
                                             <div class="action-links">
-                                                <a href="view.php?id=<?= (int)$cust["UserId"] ?>" class="btn-action">View</a>
+                                                <a href="view.php?id=<?= (int)$cust["UserId"] ?>" class="action-btn" title="View Details">👁</a>
 
                                                 <form method="POST" style="margin: 0;" onsubmit="return showCustomConfirm(this, '<?= $isActive ? 'block' : 'unblock' ?>', '<?= e($fullName) ?>')">
                                                     <input type="hidden" name="user_id" value="<?= (int)$cust["UserId"] ?>">
                                                     <?php if ($isActive): ?>
                                                         <input type="hidden" name="action" value="block">
-                                                        <button type="submit" class="btn-action btn-block">Block</button>
+                                                        <button type="submit" class="action-btn btn-block-action" title="Block Customer">🚫</button>
                                                     <?php else: ?>
                                                         <input type="hidden" name="action" value="unblock">
-                                                        <button type="submit" class="btn-action btn-unblock">Unblock</button>
+                                                        <button type="submit" class="action-btn btn-unblock-action" title="Unblock Customer">✓</button>
                                                     <?php endif; ?>
                                                 </form>
                                             </div>
@@ -640,23 +1005,25 @@ require_once __DIR__ . "/../includes/sidebar.php";
                         </div>
                     <?php endif; ?>
                 </div>
-            </div>
 
-            <!-- SHORTCUTS -->
-            <div class="shortcut-help-box" id="shortcutHelpBox">
-                <div class="shortcut-help-title">
-                    <span>⌨</span>
-                    <span>Keyboard Shortcuts</span>
-                    <small>B C P V X H • Esc</small>
-                </div>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item"><span class="shortcut-key">B</span><span class="shortcut-desc">Focus search</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">C</span><span class="shortcut-desc">Status filter</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">P</span><span class="shortcut-desc">Print</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">V</span><span class="shortcut-desc">Download PDF</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">X</span><span class="shortcut-desc">Download Excel</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">H</span><span class="shortcut-desc">Toggle shortcuts</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">Esc</span><span class="shortcut-desc">Clear search / Blur</span></div>
+                <!-- TABLE FOOTER -->
+                <div class="table-footer">
+                    <div class="rows-per-page">
+                        <span>Show</span>
+                        <select class="rows-select" id="rowsPerPageSelect">
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="all">All</option>
+                        </select>
+                        <span>customers</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button type="button" class="page-item" title="First Page">«</button>
+                        <button type="button" class="page-item" title="Previous Page">‹</button>
+                        <button type="button" class="page-item" style="background: var(--green-soft); color: var(--green); border-color: var(--green);">1</button>
+                        <button type="button" class="page-item" title="Next Page">›</button>
+                        <button type="button" class="page-item" title="Last Page">»</button>
+                    </div>
                 </div>
             </div>
 
@@ -664,7 +1031,7 @@ require_once __DIR__ . "/../includes/sidebar.php";
     </section>
 </main>
 
-<!-- Custom Dark Theme Confirmation Modal -->
+<!-- Custom Confirmation Modal -->
 <div id="customConfirmModal" class="custom-modal-overlay">
     <div class="custom-modal-box">
         <h3 id="modalTitle" class="custom-modal-title">Confirm Action</h3>
@@ -681,6 +1048,81 @@ require_once __DIR__ . "/../includes/sidebar.php";
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+
+<script>
+/*
+|--------------------------------------------------------------------------
+| GatewayLinen Customers - Theme Bridge
+|--------------------------------------------------------------------------
+| Uses the same theme signals as the Categories page.
+| It never forces a theme. It only mirrors the existing header/sidebar
+| selection between html/body when one side changes.
+*/
+(function () {
+    'use strict';
+
+    function getTheme() {
+        const html = document.documentElement;
+        const body = document.body;
+
+        const values = [
+            html.getAttribute('data-theme'),
+            body.getAttribute('data-theme'),
+            html.getAttribute('data-mode'),
+            body.getAttribute('data-mode')
+        ];
+
+        for (const value of values) {
+            if (!value) continue;
+            const v = String(value).toLowerCase().trim();
+            if (v === 'dark' || v === 'dark-mode' || v === 'theme-dark') return 'dark';
+            if (v === 'light' || v === 'light-mode' || v === 'theme-light') return 'light';
+        }
+
+        const classes = ((html.className || '') + ' ' + (body.className || '')).toLowerCase();
+
+        if (/\bdark-mode\b|\btheme-dark\b|\bdark\b/.test(classes)) return 'dark';
+        if (/\blight-mode\b|\btheme-light\b|\blight\b/.test(classes)) return 'light';
+
+        return null;
+    }
+
+    function syncTheme() {
+        const theme = getTheme();
+        if (!theme) return;
+
+        const html = document.documentElement;
+        const body = document.body;
+
+        /* Only add the same attribute if the header uses the other element. */
+        if (html.getAttribute('data-theme') !== theme) {
+            html.setAttribute('data-theme', theme);
+        }
+        if (body.getAttribute('data-theme') !== theme) {
+            body.setAttribute('data-theme', theme);
+        }
+    }
+
+    /* Initial sync after header/sidebar have loaded. */
+    syncTheme();
+
+    /* Detect header/sidebar theme changes immediately. */
+    const observer = new MutationObserver(function () {
+        syncTheme();
+    });
+
+    observer.observe(document.documentElement, {
+        attributes:true,
+        attributeFilter:['class','data-theme','data-mode']
+    });
+
+    observer.observe(document.body, {
+        attributes:true,
+        attributeFilter:['class','data-theme','data-mode']
+    });
+})();
+</script>
+
 <script>
     let activeForm = null;
 
@@ -695,12 +1137,12 @@ require_once __DIR__ . "/../includes/sidebar.php";
             titleEl.innerText = "Block Customer";
             descEl.innerHTML = "Are you sure you want to block <b>" + customerName + "</b>? They will not be able to access the system.";
             confirmBtn.style.background = "#ef4444";
-            confirmBtn.innerText = "Block";
+            confirmBtn.innerText = "Block Customer";
         } else {
             titleEl.innerText = "Unblock Customer";
-            descEl.innerHTML = "Are you sure you want to unblock <b>" + customerName + "</b>? Their access will be restored.";
+            descEl.innerHTML = "Are you sure you want to unblock <b>" + customerName + "</b>? Their system access will be restored.";
             confirmBtn.style.background = "#10b981";
-            confirmBtn.innerText = "Unblock";
+            confirmBtn.innerText = "Unblock Customer";
         }
 
         modal.classList.add('show');
@@ -724,7 +1166,6 @@ require_once __DIR__ . "/../includes/sidebar.php";
         const table = document.getElementById('customerTable');
         const countElement = document.getElementById('visibleCustomerCount');
         const noResult = document.getElementById('customerNoResult');
-        const shortcutBox = document.getElementById('shortcutHelpBox');
 
         function rows() {
             return table ? Array.from(table.querySelectorAll('tbody .customer-row')) : [];
@@ -732,15 +1173,6 @@ require_once __DIR__ . "/../includes/sidebar.php";
 
         function visibleRows() {
             return rows().filter(row => row.style.display !== 'none');
-        }
-
-        function selectFirstVisible(scroll) {
-            rows().forEach(r => r.classList.remove('keyboard-selected'));
-            const first = visibleRows()[0];
-            if (first) {
-                first.classList.add('keyboard-selected');
-                if (scroll) first.scrollIntoView({ block: 'nearest' });
-            }
         }
 
         function filterCustomers() {
@@ -767,8 +1199,6 @@ require_once __DIR__ . "/../includes/sidebar.php";
 
             if (countElement) countElement.textContent = visibleCount;
             if (noResult) noResult.style.display = (visibleCount === 0) ? 'block' : 'none';
-
-            selectFirstVisible(false);
         }
 
         searchInput?.addEventListener('input', filterCustomers);
@@ -791,7 +1221,7 @@ require_once __DIR__ . "/../includes/sidebar.php";
 
             if (window.XLSX) {
                 const ws = XLSX.utils.json_to_sheet(data);
-                ws['!cols'] = [{ wch: 8 }, { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 15 }];
+                ws['!cols'] = [{ wch: 8 }, { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 20 }];
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Customers');
                 XLSX.writeFile(wb, 'customers-' + new Date().toISOString().slice(0, 10) + '.xlsx');
@@ -800,7 +1230,7 @@ require_once __DIR__ . "/../includes/sidebar.php";
 
         function pdfCustomers() {
             if (!window.jspdf || !window.jspdf.jsPDF) {
-                alert('PDF library is not loaded. Use Print and choose Save as PDF.');
+                alert('PDF library is not loaded.');
                 return;
             }
 
@@ -835,20 +1265,17 @@ require_once __DIR__ . "/../includes/sidebar.php";
         }
 
         document.getElementById('printBtn')?.addEventListener('click', printCustomers);
-        document.getElementById('printBtn2')?.addEventListener('click', printCustomers);
         document.getElementById('pdfBtn')?.addEventListener('click', pdfCustomers);
-        document.getElementById('pdfBtn2')?.addEventListener('click', pdfCustomers);
         document.getElementById('excelBtn')?.addEventListener('click', excelCustomers);
-        document.getElementById('excelBtn2')?.addEventListener('click', excelCustomers);
 
-        // Keyboard Shortcuts Handler
+        // Keyboard Shortcuts Handler (B, C, P, V, X, Esc)
         document.addEventListener('keydown', function(e) {
             const tag = (e.target?.tagName || '').toLowerCase();
             const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
             const key = (e.key || '').toUpperCase();
 
             if (!typing) {
-                if (['B', 'C', 'P', 'V', 'X', 'H'].includes(key)) {
+                if (['B', 'C', 'P', 'V', 'X'].includes(key)) {
                     e.preventDefault();
                     e.stopPropagation();
                 }
@@ -864,8 +1291,6 @@ require_once __DIR__ . "/../includes/sidebar.php";
                     pdfCustomers();
                 } else if (key === 'X') {
                     excelCustomers();
-                } else if (key === 'H') {
-                    shortcutBox?.classList.toggle('hidden');
                 }
             }
 
@@ -881,14 +1306,6 @@ require_once __DIR__ . "/../includes/sidebar.php";
                 statusFilter?.blur();
             }
         }, true);
-
-        rows().forEach(function(row) {
-            row.addEventListener('click', function(e) {
-                if (e.target.closest('button, a, form')) return;
-                rows().forEach(r => r.classList.remove('keyboard-selected'));
-                row.classList.add('keyboard-selected');
-            });
-        });
 
         filterCustomers();
     });

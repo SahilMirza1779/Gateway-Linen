@@ -25,7 +25,9 @@ import CartDrawer from "./components/CartDrawer";
 import { WishlistProvider } from "./context/WishlistContext";
 import WishlistDrawer from "./components/WishlistDrawer";
 import ProductsPage from "./components/ProductsPage";
-import QuoteBuilder from "./components/QuoteBuilder"; // Naya QuoteBuilder import kiya
+import QuoteBuilder from "./components/QuoteBuilder";
+import BulkOrder from "./components/BulkOrder"; // NAYA IMPORT
+import OrderHistory from "./components/OrderHistory"; // NAYA IMPORT
 import {
   FiArrowRight,
   FiTruck,
@@ -496,10 +498,16 @@ const AppLayout = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+
+              {/* NAYE ROUTES */}
+              <Route path="/categories" element={<CategoryGrid />} />
               <Route
                 path="/category/:categoryName"
                 element={<CategoryPage />}
               />
+              <Route path="/bulk-order" element={<BulkOrder />} />
+              <Route path="/order-history" element={<OrderHistory />} />
+
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/product/:id" element={<ProductDetail />} />

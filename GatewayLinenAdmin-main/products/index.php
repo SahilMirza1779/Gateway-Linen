@@ -168,10 +168,71 @@ if ($mainCatStmt !== false) {
 
 /*
 |--------------------------------------------------------------------------
-| FETCH PRODUCTS WITH CATEGORY & ALL IMAGES (JSON)
+| SEARCH, FILTER & PAGINATION PARAMETERS
 |--------------------------------------------------------------------------
 */
 
+$searchQuery    = trim((string)($_GET['q'] ?? ''));
+$categoryFilter = trim((string)($_GET['category'] ?? 'all'));
+$statusFilter   = trim((string)($_GET['status'] ?? 'all'));
+$page           = max(1, (int)($_GET['page'] ?? 1));
+$perPage        = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+if (!in_array($perPage, [25, 50, 100, 200])) {
+    $perPage = 50;
+}
+$offset         = ($page - 1) * $perPage;
+
+/*
+|--------------------------------------------------------------------------
+| BUILD SQL QUERY WITH FILTERS & PAGINATION
+|--------------------------------------------------------------------------
+*/
+
+$whereClauses = ["1=1"];
+$params = [];
+
+if ($searchQuery !== '') {
+    $whereClauses[] = "(p.Name LIKE ? OR p.Slug LIKE ? OR p.Specifications LIKE ? OR p.Description LIKE ?)";
+    $like = '%' . $searchQuery . '%';
+    array_push($params, $like, $like, $like, $like);
+}
+
+if ($categoryFilter !== 'all') {
+    if (strpos($categoryFilter, 'main-') === 0) {
+        $mainCatId = (int)str_replace('main-', '', $categoryFilter);
+        $whereClauses[] = "c.ParentCategoryId = ?";
+        $params[] = $mainCatId;
+    } else {
+        $whereClauses[] = "LOWER(c.Name) = ?";
+        $params[] = strtolower($categoryFilter);
+    }
+}
+
+if ($statusFilter === 'active') {
+    $whereClauses[] = "p.IsActive = 1";
+} elseif ($statusFilter === 'inactive') {
+    $whereClauses[] = "p.IsActive = 0";
+}
+
+$whereSql = implode(" AND ", $whereClauses);
+
+// 1. Count Total Matching Products
+$countSql = "SELECT COUNT(*) AS Total FROM dbo.Products p LEFT JOIN dbo.Categories c ON p.CategoryId = c.CategoryId WHERE $whereSql";
+$countStmt = sqlsrv_query($conn, $countSql, $params);
+$totalProducts = 0;
+if ($countStmt !== false) {
+    $countRow = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+    $totalProducts = (int)($countRow['Total'] ?? 0);
+    sqlsrv_free_stmt($countStmt);
+}
+
+$totalPages = max(1, ceil($totalProducts / $perPage));
+if ($page > $totalPages) {
+    $page = $totalPages;
+    $offset = ($page - 1) * $perPage;
+}
+
+// 2. Fetch Paginated Products using SQL Server OFFSET ... FETCH
 $sql = "
     SELECT
         p.ProductId,
@@ -210,10 +271,16 @@ $sql = "
         WHERE ProductId = p.ProductId 
         ORDER BY IsMain DESC, DisplayOrder ASC
     ) img
+    WHERE $whereSql
     ORDER BY p.ProductId ASC
+    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
 ";
 
-$stmt = sqlsrv_query($conn, $sql);
+$queryParams = $params;
+$queryParams[] = $offset;
+$queryParams[] = $perPage;
+
+$stmt = sqlsrv_query($conn, $sql, $queryParams);
 $allProducts = [];
 $queryError = '';
 
@@ -228,25 +295,20 @@ if ($stmt !== false) {
 
 /*
 |--------------------------------------------------------------------------
-| STATISTICS
+| GLOBAL STATISTICS
 |--------------------------------------------------------------------------
 */
-
-$totalProducts   = count($allProducts);
-$activeProducts  = 0;
-$inactiveProducts = 0;
-$featuredProducts = 0;
-
-foreach ($allProducts as $product) {
-    if (!empty($product['IsActive'])) {
-        $activeProducts++;
-    } else {
-        $inactiveProducts++;
-    }
-
-    if (!empty($product['IsFeatured'])) {
-        $featuredProducts++;
-    }
+$statSql = "SELECT 
+    COUNT(*) AS Total,
+    SUM(CASE WHEN IsActive = 1 THEN 1 ELSE 0 END) AS ActiveCount,
+    SUM(CASE WHEN IsActive = 0 THEN 1 ELSE 0 END) AS InactiveCount,
+    SUM(CASE WHEN IsFeatured = 1 THEN 1 ELSE 0 END) AS FeaturedCount
+    FROM dbo.Products";
+$statStmt = sqlsrv_query($conn, $statSql);
+$stats = ['Total' => 0, 'ActiveCount' => 0, 'InactiveCount' => 0, 'FeaturedCount' => 0];
+if ($statStmt !== false) {
+    $stats = sqlsrv_fetch_array($statStmt, SQLSRV_FETCH_ASSOC);
+    sqlsrv_free_stmt($statStmt);
 }
 
 /*
@@ -261,866 +323,355 @@ require_once __DIR__ . '/../includes/sidebar.php';
 ?>
 
 <style>
-    :root {
-        --bg-page: #0a1119;
-        --bg-card: #111b26;
-        --bg-card-alt: #0f1823;
-        --bg-header: #0d1620;
-        --bg-hover: #16222e;
-        --bg-input: #0d1620;
-
-        --border: #1e2d3d;
-        --border-soft: #182636;
-
-        --text-hi: #f0f4f8;
-        --text-body: #a8b8c8;
-        --text-mute: #5f7488;
-
-        --green: #10b981;
-        --green-soft: rgba(16, 185, 129, .12);
-
-        --red: #ef4444;
-        --red-soft: rgba(239, 68, 68, .12);
-
-        --blue: #38bdf8;
-        --blue-soft: rgba(56, 189, 248, .15);
-
-        --amber: #f59e0b;
-        --amber-soft: rgba(245, 158, 11, .15);
-
-        --purple: #a855f7;
-        --purple-soft: rgba(168, 85, 247, .15);
-
-        --radius: 10px;
-    }
-
-    html,
-    body,
-    .main,
-    .content {
-        background: var(--bg-page) !important;
-        color: var(--text-body) !important;
-    }
+    .category-page,
+    .category-page * { box-sizing: border-box; }
 
     .category-page {
         width: 100%;
         max-width: 1600px;
         margin: 0 auto;
         padding: 0;
+        font-size: 13px;
+
+        --cat-page: #f3f6fa;
+        --cat-card: #ffffff;
+        --cat-card-alt: #f8fafc;
+        --cat-input: #ffffff;
+        --cat-border: #dce4ec;
+        --cat-border-soft: #e8edf3;
+        --cat-text: #162334;
+        --cat-body: #536579;
+        --cat-muted: #7b8da1;
+        --cat-green: #059669;
+        --cat-green-soft: rgba(5,150,105,.10);
+        --cat-red: #dc2626;
+        --cat-red-soft: rgba(220,38,38,.09);
+        --cat-blue: #0284c7;
+        --cat-blue-soft: rgba(2,132,199,.09);
+        --cat-amber: #d97706;
+        --cat-amber-soft: rgba(217,119,6,.10);
+        --cat-purple: #7c3aed;
+        --cat-purple-soft: rgba(124,58,237,.10);
+        --cat-shadow: 0 5px 18px rgba(15,23,42,.05);
     }
 
-    .category-page * {
-        box-sizing: border-box;
+    html[data-theme="dark"] .category-page,
+    body[data-theme="dark"] .category-page,
+    html.dark .category-page,
+    body.dark .category-page,
+    html.dark-mode .category-page,
+    body.dark-mode .category-page {
+        --cat-page: #0a1119;
+        --cat-card: #111b26;
+        --cat-card-alt: #0f1823;
+        --cat-input: #0d1620;
+        --cat-border: #1e2d3d;
+        --cat-border-soft: #182636;
+        --cat-text: #f0f4f8;
+        --cat-body: #a8b8c8;
+        --cat-muted: #6f8295;
+        --cat-green: #10b981;
+        --cat-green-soft: rgba(16,185,129,.12);
+        --cat-red: #ef4444;
+        --cat-red-soft: rgba(239,68,68,.12);
+        --cat-blue: #38bdf8;
+        --cat-blue-soft: rgba(56,189,248,.12);
+        --cat-amber: #f59e0b;
+        --cat-amber-soft: rgba(245,158,11,.15);
+        --cat-purple: #a855f7;
+        --cat-purple-soft: rgba(168,85,247,.15);
+        --cat-shadow: none;
     }
 
-    /* HEADER */
+    .category-page { background: var(--cat-page); color: var(--cat-body); }
+
     .category-page-header {
         display: flex;
-        align-items: flex-end;
+        align-items: center;
         justify-content: space-between;
-        gap: 24px;
-        margin-bottom: 20px;
-        padding-bottom: 18px;
-        border-bottom: 1px solid var(--border);
+        gap: 28px;
+        margin: 0 0 18px;
+        padding: 0 0 16px;
+        border-bottom: 1px solid var(--cat-border);
     }
 
     .category-breadcrumb {
         display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-        color: var(--text-mute);
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .3px;
-    }
-
-    .category-breadcrumb .current {
-        color: var(--green);
-    }
-
-    .category-page-header h1 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 26px;
-        font-weight: 800;
-    }
-
-    .category-page-header p {
-        margin: 6px 0 0;
-        color: var(--text-mute);
-        font-size: 12px;
-    }
-
-    /* BUTTONS */
-    .header-actions,
-    .category-actions,
-    .category-filters,
-    .export-bar {
-        display: flex;
         align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
+        gap: 9px;
+        margin-bottom: 7px;
+        color: var(--cat-muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .45px;
     }
+    .category-breadcrumb .current { color: var(--cat-green); }
 
-    .header-actions {
-        justify-content: flex-end;
-    }
+    .category-page-header h1 { margin: 0; color: var(--cat-text); font-size: 30px; font-weight: 900; letter-spacing: -.5px; }
+    .category-page-header p { margin: 7px 0 0; color: var(--cat-muted); font-size: 13px; font-weight: 600; }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
 
     .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 7px;
-        min-height: 38px;
-        padding: 0 13px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--bg-input);
-        color: var(--text-body) !important;
-        font-size: 11px;
+        gap: 6px;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid var(--cat-border);
+        border-radius: 9px;
+        background: var(--cat-card);
+        color: var(--cat-text) !important;
+        font-size: 12px;
         font-weight: 800;
         text-decoration: none;
         cursor: pointer;
-        transition: .18s;
-    }
-
-    .btn:hover {
-        border-color: var(--green);
-        background: var(--green-soft);
-        color: var(--green) !important;
-    }
-
-    .btn-primary {
-        border-color: transparent;
-        background: linear-gradient(135deg, #059669, #10b981);
-        color: #fff !important;
-        box-shadow: 0 6px 16px rgba(16, 185, 129, .2);
-    }
-
-    .btn-blue {
-        color: var(--blue) !important;
-    }
-
-    /* STATS */
-    .category-stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .category-stat-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 15px 17px;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-    }
-
-    .category-stat-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        border-radius: 9px;
-        background: var(--green-soft);
-        color: var(--green);
-        font-size: 15px;
-        font-weight: 800;
-    }
-
-    .category-stat-label {
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    .category-stat-value {
-        margin-top: 2px;
-        color: var(--text-hi);
-        font-size: 20px;
-        font-weight: 800;
-    }
-
-    /* NOTICE */
-    .notice {
-        margin-bottom: 14px;
-        padding: 12px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .notice-success {
-        border: 1px solid rgba(16, 185, 129, .3);
-        background: var(--green-soft);
-        color: #6ee7b7;
-    }
-
-    .notice-error {
-        border: 1px solid rgba(239, 68, 68, .3);
-        background: var(--red-soft);
-        color: #fca5a5;
-    }
-
-    /* CONTENT */
-    .category-content {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .category-content-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 17px 20px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .category-content-title h2 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 16px;
-    }
-
-    .category-content-title p {
-        margin: 4px 0 0;
-        color: var(--text-mute);
-        font-size: 11px;
-    }
-
-    /* FILTERS */
-    .category-search-wrap {
+        transition: .16s ease;
         position: relative;
-        width: 270px;
     }
+    .btn:hover { border-color: var(--cat-green); background: var(--cat-green-soft); color: var(--cat-green) !important; }
 
-    .category-search-icon {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-mute);
-        pointer-events: none;
-    }
-
-    .category-search,
-    .category-status-filter {
-        height: 36px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        outline: none;
-        background: var(--bg-input);
-        color: var(--text-hi);
-        font-size: 12px;
-    }
-
-    .category-search {
-        width: 100%;
-        padding: 0 12px 0 34px;
-    }
-
-    .category-status-filter {
-        min-width: 170px;
-        padding: 0 10px;
-    }
-
-    .category-search:focus,
-    .category-status-filter:focus {
-        border-color: var(--green);
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, .1);
-    }
-
-    /* EXPORT */
-    .export-bar {
-        padding: 10px 20px;
-        border-bottom: 1px solid var(--border);
-        background: var(--bg-card-alt);
-    }
-
-    .export-label {
-        margin-right: auto;
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-    }
-
-    /* SUMMARY */
-    .category-table-summary {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 11px 20px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .category-result-text {
-        color: var(--text-mute);
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    .category-result-text strong {
-        color: var(--text-hi);
-    }
-
-    /* TABLE */
-    .category-table-wrapper {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .category-table {
-        width: 100%;
-        min-width: 1200px;
-        border-collapse: collapse;
-    }
-
-    .category-table th {
-        height: 44px;
-        padding: 0 16px;
-        background: var(--bg-header);
-        border-bottom: 1px solid var(--border);
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 800;
-        text-align: left;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        white-space: nowrap;
-    }
-
-    .category-table td {
-        padding: 12px 16px;
-        background: transparent;
-        border-bottom: 1px solid var(--border-soft);
-        color: var(--text-body);
-        font-size: 12px;
-        vertical-align: middle;
-    }
-
-    .category-table tbody tr:hover {
-        background: var(--bg-hover);
-    }
-
-    .category-table tbody tr.keyboard-selected {
-        outline: 2px solid var(--green);
-        outline-offset: -2px;
-        background: var(--green-soft);
-    }
-
-    .category-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* PRODUCT ROW DETAILS */
-    .order-box {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 44px;
-        height: 28px;
-        padding: 0 8px;
-        border-radius: 7px;
-        background: var(--bg-input);
-        border: 1px solid var(--border);
-        color: var(--text-mute);
-        font-size: 11px;
-        font-weight: 800;
-    }
-
-    .category-main {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 320px;
-    }
-
-    .category-image {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 54px;
-        height: 54px;
-        flex: 0 0 54px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        border-radius: 9px;
-        background: #0d1620;
-    }
-
-    .category-image img {
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: cover;
-    }
-
-    .category-image-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        color: var(--text-mute);
-        font-size: 18px;
-    }
-
-    .category-name {
-        color: var(--text-hi);
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .category-slug {
-        margin-top: 3px;
-        color: var(--text-mute);
-        font-size: 10px;
+    .kbd-badge {
+        font-size: 9px;
+        background: rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.12);
+        padding: 1px 5px;
+        border-radius: 4px;
+        color: inherit;
+        margin-left: 4px;
         font-family: monospace;
     }
 
+    .btn-primary { 
+        border-color: transparent; 
+        background: linear-gradient(135deg,#059669,#10b981); 
+        color: #fff !important; 
+        box-shadow: 0 5px 14px rgba(16,185,129,.16); 
+    }
+    .btn-primary:hover { 
+        background: linear-gradient(135deg,#047857,#059669); 
+        color: #fff !important; 
+    }
+    .btn-primary .kbd-badge {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.3);
+        color: #fff;
+    }
+
+    .category-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; margin-bottom: 16px; }
+    .category-stat-item {
+        display: flex; align-items: center; gap: 13px; min-height: 82px; padding: 14px 17px;
+        background: var(--cat-card); border: 1px solid var(--cat-border); border-radius: 11px; box-shadow: var(--cat-shadow);
+    }
+    .category-stat-icon {
+        display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 40px;
+        border-radius: 10px; background: var(--cat-green-soft); color: var(--cat-green); font-size: 17px; font-weight: 900;
+    }
+    .category-stat-label { color: var(--cat-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .45px; }
+    .category-stat-value { margin-top: 4px; color: var(--cat-text); font-size: 24px; font-weight: 900; line-height: 1; }
+
+    .notice { margin-bottom: 12px; padding: 12px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+    .notice-success { border: 1px solid rgba(5,150,105,.25); background: var(--cat-green-soft); color: var(--cat-green); }
+    .notice-error { border: 1px solid rgba(220,38,38,.25); background: var(--cat-red-soft); color: var(--cat-red); }
+
+    .category-content { background: var(--cat-card); border: 1px solid var(--cat-border); border-radius: 12px; overflow: hidden; box-shadow: var(--cat-shadow); }
+    .category-content-header { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 20px 24px; min-height: 94px; border-bottom: 1px solid var(--cat-border); }
+    .category-content-title h2 { margin: 0; color: var(--cat-text); font-size: 20px; font-weight: 900; }
+    .category-content-title p { margin: 5px 0 0; color: var(--cat-muted); font-size: 11px; font-weight: 600; line-height: 1.5; }
+
+    .category-filters { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; justify-content: flex-end; }
+    .category-search-wrap { position: relative; width: min(420px, 100%); flex: 1 1 320px; }
+    .category-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--cat-muted); pointer-events: none; font-size: 17px; }
+
+    .category-search, .category-status-filter {
+        height: 46px; border: 1px solid var(--cat-border); border-radius: 9px; outline: none; background: var(--cat-input); color: var(--cat-text); font-size: 13px; font-weight: 600;
+    }
+    .category-search { width: 100%; padding: 0 45px 0 44px; }
+    .category-status-filter { min-width: 170px; padding: 0 14px; }
+    .category-search::placeholder { color: var(--cat-muted); font-size: 13px; font-weight: 500; }
+    .category-search:focus, .category-status-filter:focus { border-color: var(--cat-green); box-shadow: 0 0 0 3px var(--cat-green-soft); }
+
+    .search-kbd-hint {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        font-size: 10px; color: var(--cat-muted); background: var(--cat-card-alt); border: 1px solid var(--cat-border);
+        padding: 2px 5px; border-radius: 4px; pointer-events: none; font-family: monospace;
+    }
+
+    .category-table-summary { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid var(--cat-border); }
+    .category-result-text { color: var(--cat-muted); font-size: 11px; font-weight: 700; }
+    .category-result-text strong { color: var(--cat-text); }
+
+    .category-table-wrapper { width: 100%; overflow-x: visible; }
+    .category-table { width: 100%; border-collapse: collapse; }
+    .category-table th {
+        height: 46px; padding: 0 16px; background: var(--cat-card-alt); border-bottom: 1px solid var(--cat-border);
+        color: var(--cat-muted); font-size: 10px; font-weight: 900; text-align: left; text-transform: uppercase; letter-spacing: .55px; white-space: nowrap;
+    }
+    .category-table td { padding: 14px 16px; background: transparent; border-bottom: 1px solid var(--cat-border-soft); color: var(--cat-body); font-size: 12px; line-height: 1.45; vertical-align: middle; }
+    .category-table tbody tr { cursor: pointer; }
+    .category-table tbody tr:hover { background: var(--cat-green-soft); }
+
+    .order-box {
+        display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 28px; padding: 0 8px;
+        border-radius: 7px; background: var(--cat-input); border: 1px solid var(--cat-border); color: var(--cat-green); font-size: 11px; font-weight: 900;
+    }
+
+    .category-main { display: flex; align-items: center; gap: 11px; width: 100%; }
+    .category-image {
+        display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex: 0 0 52px;
+        overflow: hidden; border: 1px solid var(--cat-border); border-radius: 9px; background: var(--cat-card-alt);
+    }
+    .category-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .category-image-placeholder { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: var(--cat-muted); font-size: 15px; }
+    .category-name { color: var(--cat-text); font-size: 13px; font-weight: 900; display: flex; align-items: center; }
+    .category-slug { margin-top: 3px; color: var(--cat-muted); font-size: 10px; font-family: monospace; }
+    
     .cat-badge {
-        display: inline-block;
-        padding: 3px 9px;
-        border-radius: 6px;
-        background: rgba(56, 189, 248, .12);
-        color: var(--blue);
-        font-size: 11px;
-        font-weight: 700;
+        display: inline-block; padding: 4px 9px; border-radius: 6px; background: var(--cat-blue-soft); color: var(--cat-blue); font-size: 11px; font-weight: 800; white-space: nowrap;
     }
 
-    /* FLAG BADGES */
-    .flags-cell {
-        display: flex;
-        gap: 5px;
-        flex-wrap: wrap;
-    }
+    .flags-cell { display: flex; gap: 5px; flex-wrap: wrap; }
+    .badge-tag { font-size: 9px; font-weight: 900; padding: 3px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: .3px; }
+    .tag-featured { background: var(--cat-amber-soft); color: var(--cat-amber); border: 1px solid rgba(217,119,6,.25); }
+    .tag-new { background: var(--cat-blue-soft); color: var(--cat-blue); border: 1px solid rgba(2,132,199,.25); }
+    .tag-bestseller { background: var(--cat-purple-soft); color: var(--cat-purple); border: 1px solid rgba(124,58,237,.25); }
 
-    .badge-tag {
-        font-size: 9px;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 4px;
-        text-transform: uppercase;
-        letter-spacing: .3px;
-    }
+    .price-value { color: var(--cat-text); font-weight: 900; font-size: 12px; }
 
-    .tag-featured {
-        background: var(--amber-soft);
-        color: var(--amber);
-        border: 1px solid rgba(245, 158, 11, .25);
-    }
+    .category-status { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border-radius: 20px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .category-status-dot { width: 5px; height: 5px; border-radius: 50%; }
+    .category-status-active { background: var(--cat-green-soft); color: var(--cat-green); }
+    .category-status-active .category-status-dot { background: var(--cat-green); box-shadow: 0 0 6px var(--cat-green); }
+    .category-status-inactive { background: var(--cat-red-soft); color: var(--cat-red); }
+    .category-status-inactive .category-status-dot { background: var(--cat-red); }
 
-    .tag-new {
-        background: var(--blue-soft);
-        color: var(--blue);
-        border: 1px solid rgba(56, 189, 248, .25);
-    }
+    .category-date { color: var(--cat-muted); font-size: 10px; line-height: 1.45; white-space: nowrap; }
 
-    .tag-bestseller {
-        background: var(--purple-soft);
-        color: var(--purple);
-        border: 1px solid rgba(168, 85, 247, .25);
-    }
-
-    .price-value {
-        color: var(--text-hi);
-        font-weight: 800;
-        font-size: 13px;
-    }
-
-    /* STATUS */
-    .category-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        min-height: 25px;
-        padding: 0 10px;
-        border-radius: 20px;
-        font-size: 10px;
-        font-weight: 700;
-    }
-
-    .category-status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-    }
-
-    .category-status-active {
-        background: var(--green-soft);
-        color: var(--green);
-    }
-
-    .category-status-active .category-status-dot {
-        background: var(--green);
-        box-shadow: 0 0 6px var(--green);
-    }
-
-    .category-status-inactive {
-        background: var(--red-soft);
-        color: #f87171;
-    }
-
-    .category-status-inactive .category-status-dot {
-        background: #f87171;
-    }
-
-    /* ACTIONS */
+    .category-actions { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
     .category-action {
-        display: inline-flex;
+        display: inline-flex; align-items: center; justify-content: center; gap: 3px; width: 32px; height: 32px;
+        border: 1px solid var(--cat-border); border-radius: 7px; background: var(--cat-card); color: var(--cat-body) !important;
+        text-decoration: none; cursor: pointer; font-size: 12px;
+    }
+    .category-action:hover { border-color: var(--cat-green); background: var(--cat-green-soft); color: var(--cat-green) !important; }
+    .category-action-delete:hover { border-color: rgba(220,38,38,.4); background: var(--cat-red-soft); color: var(--cat-red) !important; }
+
+    .category-empty { padding: 65px 20px; text-align: center; }
+    .category-empty-icon { margin-bottom: 12px; color: var(--cat-green); font-size: 32px; }
+    .category-empty h3 { margin: 0; color: var(--cat-text); font-size: 16px; font-weight: 900; }
+    .category-empty p { margin: 6px 0 0; color: var(--cat-muted); font-size: 11px; }
+
+    /* PAGINATION BAR */
+    .pagination-bar {
+        display: flex;
         align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border: 1px solid var(--border);
+        justify-content: space-between;
+        padding: 14px 24px;
+        border-top: 1px solid var(--cat-border);
+        background: var(--cat-card-alt);
+    }
+    .pagination-limit-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--cat-muted);
+    }
+    .pagination-limit-select {
+        height: 36px;
+        padding: 0 10px;
+        border: 1px solid var(--cat-border);
         border-radius: 8px;
-        background: var(--bg-input);
-        color: var(--text-body) !important;
-        text-decoration: none;
+        background: var(--cat-card);
+        color: var(--cat-text);
+        font-size: 12px;
+        font-weight: 800;
+        outline: none;
         cursor: pointer;
     }
-
-    .category-action:hover {
-        border-color: var(--green);
-        background: var(--green-soft);
-        color: var(--green) !important;
+    .pagination-limit-select:focus {
+        border-color: var(--cat-green);
+        box-shadow: 0 0 0 3px var(--cat-green-soft);
     }
-
-    .category-action-delete:hover {
-        border-color: rgba(239, 68, 68, .5);
-        background: var(--red-soft);
-        color: var(--red) !important;
-    }
-
-    /* EMPTY */
-    .category-empty,
-    .category-no-result {
-        padding: 65px 20px;
-        text-align: center;
-    }
-
-    .category-empty-icon,
-    .category-no-result-icon {
-        margin-bottom: 12px;
-        color: var(--green);
-        font-size: 28px;
-    }
-
-    .category-empty h3,
-    .category-no-result h3 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 16px;
-    }
-
-    .category-empty p,
-    .category-no-result p {
-        margin: 6px 0 0;
-        color: var(--text-mute);
-        font-size: 12px;
-    }
-
-    /* SHORTCUTS */
-    .shortcut-help-box {
-        margin-top: 16px;
-        padding: 16px 20px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--bg-card);
-    }
-
-    .shortcut-help-box.hidden {
-        display: none;
-    }
-
-    .shortcut-help-title {
+    .pagination-links {
         display: flex;
-        align-items: center;
-        gap: 9px;
-        margin-bottom: 12px;
-        color: var(--text-hi);
-        font-size: 13px;
-        font-weight: 800;
+        gap: 5px;
     }
-
-    .shortcut-help-title small {
-        margin-left: auto;
-        color: var(--text-mute);
-        font: 600 10px monospace;
-    }
-
-    .shortcut-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .shortcut-item {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        padding: 8px 10px;
-        border: 1px solid var(--border-soft);
-        border-radius: 8px;
-        background: var(--bg-input);
-    }
-
-    .shortcut-key {
+    .page-link {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 36px;
-        height: 25px;
-        padding: 0 7px;
-        border-radius: 5px;
-        background: #0a1119;
-        border: 1px solid var(--border);
-        color: var(--green);
-        font: 800 10px monospace;
-    }
-
-    .shortcut-desc {
-        color: var(--text-body);
+        min-width: 32px;
+        height: 32px;
+        padding: 0 9px;
+        border: 1px solid var(--cat-border);
+        border-radius: 6px;
+        background: var(--cat-card);
+        color: var(--cat-text);
+        font-weight: 700;
+        text-decoration: none;
         font-size: 11px;
-        font-weight: 600;
+    }
+    .page-link:hover, .page-link.active {
+        background: var(--cat-green);
+        border-color: var(--cat-green);
+        color: #fff !important;
     }
 
     /* MODAL */
     .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(0, 0, 0, .75);
+        position: fixed; inset: 0; z-index: 99999; display: none; align-items: center; justify-content: center;
+        padding: 20px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
     }
-
-    .modal-backdrop.show {
-        display: flex;
-    }
+    .modal-backdrop.show { display: flex; }
 
     .category-modal {
-        width: min(840px, 100%);
-        max-height: 90vh;
-        overflow: auto;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+        width: min(850px, 100%); max-height: 90vh; overflow-y: auto; 
+        background: #ffffff !important; color: #162334 !important;
+        border: 1px solid #dce4ec; border-radius: 14px; box-shadow: 0 25px 75px rgba(0, 0, 0, 0.50);
+        display: flex; flex-direction: column;
     }
 
-    .modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 15px 18px;
-        border-bottom: 1px solid var(--border);
-    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid #dce4ec; background: #f8fafc !important; }
+    .modal-header h3 { margin: 0; color: #162334 !important; font-size: 18px; font-weight: 900; }
+    .modal-close { border: 0; background: transparent; color: #7b8da1; font-size: 26px; font-weight: 700; cursor: pointer; transition: color .15s; }
+    .modal-close:hover { color: #dc2626; }
 
-    .modal-header h3 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 15px;
-    }
+    .modal-body { padding: 28px; overflow-y: auto; background: #ffffff !important; color: #162334 !important; }
 
-    .modal-close {
-        border: 0;
-        background: transparent;
-        color: var(--text-mute);
-        font-size: 22px;
-        cursor: pointer;
-    }
-
-    .modal-body {
-        padding: 20px;
-    }
-
-    .detail-grid {
-        display: grid;
-        grid-template-columns: 260px 1fr;
-        gap: 18px;
-    }
-
-    .detail-image-box {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
+    .detail-grid { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: flex-start; }
+    .detail-image-box { display: flex; flex-direction: column; gap: 12px; }
     .detail-main-image {
-        width: 260px;
-        height: 260px;
-        border-radius: 10px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        background: var(--bg-input);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-mute);
-        font-size: 32px;
+        width: 240px; height: 240px; border-radius: 12px; overflow: hidden; border: 1px solid #dce4ec;
+        background: #f8fafc; display: flex; align-items: center; justify-content: center; color: #7b8da1; font-size: 40px;
     }
-
-    .detail-main-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .detail-thumbnails {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        max-height: 90px;
-        overflow-y: auto;
-    }
-
+    .detail-main-image img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-thumbnails { display: flex; gap: 8px; flex-wrap: wrap; max-height: 90px; overflow-y: auto; }
     .thumb-img {
-        width: 50px;
-        height: 50px;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        object-fit: cover;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: 0.2s;
+        width: 52px; height: 52px; border-radius: 8px; border: 1px solid #dce4ec; object-fit: cover; cursor: pointer; opacity: 0.6; transition: 0.2s;
     }
+    .thumb-img:hover, .thumb-img.active { opacity: 1; border-color: #059669; }
 
-    .thumb-img:hover, .thumb-img.active {
-        opacity: 1;
-        border-color: var(--green);
-    }
+    .detail-info-grid { display: flex; flex-direction: column; gap: 14px; }
+    .detail-item { display: flex; flex-direction: column; gap: 5px; }
+    .detail-item.full-width { grid-column: 1 / -1; }
+    .detail-item label { color: #7b8da1 !important; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; }
+    .detail-item .val { color: #162334 !important; font-size: 13px; font-weight: 700; word-break: break-word; }
 
-    .detail-item label {
-        display: block;
-        margin-bottom: 4px;
-        color: var(--text-mute);
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
+    .detail-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 4px; }
+    .detail-card { padding: 10px 12px; border: 1px solid #e8edf3; border-radius: 8px; background: #f8fafc; }
 
-    .detail-item div {
-        color: var(--text-hi);
-        font-size: 12px;
-        line-height: 1.5;
-    }
+    .modal-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-top: 1px solid #dce4ec; background: #f8fafc !important; }
+    .modal-footer .btn { background: #ffffff !important; color: #162334 !important; border-color: #dce4ec !important; }
+    .modal-footer .btn:hover { background: rgba(5,150,105,.10) !important; color: #059669 !important; border-color: #059669 !important; }
 
-    .detail-full {
-        grid-column: 1 / -1;
-    }
-
-    .detail-meta {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-top: 14px;
-    }
-
-    .detail-card {
-        padding: 10px 12px;
-        border: 1px solid var(--border-soft);
-        border-radius: 8px;
-        background: var(--bg-input);
-    }
-
-    .modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        padding: 14px 18px;
-        border-top: 1px solid var(--border);
-    }
-
-    @media (max-width: 1100px) {
-        .category-stats {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .category-content-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .category-filters {
-            width: 100%;
-        }
-
-        .category-search-wrap {
-            width: 100%;
-        }
-
-        .shortcut-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 700px) {
-        .category-page-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .header-actions {
-            width: 100%;
-            justify-content: flex-start;
-        }
-
-        .category-stats {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .category-filters {
-            display: grid;
-            grid-template-columns: 1fr;
-        }
-
-        .category-status-filter {
-            width: 100%;
-        }
-
-        .shortcut-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .detail-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .detail-main-image {
-            width: 100%;
-            height: 220px;
-        }
-
-        .detail-meta {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media print {
-        @page { size: landscape; margin: 10mm; }
-        html, body, .main, .content { background: #fff !important; color: #111 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-        .category-page { max-width: none !important; width: 100% !important; }
-        .category-page-header, .category-stats, .category-filters, .export-bar, .category-actions,
-        .shortcut-help-box, .notice, .modal-backdrop, .no-print, th:last-child, td:last-child, .category-image { display: none !important; }
-        .category-content { border: 0 !important; background: none !important; box-shadow: none !important; }
-        .category-table-wrapper { overflow: visible !important; }
-        .category-table { width: 100% !important; min-width: 0 !important; border-collapse: collapse !important; }
-        .category-table th, .category-table td { color: #111 !important; background: #fff !important; border: 1px solid #ddd !important; padding: 8px !important; font-size: 11px !important; }
-        .category-table th { background: #f2f2f2 !important; }
+    @media(max-width: 768px) {
+        .detail-grid { grid-template-columns: 1fr; }
+        .detail-main-image { width: 100%; height: 240px; }
+        .detail-meta { grid-template-columns: 1fr; }
     }
 </style>
 
@@ -1128,86 +679,41 @@ require_once __DIR__ . '/../includes/sidebar.php';
     <section class="content">
         <div class="category-page">
 
-            <!-- PAGE HEADER -->
+            <!-- PAGE HEADER WITH SHORTCUT BADGES -->
             <div class="category-page-header">
                 <div>
                     <div class="category-breadcrumb">
-                        <span>Catalog</span>
-                        <span>/</span>
-                        <span class="current">Products</span>
+                        <span>Catalog</span><span>/</span><span class="current">Products</span>
                     </div>
                     <h1>Products Management</h1>
-                    <p>Manage product catalog, pricing, tax rates, images, flags, reports and keyboard shortcuts.</p>
+                    <p>Manage product details, inventory, status and reports with shortcut keys.</p>
                 </div>
 
                 <div class="header-actions">
-                    <button type="button" class="btn btn-blue" id="printBtn">
-                        🖨 Print <small>P</small>
-                    </button>
-                    <button type="button" class="btn" id="pdfBtn">
-                        ↓ PDF <small>V</small>
-                    </button>
-                    <button type="button" class="btn" id="excelBtn">
-                        ↓ Excel <small>X</small>
-                    </button>
-                    <a href="add.php" class="btn btn-primary" id="addProductBtn">
-                        ＋ Add Product <small>A</small>
-                    </a>
+                    <button type="button" class="btn" id="printBtn" title="Print Catalog">🖨 Print <span class="kbd-badge">P</span></button>
+                    <button type="button" class="btn" id="pdfBtn" title="Export Current View to PDF">↓ PDF <span class="kbd-badge">V</span></button>
+                    <button type="button" class="btn" id="excelBtn" title="Export Current View to Excel">↓ Excel <span class="kbd-badge">X</span></button>
+                    <a href="add.php" class="btn btn-primary" id="addProductBtn" title="Add New Product">＋ Add Product <span class="kbd-badge">A</span></a>
                 </div>
             </div>
 
             <!-- SUCCESS/ERROR MESSAGES -->
             <?php if ($actionMessage !== ''): ?>
-                <div class="notice notice-success">
-                    <?= e($actionMessage) ?>
-                </div>
+                <div class="notice notice-success"><?= e($actionMessage) ?></div>
             <?php endif; ?>
-
             <?php if ($actionError !== ''): ?>
-                <div class="notice notice-error">
-                    <?= e($actionError) ?>
-                </div>
+                <div class="notice notice-error"><?= e($actionError) ?></div>
             <?php endif; ?>
-
             <?php if ($queryError !== ''): ?>
-                <div class="notice notice-error">
-                    <?= e($queryError) ?>
-                </div>
+                <div class="notice notice-error"><?= e($queryError) ?></div>
             <?php endif; ?>
 
-            <!-- STATISTICS -->
+            <!-- STATISTICS CARDS -->
             <div class="category-stats">
-                <div class="category-stat-item">
-                    <div class="category-stat-icon">#</div>
-                    <div>
-                        <div class="category-stat-label">Total Products</div>
-                        <div class="category-stat-value"><?= $totalProducts ?></div>
-                    </div>
-                </div>
-
-                <div class="category-stat-item">
-                    <div class="category-stat-icon">✓</div>
-                    <div>
-                        <div class="category-stat-label">Active</div>
-                        <div class="category-stat-value"><?= $activeProducts ?></div>
-                    </div>
-                </div>
-
-                <div class="category-stat-item">
-                    <div class="category-stat-icon">○</div>
-                    <div>
-                        <div class="category-stat-label">Inactive</div>
-                        <div class="category-stat-value"><?= $inactiveProducts ?></div>
-                    </div>
-                </div>
-
-                <div class="category-stat-item">
-                    <div class="category-stat-icon">★</div>
-                    <div>
-                        <div class="category-stat-label">Featured</div>
-                        <div class="category-stat-value"><?= $featuredProducts ?></div>
-                    </div>
-                </div>
+                <div class="category-stat-item"><div class="category-stat-icon">#</div><div><div class="category-stat-label">Total Inventory</div><div class="category-stat-value"><?= (int)$stats['Total'] ?></div></div></div>
+                <div class="category-stat-item"><div class="category-stat-icon">✓</div><div><div class="category-stat-label">Active</div><div class="category-stat-value"><?= (int)$stats['ActiveCount'] ?></div></div></div>
+                <div class="category-stat-item"><div class="category-stat-icon">○</div><div><div class="category-stat-label">Inactive</div><div class="category-stat-value"><?= (int)$stats['InactiveCount'] ?></div></div></div>
+                <div class="category-stat-item"><div class="category-stat-icon">★</div><div><div class="category-stat-label">Featured</div><div class="category-stat-value"><?= (int)$stats['FeaturedCount'] ?></div></div></div>
             </div>
 
             <!-- PRODUCT CONTENT & TABLE -->
@@ -1215,61 +721,41 @@ require_once __DIR__ . '/../includes/sidebar.php';
                 <div class="category-content-header">
                     <div class="category-content-title">
                         <h2>Products List</h2>
-                        <p>Title, SKU/slug, category, base price, tax configurations, badges and dates.</p>
+                        <p>Name, slug, specifications, pricing, status and created date.</p>
                     </div>
 
                     <div class="category-filters">
-                        <!-- REAL-TIME INSTANT SEARCH -->
-                        <div class="category-search-wrap">
-                            <span class="category-search-icon">⌕</span>
-                            <input
-                                type="search"
-                                id="productSearch"
-                                class="category-search"
-                                placeholder="Search product name, slug, specs..."
-                                autocomplete="off">
-                        </div>
+                        <form method="GET" action="" id="filterForm" style="display: flex; gap: 10px; width: 100%; justify-content: flex-end; align-items: center;">
+                            <input type="hidden" name="limit" id="limitInput" value="<?= $perPage ?>">
+                            <div class="category-search-wrap">
+                                <span class="category-search-icon">⌕</span>
+                                <input type="search" name="q" id="productSearch" class="category-search" placeholder="Search name, slug, specs... (B)" value="<?= e($searchQuery) ?>" autocomplete="off">
+                                <span class="search-kbd-hint">B</span>
+                            </div>
 
-                        <!-- HIERARCHICAL CATEGORY FILTER -->
-                        <select id="categoryFilter" class="category-status-filter">
-                            <option value="all">All Categories</option>
-                            <?php foreach ($mainCategories as $main): ?>
-                                <option value="main-<?= (int)$main['id'] ?>" style="font-weight: bold; color: var(--text-hi); background: var(--bg-header);">
-                                    📁 <?= e($main['name']) ?>
-                                </option>
-                                <?php foreach ($main['subs'] as $sub): ?>
-                                    <option value="<?= e(strtolower($sub['Name'])) ?>">
-                                        &nbsp;&nbsp;&nbsp;&nbsp;— <?= e($sub['Name']) ?>
-                                    </option>
+                            <select name="category" id="categoryFilter" class="category-status-filter" title="Filter by Category" onchange="document.getElementById('filterForm').submit();">
+                                <option value="all">All Categories</option>
+                                <?php foreach ($mainCategories as $main): ?>
+                                    <option value="main-<?= (int)$main['id'] ?>" <?= $categoryFilter === 'main-' . $main['id'] ? 'selected' : '' ?> style="font-weight: bold;">📁 <?= e($main['name']) ?></option>
+                                    <?php foreach ($main['subs'] as $sub): ?>
+                                        <option value="<?= e(strtolower($sub['Name'])) ?>" <?= $categoryFilter === strtolower($sub['Name']) ? 'selected' : '' ?>>&nbsp;&nbsp;&nbsp;&nbsp;— <?= e($sub['Name']) ?></option>
+                                    <?php endforeach; ?>
                                 <?php endforeach; ?>
-                            <?php endforeach; ?>
-                        </select>
+                            </select>
 
-                        <!-- STATUS FILTER -->
-                        <select id="productStatusFilter" class="category-status-filter">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+                            <select name="status" id="productStatusFilter" class="category-status-filter" onchange="document.getElementById('filterForm').submit();">
+                                <option value="all" <?= $statusFilter === 'all' ? 'selected' : '' ?>>All Status</option>
+                                <option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>>Active</option>
+                                <option value="inactive" <?= $statusFilter === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                            </select>
+                        </form>
                     </div>
-                </div>
-
-                <!-- EXPORT BAR -->
-                <div class="export-bar">
-                    <span class="export-label">Reports & Export</span>
-                    <button type="button" class="btn" id="printBtn2">🖨 Print</button>
-                    <button type="button" class="btn" id="pdfBtn2">↓ PDF</button>
-                    <button type="button" class="btn" id="excelBtn2">↓ Excel</button>
                 </div>
 
                 <!-- TABLE SUMMARY -->
                 <div class="category-table-summary">
-                    <div class="category-result-text">
-                        Showing <strong id="visibleProductCount"><?= $totalProducts ?></strong> products
-                    </div>
-                    <div class="category-result-text">
-                        Total: <strong><?= $totalProducts ?></strong>
-                    </div>
+                    <div class="category-result-text">Showing items <strong><?= $totalProducts > 0 ? $offset + 1 : 0 ?></strong> to <strong><?= min($offset + $perPage, $totalProducts) ?></strong> of <strong><?= $totalProducts ?></strong> results</div>
+                    <div class="category-result-text">Total Catalog: <strong><?= $totalProducts ?></strong></div>
                 </div>
 
                 <!-- TABLE WRAPPER -->
@@ -1278,10 +764,8 @@ require_once __DIR__ . '/../includes/sidebar.php';
                         <div class="category-empty">
                             <div class="category-empty-icon">📦</div>
                             <h3>No Products Found</h3>
-                            <p>Get started by adding your first product to the catalog.</p>
-                            <a href="add.php" class="btn btn-primary" style="margin-top:16px">
-                                ＋ Add First Product
-                            </a>
+                            <p>Try clearing your search query or adjusting your filters.</p>
+                            <a href="index.php" class="btn btn-primary" style="margin-top:16px">Reset Filters</a>
                         </div>
                     <?php else: ?>
                         <table class="category-table" id="productTable">
@@ -1299,229 +783,164 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php 
-                                $displayId = 1;
-                                foreach ($allProducts as $product): 
-                                    $productId    = (int)($product['ProductId'] ?? 0);
-                                    $name         = (string)($product['Name'] ?? '');
-                                    $slug         = (string)($product['Slug'] ?? '');
-                                    $catName      = (string)($product['CategoryName'] ?? 'Uncategorized');
-                                    $parentCatId  = (int)($product['ParentCategoryId'] ?? 0);
-                                    $shortDesc    = trim((string)($product['ShortDescription'] ?? ''));
-                                    $desc         = trim((string)($product['Description'] ?? ''));
-                                    $specs        = trim((string)($product['Specifications'] ?? ''));
-                                    $care         = trim((string)($product['CareInstructions'] ?? ''));
-                                    $basePrice    = (float)($product['BasePrice'] ?? 0);
-                                    $gstPercent   = (float)($product['GstPercentage'] ?? 0);
-                                    $pstPercent   = (float)($product['PstPercentage'] ?? 0);
-                                    
-                                    $gstAmount    = $basePrice * ($gstPercent / 100);
-                                    $pstAmount    = $basePrice * ($pstPercent / 100);
-                                    $totalPrice   = $basePrice + $gstAmount + $pstAmount;
+                            <?php 
+                            $displayId = $offset + 1;
+                            foreach ($allProducts as $product): 
+                                $productId    = (int)($product['ProductId'] ?? 0);
+                                $name         = (string)($product['Name'] ?? '');
+                                $slug         = (string)($product['Slug'] ?? '');
+                                $catName      = (string)($product['CategoryName'] ?? 'Uncategorized');
+                                $shortDesc    = trim((string)($product['ShortDescription'] ?? ''));
+                                $desc         = trim((string)($product['Description'] ?? ''));
+                                $specs        = trim((string)($product['Specifications'] ?? ''));
+                                $care         = trim((string)($product['CareInstructions'] ?? ''));
+                                $basePrice    = (float)($product['BasePrice'] ?? 0);
+                                $gstPercent   = (float)($product['GstPercentage'] ?? 0);
+                                $pstPercent   = (float)($product['PstPercentage'] ?? 0);
+                                
+                                $gstAmount    = $basePrice * ($gstPercent / 100);
+                                $pstAmount    = $basePrice * ($pstPercent / 100);
+                                $totalPrice   = $basePrice + $gstAmount + $pstAmount;
 
-                                    $metaTitle    = (string)($product['MetaTitle'] ?? '');
-                                    $metaDesc     = (string)($product['MetaDescription'] ?? '');
-                                    $isActive     = !empty($product['IsActive']);
-                                    $isFeatured   = !empty($product['IsFeatured']);
-                                    $isNew        = !empty($product['IsNewArrival']);
-                                    $isBestSeller = !empty($product['IsBestSeller']);
-                                    $image        = productImageUrl($product['MainImage'] ?? '');
-                                    
-                                    $rawImages = explode('|', (string)($product['AllImages'] ?? ''));
-                                    $formattedImages = [];
-                                    foreach ($rawImages as $imgFile) {
-                                        $url = productImageUrl($imgFile);
-                                        if ($url !== '') {
-                                            $formattedImages[] = $url;
-                                        }
+                                $metaTitle    = (string)($product['MetaTitle'] ?? '');
+                                $metaDesc     = (string)($product['MetaDescription'] ?? '');
+                                $isActive     = !empty($product['IsActive']);
+                                $isFeatured   = !empty($product['IsFeatured']);
+                                $isNew        = !empty($product['IsNewArrival']);
+                                $isBestSeller = !empty($product['IsBestSeller']);
+                                $image        = productImageUrl($product['MainImage'] ?? '');
+                                
+                                $rawImages = explode('|', (string)($product['AllImages'] ?? ''));
+                                $formattedImages = [];
+                                foreach ($rawImages as $imgFile) {
+                                    $url = productImageUrl($imgFile);
+                                    if ($url !== '') {
+                                        $formattedImages[] = $url;
                                     }
-                                    $allImagesJson = htmlspecialchars(json_encode($formattedImages), ENT_QUOTES, 'UTF-8');
+                                }
+                                $allImagesJson = htmlspecialchars(json_encode($formattedImages), ENT_QUOTES, 'UTF-8');
+                                $createdAt    = dateValue($product['CreatedAt'] ?? '');
+                                ?>
+                                <tr class="category-row product-row"
+                                    data-status="<?= $isActive ? 'active' : 'inactive' ?>"
+                                    data-slug="<?= e(strtolower($slug)) ?>">
 
-                                    $createdAt    = dateValue($product['CreatedAt'] ?? '');
-                                    ?>
-                                    <tr
-                                        class="category-row product-row"
-                                        data-id="<?= $productId ?>"
-                                        data-parentcat="<?= $parentCatId ?>"
-                                        data-status="<?= $isActive ? 'active' : 'inactive' ?>"
-                                        data-category="<?= e(strtolower($catName)) ?>"
-                                        data-name="<?= e(strtolower($name)) ?>"
-                                        data-slug="<?= e(strtolower($slug)) ?>"
-                                        data-specs="<?= e(strtolower($specs)) ?>"
-                                        data-description="<?= e(strtolower($desc)) ?>">
-
-                                        <!-- ID -->
-                                        <td>
-                                            <span class="order-box">#<?= $displayId++ ?></span>
-                                        </td>
-
-                                        <!-- PRODUCT & IMAGE -->
-                                        <td>
-                                            <div class="category-main">
-                                                <div class="category-image" title="<?= e($name) ?>">
-                                                    <?php if ($image !== ''): ?>
-                                                        <img
-                                                            src="<?= e($image) ?>"
-                                                            alt="<?= e($name) ?>"
-                                                            loading="lazy"
-                                                            onerror="
-                                                                this.onerror=null;
-                                                                this.style.display='none';
-                                                                this.parentElement.querySelector('.category-image-placeholder').style.display='flex';
-                                                            ">
-                                                        <span class="category-image-placeholder" style="display:none">📦</span>
-                                                    <?php else: ?>
-                                                        <span class="category-image-placeholder">📦</span>
-                                                    <?php endif; ?>
-                                                </div>
-
-                                                <div>
-                                                    <div class="category-name"><?= e($name) ?></div>
-                                                    <?php if ($slug !== ''): ?>
-                                                        <div class="category-slug">/<?= e($slug) ?></div>
-                                                    <?php endif; ?>
-                                                </div>
+                                    <td><span class="order-box">#<?= $displayId++ ?></span></td>
+                                    <td>
+                                        <div class="category-main">
+                                            <div class="category-image" title="<?= e($name) ?>">
+                                                <?php if ($image !== ''): ?>
+                                                    <img src="<?= e($image) ?>" alt="<?= e($name) ?>" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.parentElement.querySelector('.category-image-placeholder').style.display='flex';">
+                                                    <span class="category-image-placeholder" style="display:none">📦</span>
+                                                <?php else: ?><span class="category-image-placeholder">📦</span><?php endif; ?>
                                             </div>
-                                        </td>
-
-                                        <!-- CATEGORY -->
-                                        <td>
-                                            <span class="cat-badge"><?= e($catName) ?></span>
-                                        </td>
-
-                                        <!-- PRICE -->
-                                        <td>
-                                            <div class="price-value">$<?= number_format($totalPrice, 2) ?></div>
-                                            <div style="font-size:10px; color:var(--text-mute);">Base: $<?= number_format($basePrice, 2) ?></div>
-                                        </td>
-
-                                        <!-- TAXES -->
-                                        <td>
-                                            <div style="font-size:11px; line-height:1.4;">
-                                                <div>GST (<?= number_format($gstPercent, 1) ?>%): +$<?= number_format($gstAmount, 2) ?></div>
-                                                <div style="color:var(--text-mute);">PST (<?= number_format($pstPercent, 1) ?>%): +$<?= number_format($pstAmount, 2) ?></div>
+                                            <div>
+                                                <div class="category-name"><?= e($name) ?></div>
+                                                <?php if ($slug !== ''): ?><div class="category-slug">/<?= e($slug) ?></div><?php endif; ?>
                                             </div>
-                                        </td>
+                                        </div>
+                                    </td>
+                                    <td><span class="cat-badge"><?= e($catName) ?></span></td>
+                                    <td>
+                                        <div class="price-value">$<?= number_format($totalPrice, 2) ?></div>
+                                        <div style="font-size:10px; color:var(--cat-muted);">Base: $<?= number_format($basePrice, 2) ?></div>
+                                    </td>
+                                    <td>
+                                        <div style="font-size:11px; line-height:1.4;">
+                                            <div>GST (<?= number_format($gstPercent, 1) ?>%): +$<?= number_format($gstAmount, 2) ?></div>
+                                            <div style="color:var(--cat-muted);">PST (<?= number_format($pstPercent, 1) ?>%): +$<?= number_format($pstAmount, 2) ?></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="flags-cell">
+                                            <?php if ($isFeatured): ?><span class="badge-tag tag-featured">Featured</span><?php endif; ?>
+                                            <?php if ($isNew): ?><span class="badge-tag tag-new">New</span><?php endif; ?>
+                                            <?php if ($isBestSeller): ?><span class="badge-tag tag-bestseller">Best Seller</span><?php endif; ?>
+                                            <?php if (!$isFeatured && !$isNew && !$isBestSeller): ?><span style="color:var(--cat-muted);">—</span><?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?php if ($isActive): ?>
+                                            <span class="category-status category-status-active"><span class="category-status-dot"></span>Active</span>
+                                        <?php else: ?>
+                                            <span class="category-status category-status-inactive"><span class="category-status-dot"></span>Inactive</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><div class="category-date"><?= e($createdAt) ?></div></td>
+                                    <td style="text-align:right;">
+                                        <div class="category-actions" style="justify-content:flex-end;">
+                                            <button type="button" class="category-action detail-btn" title="View details"
+                                                data-id="<?= $productId ?>"
+                                                data-name="<?= e($name) ?>"
+                                                data-slug="<?= e($slug) ?>"
+                                                data-category="<?= e($catName) ?>"
+                                                data-price="$<?= number_format($totalPrice, 2) ?> (Base: $<?= number_format($basePrice, 2) ?>)"
+                                                data-gst="<?= number_format($gstPercent, 1) ?>% (+$<?= number_format($gstAmount, 2) ?>)"
+                                                data-pst="<?= number_format($pstPercent, 1) ?>% (+$<?= number_format($pstAmount, 2) ?>)"
+                                                data-shortdesc="<?= e($shortDesc) ?>"
+                                                data-description="<?= e($desc) ?>"
+                                                data-specs="<?= e($specs) ?>"
+                                                data-care="<?= e($care) ?>"
+                                                data-metatitle="<?= e($metaTitle) ?>"
+                                                data-metadesc="<?= e($metaDesc) ?>"
+                                                data-status="<?= $isActive ? 'Active' : 'Inactive' ?>"
+                                                data-flags="<?= trim(($isFeatured ? 'Featured ' : '') . ($isNew ? 'NewArrival ' : '') . ($isBestSeller ? 'BestSeller' : '')) ?>"
+                                                data-created="<?= e($createdAt) ?>"
+                                                data-images="<?= $allImagesJson ?>">◉</button>
 
-                                        <!-- BADGES -->
-                                        <td>
-                                            <div class="flags-cell">
-                                                <?php if ($isFeatured): ?>
-                                                    <span class="badge-tag tag-featured">Featured</span>
-                                                <?php endif; ?>
-                                                <?php if ($isNew): ?>
-                                                    <span class="badge-tag tag-new">New</span>
-                                                <?php endif; ?>
-                                                <?php if ($isBestSeller): ?>
-                                                    <span class="badge-tag tag-bestseller">Best Seller</span>
-                                                <?php endif; ?>
-                                                <?php if (!$isFeatured && !$isNew && !$isBestSeller): ?>
-                                                    <span style="color:var(--text-mute);">—</span>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
+                                            <a href="edit.php?id=<?= $productId ?>" class="category-action edit-btn" title="Edit Product">✎</a>
 
-                                        <!-- STATUS -->
-                                        <td>
-                                            <?php if ($isActive): ?>
-                                                <span class="category-status category-status-active">
-                                                    <span class="category-status-dot"></span> Active
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="category-status category-status-inactive">
-                                                    <span class="category-status-dot"></span> Inactive
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-
-                                        <!-- CREATED -->
-                                        <td>
-                                            <div class="category-date"><?= e($createdAt) ?></div>
-                                        </td>
-
-                                        <!-- ACTIONS -->
-                                        <td style="text-align:right;">
-                                            <div class="category-actions" style="justify-content:flex-end;">
-                                                <button
-                                                    type="button"
-                                                    class="category-action detail-btn"
-                                                    title="View Product Details"
-                                                    data-id="<?= $productId ?>"
-                                                    data-name="<?= e($name) ?>"
-                                                    data-slug="<?= e($slug) ?>"
-                                                    data-category="<?= e($catName) ?>"
-                                                    data-price="$<?= number_format($totalPrice, 2) ?> (Base: $<?= number_format($basePrice, 2) ?>)"
-                                                    data-gst="<?= number_format($gstPercent, 1) ?>% (+$<?= number_format($gstAmount, 2) ?>)"
-                                                    data-pst="<?= number_format($pstPercent, 1) ?>% (+$<?= number_format($pstAmount, 2) ?>)"
-                                                    data-shortdesc="<?= e($shortDesc) ?>"
-                                                    data-description="<?= e($desc) ?>"
-                                                    data-specs="<?= e($specs) ?>"
-                                                    data-care="<?= e($care) ?>"
-                                                    data-metatitle="<?= e($metaTitle) ?>"
-                                                    data-metadesc="<?= e($metaDesc) ?>"
-                                                    data-status="<?= $isActive ? 'Active' : 'Inactive' ?>"
-                                                    data-flags="<?= trim(($isFeatured ? 'Featured ' : '') . ($isNew ? 'NewArrival ' : '') . ($isBestSeller ? 'BestSeller' : '')) ?>"
-                                                    data-created="<?= e($createdAt) ?>"
-                                                    data-images="<?= $allImagesJson ?>">
-                                                    ◉
-                                                </button>
-
-                                                <a
-                                                    href="edit.php?id=<?= $productId ?>"
-                                                    class="category-action edit-btn"
-                                                    title="Edit Product">
-                                                    ✎
-                                                </a>
-
-                                                <form
-                                                    method="POST"
-                                                    action="delete.php"
-                                                    class="delete-form"
-                                                    style="display:inline">
-                                                    <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                                                    <button
-                                                        type="submit"
-                                                        class="category-action category-action-delete delete-product-btn"
-                                                        title="Delete Product">
-                                                        ×
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
+                                            <form method="POST" action="delete.php" class="delete-form" style="display:inline">
+                                                <input type="hidden" name="product_id" value="<?= $productId ?>">
+                                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                                <button type="submit" class="category-action category-action-delete delete-product-btn" title="Delete Product">×</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                             </tbody>
                         </table>
-
-                        <!-- NO SEARCH RESULTS -->
-                        <div id="productNoResult" class="category-no-result" style="display:none">
-                            <div class="category-no-result-icon">⌕</div>
-                            <h3>No matching products found</h3>
-                            <p>Try clearing your search query or adjusting your filters.</p>
-                        </div>
                     <?php endif; ?>
                 </div>
-            </div>
 
-            <!-- KEYBOARD SHORTCUTS -->
-            <div class="shortcut-help-box" id="shortcutHelpBox">
-                <div class="shortcut-help-title">
-                    <span>⌨</span>
-                    <span>Keyboard Shortcuts</span>
-                    <small>A B C D E P V X H • Esc</small>
-                </div>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item"><span class="shortcut-key">A</span><span class="shortcut-desc">Add Product</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">B</span><span class="shortcut-desc">Search / Focus search field</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">C</span><span class="shortcut-desc">Filter Status / Categories</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">D</span><span class="shortcut-desc">Edit selected product</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">E</span><span class="shortcut-desc">Delete selected product</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">P</span><span class="shortcut-desc">Print view</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">V</span><span class="shortcut-desc">Download PDF Report</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">X</span><span class="shortcut-desc">Download Excel (.xlsx)</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">H</span><span class="shortcut-desc">Toggle Shortcuts panel</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">Esc</span><span class="shortcut-desc">Close details / clear search</span></div>
+                <!-- PAGINATION FOOTER WITH 'SHOW X PRODUCTS' DROPDOWN -->
+                <div class="pagination-bar">
+                    <div class="pagination-limit-wrap">
+                        <span>Show</span>
+                        <select id="perPageSelect" class="pagination-limit-select" onchange="changePerPage(this.value);">
+                            <option value="25" <?= $perPage === 25 ? 'selected' : '' ?>>25</option>
+                            <option value="50" <?= $perPage === 50 ? 'selected' : '' ?>>50</option>
+                            <option value="100" <?= $perPage === 100 ? 'selected' : '' ?>>100</option>
+                            <option value="200" <?= $perPage === 200 ? 'selected' : '' ?>>200</option>
+                        </select>
+                        <span>products</span>
+                    </div>
+
+                    <div class="pagination-links">
+                        <?php 
+                        $queryString = $_GET;
+                        if ($page > 1) {
+                            $queryString['page'] = 1;
+                            echo '<a href="?' . http_build_query($queryString) . '" class="page-link">«</a>';
+                            $queryString['page'] = $page - 1;
+                            echo '<a href="?' . http_build_query($queryString) . '" class="page-link">‹</a>';
+                        } else {
+                            echo '<span class="page-link" style="opacity:0.4; pointer-events:none;">«</span>';
+                            echo '<span class="page-link" style="opacity:0.4; pointer-events:none;">‹</span>';
+                        }
+
+                        if ($page < $totalPages) {
+                            $queryString['page'] = $page + 1;
+                            echo '<a href="?' . http_build_query($queryString) . '" class="page-link">›</a>';
+                            $queryString['page'] = $totalPages;
+                            echo '<a href="?' . http_build_query($queryString) . '" class="page-link">»</a>';
+                        } else {
+                            echo '<span class="page-link" style="opacity:0.4; pointer-events:none;">›</span>';
+                            echo '<span class="page-link" style="opacity:0.4; pointer-events:none;">»</span>';
+                        }
+                        ?>
+                    </div>
                 </div>
             </div>
 
@@ -1544,87 +963,88 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     <div class="detail-thumbnails" id="modalThumbnails"></div>
                 </div>
 
-                <div>
+                <div class="detail-info-grid">
                     <div class="detail-item">
                         <label>Product Name</label>
-                        <div id="modalName" style="font-size:14px; font-weight:800;">—</div>
+                        <div class="val" id="modalName" style="font-size:15px; font-weight:900;">—</div>
                     </div>
 
-                    <div class="detail-item" style="margin-top:10px;">
+                    <div class="detail-item">
                         <label>Slug / Route</label>
-                        <div id="modalSlug" style="font-family:monospace; color:var(--text-mute);">—</div>
+                        <div class="val" id="modalSlug" style="font-family:monospace; color:#7b8da1;">—</div>
                     </div>
 
                     <div class="detail-meta">
                         <div class="detail-card">
                             <div class="detail-item">
                                 <label>Category</label>
-                                <div id="modalCategory" style="color:var(--blue); font-weight:700;">—</div>
+                                <div class="val" id="modalCategory" style="color:#0284c7; font-weight:800;">—</div>
                             </div>
                         </div>
 
                         <div class="detail-card">
                             <div class="detail-item">
                                 <label>Price (With Tax)</label>
-                                <div id="modalPrice" style="color:var(--green); font-weight:800;">—</div>
+                                <div class="val" id="modalPrice" style="color:#059669; font-weight:900;">—</div>
                             </div>
                         </div>
 
                         <div class="detail-card">
                             <div class="detail-item">
                                 <label>Status</label>
-                                <div id="modalStatus">—</div>
+                                <div class="val" id="modalStatus">—</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="detail-meta" style="margin-top:10px;">
+                    <div class="detail-meta">
                         <div class="detail-card">
                             <div class="detail-item">
                                 <label>GST / PST Breakdown</label>
-                                <div id="modalTaxes">—</div>
+                                <div class="val" id="modalTaxes">—</div>
                             </div>
                         </div>
 
                         <div class="detail-card">
                             <div class="detail-item">
                                 <label>Badges</label>
-                                <div id="modalFlags">—</div>
+                                <div class="val" id="modalFlags">—</div>
                             </div>
                         </div>
 
                         <div class="detail-card">
                             <div class="detail-item">
                                 <label>Created Date</label>
-                                <div id="modalCreated">—</div>
+                                <div class="val" id="modalCreated">—</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="detail-item detail-full">
+                <div class="detail-item detail-full" style="margin-top:10px;">
                     <label>Short Description</label>
-                    <div id="modalShortDesc">—</div>
+                    <div class="val" id="modalShortDesc">—</div>
                 </div>
 
                 <div class="detail-item detail-full">
                     <label>Full Description</label>
-                    <div id="modalDesc" style="white-space:pre-line;">—</div>
+                    <div class="val" id="modalDesc" style="white-space:pre-line;">—</div>
                 </div>
 
                 <div class="detail-item detail-full">
                     <label>Specifications</label>
-                    <div id="modalSpecs" style="white-space:pre-line;">—</div>
+                    <div class="val" id="modalSpecs" style="white-space:pre-line;">—</div>
                 </div>
 
                 <div class="detail-item detail-full">
                     <label>Care Instructions</label>
-                    <div id="modalCare">—</div>
+                    <div class="val" id="modalCare">—</div>
                 </div>
             </div>
         </div>
 
         <div class="modal-footer">
+            <span style="font-size: 11px; color: var(--cat-muted);">Tip: Press <kbd class="kbd-badge">Esc</kbd> to close</span>
             <button type="button" class="btn" id="modalCloseBtn2">Close</button>
         </div>
     </div>
@@ -1636,17 +1056,18 @@ require_once __DIR__ . '/../includes/sidebar.php';
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
+    function changePerPage(val) {
+        const form = document.getElementById('filterForm');
+        document.getElementById('limitInput').value = val;
+        form.submit();
+    }
+
     (function() {
         'use strict';
 
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('productSearch');
-            const categoryFilter = document.getElementById('categoryFilter');
-            const statusFilter = document.getElementById('productStatusFilter');
             const table = document.getElementById('productTable');
-            const countElement = document.getElementById('visibleProductCount');
-            const noResult = document.getElementById('productNoResult');
-            const shortcutBox = document.getElementById('shortcutHelpBox');
             const modal = document.getElementById('productModal');
 
             function rows() {
@@ -1654,64 +1075,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
             }
 
             function visibleRows() {
-                return rows().filter(r => r.style.display !== 'none');
-            }
-
-            function selectFirstVisible(scroll) {
-                rows().forEach(r => r.classList.remove('keyboard-selected'));
-                const first = visibleRows()[0];
-                if (first) {
-                    first.classList.add('keyboard-selected');
-                    if (scroll) first.scrollIntoView({
-                        block: 'nearest'
-                    });
-                }
-            }
-
-            function filterProducts() {
-                if (!table) return;
-
-                const q = (searchInput?.value || '').toLowerCase().trim();
-                const catVal = (categoryFilter?.value || 'all');
-                const status = (statusFilter?.value || 'all');
-
-                let count = 0;
-
-                rows().forEach(function(row) {
-                    const name = row.dataset.name || '';
-                    const slug = row.dataset.slug || '';
-                    const specs = row.dataset.specs || '';
-                    const desc = row.dataset.description || '';
-                    const rowCat = row.dataset.category || '';
-                    const parentCatId = row.dataset.parentcat || '';
-                    const rowStatus = row.dataset.status || '';
-
-                    const textMatch = (!q || name.includes(q) || slug.includes(q) || specs.includes(q) || desc.includes(q));
-                    
-                    let catMatch = true;
-                    if (catVal !== 'all') {
-                        if (catVal.startsWith('main-')) {
-                            const mainId = catVal.replace('main-', '');
-                            catMatch = (parentCatId === mainId);
-                        } else {
-                            catMatch = (rowCat === catVal);
-                        }
-                    }
-
-                    const statusMatch = (status === 'all' || rowStatus === status);
-
-                    if (textMatch && catMatch && statusMatch) {
-                        row.style.display = '';
-                        count++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                if (countElement) countElement.textContent = count;
-                if (noResult) noResult.style.display = (count === 0) ? 'block' : 'none';
-
-                selectFirstVisible(false);
+                return rows();
             }
 
             function excelExport() {
@@ -1729,30 +1093,15 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
                 if (window.XLSX) {
                     const ws = XLSX.utils.json_to_sheet(data);
-                    ws['!cols'] = [{
-                        wch: 10
-                    }, {
-                        wch: 32
-                    }, {
-                        wch: 28
-                    }, {
-                        wch: 18
-                    }, {
-                        wch: 14
-                    }, {
-                        wch: 12
-                    }, {
-                        wch: 22
-                    }];
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, 'Products');
-                    XLSX.writeFile(wb, 'products-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+                    XLSX.writeFile(wb, 'products-page-' + new Date().toISOString().slice(0, 10) + '.xlsx');
                 }
             }
 
             function pdfExport() {
                 if (!window.jspdf || !window.jspdf.jsPDF) {
-                    alert('PDF library not available. Please print and choose Save as PDF.');
+                    alert('PDF library not available.');
                     return;
                 }
 
@@ -1773,29 +1122,17 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     format: 'a4'
                 });
                 doc.setFontSize(16);
-                doc.text('GatewayLinen - Products Catalog', 14, 14);
-                doc.setFontSize(9);
-                doc.text('Generated: ' + new Date().toLocaleString(), 14, 20);
-
+                doc.text('GatewayLinen - Products Catalog (Page View)', 14, 14);
                 if (typeof doc.autoTable === 'function') {
                     doc.autoTable({
-                        startY: 25,
-                        head: [
-                            ['ID', 'Product Name', 'Category', 'Base Price', 'Status', 'Created']
-                        ],
+                        startY: 22,
+                        head: [['ID', 'Product Name', 'Category', 'Base Price', 'Status', 'Created']],
                         body: body,
-                        styles: {
-                            fontSize: 8,
-                            cellPadding: 3
-                        },
-                        headStyles: {
-                            fontSize: 8,
-                            fillColor: [16, 185, 129]
-                        }
+                        styles: { fontSize: 7, cellPadding: 2 },
+                        headStyles: { fillColor: [5, 150, 105] }
                     });
                 }
-
-                doc.save('products-' + new Date().toISOString().slice(0, 10) + '.pdf');
+                doc.save('products-page-' + new Date().toISOString().slice(0, 10) + '.pdf');
             }
 
             function openModal(btn) {
@@ -1877,70 +1214,53 @@ require_once __DIR__ . '/../includes/sidebar.php';
             });
 
             document.getElementById('printBtn')?.addEventListener('click', () => window.print());
-            document.getElementById('printBtn2')?.addEventListener('click', () => window.print());
             document.getElementById('pdfBtn')?.addEventListener('click', pdfExport);
-            document.getElementById('pdfBtn2')?.addEventListener('click', pdfExport);
             document.getElementById('excelBtn')?.addEventListener('click', excelExport);
-            document.getElementById('excelBtn2')?.addEventListener('click', excelExport);
 
-            searchInput?.addEventListener('input', filterProducts);
-            categoryFilter?.addEventListener('change', filterProducts);
-            statusFilter?.addEventListener('change', filterProducts);
-
-            rows().forEach(row => {
-                row.addEventListener('click', function(e) {
-                    if (e.target.closest('button, a, form')) return;
-                    rows().forEach(r => r.classList.remove('keyboard-selected'));
-                    row.classList.add('keyboard-selected');
-                });
-            });
-
+            // =========================================================================
+            // KEYBOARD SHORTCUTS HANDLER
+            // =========================================================================
             document.addEventListener('keydown', function(e) {
-                const tag = (e.target?.tagName || '').toLowerCase();
-                const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
+                const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                const isTyping = (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select');
 
-                if (typing) return;
-
-                const key = (e.key || '').toUpperCase();
-
-                if (['A', 'B', 'C', 'D', 'E', 'P', 'V', 'X', 'H'].includes(key)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-
-                if (key === 'A') {
-                    document.getElementById('addProductBtn')?.click();
-                } else if (key === 'B') {
-                    searchInput?.focus();
-                    searchInput?.select();
-                } else if (key === 'C') {
-                    categoryFilter?.focus();
-                } else if (key === 'D') {
-                    const sel = document.querySelector('.product-row.keyboard-selected') || visibleRows()[0];
-                    sel?.querySelector('.edit-btn')?.click();
-                } else if (key === 'E') {
-                    const sel = document.querySelector('.product-row.keyboard-selected') || visibleRows()[0];
-                    sel?.querySelector('.delete-product-btn')?.click();
-                } else if (key === 'P') {
-                    window.print();
-                } else if (key === 'V') {
-                    pdfExport();
-                } else if (key === 'X') {
-                    excelExport();
-                } else if (key === 'H') {
-                    shortcutBox?.classList.toggle('hidden');
-                } else if (key === 'ESCAPE') {
-                    if (modal?.classList.contains('show')) {
+                if (e.key === 'Escape') {
+                    if (modal.classList.contains('show')) {
                         closeModal();
-                    } else if (searchInput?.value) {
-                        searchInput.value = '';
-                        filterProducts();
                     }
-                    searchInput?.blur();
                 }
-            }, true);
 
-            filterProducts();
+                if ((e.key.toLowerCase() === 'b' && !isTyping)) {
+                    e.preventDefault();
+                    if (searchInput) {
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                }
+
+                if (e.key.toLowerCase() === 'a' && !isTyping) {
+                    e.preventDefault();
+                    const addBtn = document.getElementById('addProductBtn');
+                    if (addBtn) {
+                        window.location.href = addBtn.href;
+                    }
+                }
+
+                if (e.key.toLowerCase() === 'p' && !isTyping) {
+                    e.preventDefault();
+                    window.print();
+                }
+
+                if (e.key.toLowerCase() === 'v' && !isTyping) {
+                    e.preventDefault();
+                    pdfExport();
+                }
+
+                if (e.key.toLowerCase() === 'x' && !isTyping) {
+                    e.preventDefault();
+                    excelExport();
+                }
+            });
         });
     })();
 </script>

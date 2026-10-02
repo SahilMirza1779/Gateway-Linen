@@ -1,31 +1,24 @@
 <?php
 /*
 |--------------------------------------------------------------------------
-| GatewayLinen Admin Sidebar
+| GatewayLinen Admin Sidebar + Topbar
 |--------------------------------------------------------------------------
-| Location:
-| C:\wamp64\www\Gateway-Linen\GatewayLinenAdmin-main\includes\sidebar.php
-|--------------------------------------------------------------------------
-| Admin Base:
-| /Gateway-Linen/GatewayLinenAdmin-main
+| File:
+| includes/sidebar.php
 |--------------------------------------------------------------------------
 */
 
 if (!defined('GATEWAY_BASE')) {
-    define('GATEWAY_BASE', '/Gateway-Linen/GatewayLinenAdmin-main');
+    define(
+        'GATEWAY_BASE',
+        '/Gateway-Linen/GatewayLinenAdmin-main'
+    );
 }
 
 $activeMenu = $activeMenu ?? '';
 
-/*
-|--------------------------------------------------------------------------
-| ADMIN URL HELPER
-|--------------------------------------------------------------------------
-| This creates correct absolute URLs from every admin page.
-|--------------------------------------------------------------------------
-*/
-
 if (!function_exists('gateway_admin_url')) {
+
     function gateway_admin_url(string $path = ''): string
     {
         $base = rtrim(GATEWAY_BASE, '/');
@@ -39,490 +32,1009 @@ if (!function_exists('gateway_admin_url')) {
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| ACTIVE MENU
-|--------------------------------------------------------------------------
-*/
-
 if (!function_exists('gateway_menu_active')) {
+
     function gateway_menu_active(string $menu): string
     {
         global $activeMenu;
 
-        return ($activeMenu === $menu) ? 'active' : '';
+        return ($activeMenu === $menu)
+            ? 'active'
+            : '';
     }
 }
 ?>
 
 <style>
-    /* =========================================================
-   GATEWAYLINEN ADMIN SIDEBAR
+
+/* =========================================================
+   GATEWAYLINEN SIDEBAR VARIABLES
 ========================================================= */
 
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
+:root {
 
-        width: 255px;
+    --gateway-sidebar-width: 255px;
+    --gateway-topbar-height: 68px;
 
-        z-index: 1000;
+    --gateway-bg: #f4f7fb;
+    --gateway-sidebar-bg: #ffffff;
+    --gateway-topbar-bg: #ffffff;
+    --gateway-card: #ffffff;
 
-        display: flex;
-        flex-direction: column;
+    --gateway-border: #e2e8f0;
 
-        padding: 14px 11px;
+    --gateway-text: #172033;
+    --gateway-text-soft: #475569;
+    --gateway-muted: #64748b;
 
-        box-sizing: border-box;
+    --gateway-green: #059669;
+    --gateway-green-light: #10b981;
 
-        background: linear-gradient(180deg,
-                #0a1119 0%,
-                #0d1620 100%);
+    --gateway-hover: #f1f5f9;
 
-        border-right: 1px solid #1e2d3d;
-
-        color: #f0f4f8;
-
-        overflow-y: auto;
-
-        box-shadow: 8px 0 30px rgba(0, 0, 0, 0.4);
-
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, .16) transparent;
-    }
-
-    .sidebar::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .sidebar::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .sidebar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, .16);
-        border-radius: 10px;
-    }
-
-    .sidebar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, .28);
-    }
+    --gateway-shadow:
+        0 4px 20px rgba(15, 23, 42, .08);
+}
 
 
-    /* =========================================================
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+html[data-theme="dark"] {
+
+    --gateway-bg: #0a1119;
+    --gateway-sidebar-bg: #0d1620;
+    --gateway-topbar-bg: #0f1924;
+    --gateway-card: #111b26;
+
+    --gateway-border: #263544;
+
+    --gateway-text: #f0f4f8;
+    --gateway-text-soft: #a8b8c8;
+    --gateway-muted: #71869a;
+
+    --gateway-green: #10b981;
+    --gateway-green-light: #10b981;
+
+    --gateway-hover: #16222e;
+
+    --gateway-shadow:
+        0 5px 25px rgba(0, 0, 0, .35);
+}
+
+
+/* =========================================================
+   BODY
+========================================================= */
+
+html,
+body {
+
+    margin: 0;
+    padding: 0;
+
+    background: var(--gateway-bg);
+    color: var(--gateway-text);
+
+    transition:
+        background .2s ease,
+        color .2s ease;
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.gateway-topbar {
+
+    position: fixed;
+
+    top: 0;
+    left: var(--gateway-sidebar-width);
+    right: 0;
+
+    height: var(--gateway-topbar-height);
+
+    z-index: 900;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 22px;
+
+    box-sizing: border-box;
+
+    background: var(--gateway-topbar-bg);
+
+    border-bottom:
+        1px solid var(--gateway-border);
+
+    box-shadow:
+        var(--gateway-shadow);
+
+    transition:
+        background .2s ease,
+        border-color .2s ease;
+}
+
+
+/* =========================================================
+   TOPBAR LEFT
+========================================================= */
+
+.gateway-topbar-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-width: 0;
+}
+
+
+/* =========================================================
+   MOBILE MENU
+========================================================= */
+
+.gateway-mobile-menu {
+
+    width: 40px;
+    height: 40px;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid var(--gateway-border);
+
+    border-radius: 9px;
+
+    background:
+        var(--gateway-card);
+
+    color:
+        var(--gateway-text);
+
+    cursor: pointer;
+
+    font-size: 18px;
+
+    transition: .2s ease;
+}
+
+.gateway-mobile-menu:hover {
+
+    border-color:
+        var(--gateway-green);
+
+    color:
+        var(--gateway-green);
+}
+
+
+/* =========================================================
+   PAGE TITLE
+========================================================= */
+
+.gateway-page-title {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+}
+
+.gateway-page-title strong {
+
+    color:
+        var(--gateway-text);
+
+    font-size: 17px;
+
+    font-weight: 750;
+
+    white-space: nowrap;
+}
+
+.gateway-page-title span {
+
+    color:
+        var(--gateway-muted);
+
+    font-size: 10px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TOPBAR RIGHT
+========================================================= */
+
+.gateway-topbar-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+/* =========================================================
+   SINGLE THEME BUTTON
+========================================================= */
+
+.gateway-theme-button {
+
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border:
+        1px solid var(--gateway-border);
+
+    border-radius: 50%;
+
+    background:
+        var(--gateway-card);
+
+    color:
+        var(--gateway-text);
+
+    cursor: pointer;
+
+    font-size: 18px;
+
+    box-shadow:
+        0 3px 12px rgba(0,0,0,.08);
+
+    transition:
+        all .2s ease;
+}
+
+.gateway-theme-button:hover {
+
+    border-color:
+        var(--gateway-green);
+
+    color:
+        var(--gateway-green);
+
+    transform:
+        rotate(12deg);
+}
+
+
+/* =========================================================
+   ADMIN USER
+========================================================= */
+
+.gateway-admin-user {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    padding:
+        5px 11px 5px 6px;
+
+    background:
+        var(--gateway-card);
+
+    border:
+        1px solid var(--gateway-border);
+
+    border-radius: 11px;
+}
+
+
+/* =========================================================
+   ADMIN AVATAR
+========================================================= */
+
+.gateway-admin-avatar {
+
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #059669,
+            #10b981
+        );
+
+    color: #ffffff;
+
+    font-size: 12px;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   ADMIN INFO
+========================================================= */
+
+.gateway-admin-info {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 2px;
+
+    line-height: 1.2;
+}
+
+.gateway-admin-info strong {
+
+    color:
+        var(--gateway-text);
+
+    font-size: 10px;
+
+    font-weight: 750;
+}
+
+.gateway-admin-info span {
+
+    color:
+        var(--gateway-muted);
+
+    font-size: 9px;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar {
+
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width:
+        var(--gateway-sidebar-width);
+
+    z-index: 1000;
+
+    display: flex;
+
+    flex-direction: column;
+
+    box-sizing: border-box;
+
+    padding:
+        14px 11px;
+
+    overflow-y: auto;
+
+    background:
+        var(--gateway-sidebar-bg);
+
+    border-right:
+        1px solid var(--gateway-border);
+
+    color:
+        var(--gateway-text);
+
+    box-shadow:
+        7px 0 25px rgba(0,0,0,.06);
+
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        left .25s ease;
+}
+
+
+/* =========================================================
+   SIDEBAR SCROLLBAR
+========================================================= */
+
+.sidebar {
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+        rgba(100,116,139,.35)
+        transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+
+    background:
+        rgba(100,116,139,.35);
+
+    border-radius: 10px;
+}
+
+
+/* =========================================================
    BRAND
 ========================================================= */
 
-    .sidebar-brand {
-        display: flex;
-        align-items: center;
+.sidebar-brand {
 
-        gap: 10px;
+    min-height: 57px;
 
-        min-height: 48px;
+    display: flex;
 
-        padding: 0 8px 13px;
+    align-items: center;
 
-        margin-bottom: 9px;
+    gap: 11px;
 
-        border-bottom: 1px solid #1e2d3d;
-    }
+    padding:
+        0 9px 13px;
 
-    .sidebar-logo {
-        width: 35px;
-        height: 35px;
+    margin-bottom: 9px;
 
-        flex-shrink: 0;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        overflow: hidden;
-
-        border-radius: 50%;
-
-        background: #0a1119;
-
-        border: 2px solid #10b981;
-
-        box-shadow:
-            0 0 0 3px rgba(16, 185, 129, .12);
-    }
-
-    .sidebar-logo img {
-        width: 100%;
-        height: 100%;
-
-        object-fit: contain;
-
-        background: #ffffff;
-
-        border-radius: 50%;
-    }
-
-    .sidebar-logo-fallback {
-        display: none;
-
-        width: 100%;
-        height: 100%;
-
-        align-items: center;
-        justify-content: center;
-
-        color: #10b981;
-
-        background: #0d1620;
-
-        font-family: Georgia, "Times New Roman", serif;
-
-        font-size: 11px;
-
-        font-weight: 800;
-
-        letter-spacing: .5px;
-    }
-
-    .sidebar-brand-name {
-        color: #f0f4f8;
-
-        font-family: Georgia, "Times New Roman", serif;
-
-        font-size: 17px;
-
-        font-weight: 700;
-
-        letter-spacing: -.2px;
-
-        white-space: nowrap;
-
-        background: linear-gradient(90deg,
-                #f0f4f8,
-                #10b981);
-
-        -webkit-background-clip: text;
-        background-clip: text;
-
-        -webkit-text-fill-color: transparent;
-    }
+    border-bottom:
+        1px solid var(--gateway-border);
+}
 
 
-    /* =========================================================
+/* =========================================================
+   LOGO
+========================================================= */
+
+.sidebar-logo {
+
+    width: 40px;
+    height: 40px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+
+    border:
+        2px solid var(--gateway-green);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(16,185,129,.10);
+}
+
+.sidebar-logo img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    border-radius: 50%;
+}
+
+.sidebar-logo-fallback {
+
+    display: none;
+
+    width: 100%;
+    height: 100%;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+
+    color: var(--gateway-green);
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   BRAND NAME
+========================================================= */
+
+.sidebar-brand-name {
+
+    color:
+        var(--gateway-text);
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.sidebar-brand-name span {
+
+    color:
+        var(--gateway-green);
+}
+
+
+/* =========================================================
    SECTION
 ========================================================= */
 
-    .sidebar-section {
-        margin-bottom: 7px;
-    }
+.sidebar-section {
 
-    .sidebar-section-title {
-        padding: 10px 10px 6px;
+    margin-bottom: 7px;
+}
 
-        color: #5f7488;
+.sidebar-section-title {
 
-        font-size: 8.5px;
+    padding:
+        10px 10px 6px;
 
-        font-weight: 800;
+    color:
+        var(--gateway-muted);
 
-        letter-spacing: 1.15px;
+    font-size: 9px;
 
-        text-transform: uppercase;
-    }
+    font-weight: 800;
+
+    letter-spacing: 1.1px;
+
+    text-transform: uppercase;
+}
 
 
-    /* =========================================================
+/* =========================================================
    MENU ITEM
 ========================================================= */
 
-    .sidebar-menu-item {
-        position: relative;
+.sidebar-menu-item {
 
-        display: flex;
-        align-items: center;
+    position: relative;
 
-        width: 100%;
+    display: flex;
 
-        min-height: 37px;
+    align-items: center;
 
-        gap: 10px;
+    width: 100%;
 
-        padding: 8px 10px;
+    min-height: 39px;
 
-        margin-bottom: 2px;
+    gap: 10px;
 
-        box-sizing: border-box;
+    padding:
+        8px 10px;
 
-        border-radius: 7px;
+    margin-bottom: 2px;
 
-        color: #a8b8c8;
+    box-sizing: border-box;
 
-        text-decoration: none;
+    border-radius: 8px;
 
-        font-size: 10.5px;
+    color:
+        var(--gateway-text-soft);
 
-        font-weight: 600;
+    text-decoration: none;
 
-        transition: all .18s ease;
-    }
+    font-size: 11px;
 
-    .sidebar-menu-item:hover {
-        color: #f0f4f8;
+    font-weight: 600;
 
-        background: rgba(16, 185, 129, .08);
-
-        transform: translateX(2px);
-    }
-
-    .sidebar-menu-item.active {
-        color: #ffffff;
-
-        font-weight: 700;
-
-        background: linear-gradient(90deg,
-                #059669,
-                #10b981);
-
-        box-shadow:
-            0 4px 13px rgba(16, 185, 129, .28);
-    }
-
-    .sidebar-menu-item.active:hover {
-        transform: none;
-
-        background: linear-gradient(90deg,
-                #059669,
-                #10b981);
-    }
-
-    .sidebar-menu-item.active::before {
-        content: "";
-
-        position: absolute;
-
-        left: -11px;
-
-        top: 50%;
-
-        transform: translateY(-50%);
-
-        width: 3px;
-
-        height: 20px;
-
-        border-radius: 0 3px 3px 0;
-
-        background: #10b981;
-
-        box-shadow:
-            0 0 12px rgba(16, 185, 129, .6);
-    }
+    transition:
+        all .18s ease;
+}
 
 
-    /* =========================================================
+/* =========================================================
+   HOVER
+========================================================= */
+
+.sidebar-menu-item:hover {
+
+    color:
+        var(--gateway-text);
+
+    background:
+        rgba(16,185,129,.09);
+
+    transform:
+        translateX(2px);
+}
+
+
+/* =========================================================
+   ACTIVE
+========================================================= */
+
+.sidebar-menu-item.active {
+
+    color: #ffffff;
+
+    font-weight: 700;
+
+    background:
+        linear-gradient(
+            90deg,
+            #059669,
+            #10b981
+        );
+
+    box-shadow:
+        0 5px 15px
+        rgba(16,185,129,.24);
+}
+
+.sidebar-menu-item.active:hover {
+
+    color: #ffffff;
+
+    transform: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            #059669,
+            #10b981
+        );
+}
+
+
+/* =========================================================
+   ACTIVE LEFT LINE
+========================================================= */
+
+.sidebar-menu-item.active::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: -11px;
+
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+
+    width: 3px;
+
+    height: 22px;
+
+    border-radius:
+        0 3px 3px 0;
+
+    background:
+        var(--gateway-green);
+
+    box-shadow:
+        0 0 12px
+        rgba(16,185,129,.55);
+}
+
+
+/* =========================================================
    ICON
 ========================================================= */
 
-    .sidebar-icon {
-        width: 19px;
-        height: 19px;
+.sidebar-icon {
 
-        flex-shrink: 0;
+    width: 20px;
+    height: 20px;
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    flex-shrink: 0;
 
-        color: #5f7488;
+    display: flex;
 
-        transition: color .18s ease;
-    }
+    align-items: center;
+    justify-content: center;
 
-    .sidebar-icon svg {
-        width: 15px;
-        height: 15px;
+    color:
+        #71869a;
+}
 
-        fill: none;
+.sidebar-icon svg {
 
-        stroke: currentColor;
+    width: 16px;
+    height: 16px;
 
-        stroke-width: 1.7;
+    fill: none;
 
-        stroke-linecap: round;
-        stroke-linejoin: round;
-    }
+    stroke: currentColor;
 
-    .sidebar-menu-item:hover .sidebar-icon {
-        color: #10b981;
-    }
+    stroke-width: 1.7;
 
-    .sidebar-menu-item.active .sidebar-icon {
-        color: #ffffff;
-    }
+    stroke-linecap: round;
+
+    stroke-linejoin: round;
+}
+
+.sidebar-menu-item:hover
+.sidebar-icon {
+
+    color:
+        var(--gateway-green);
+}
+
+.sidebar-menu-item.active
+.sidebar-icon {
+
+    color: #ffffff;
+}
 
 
-    /* =========================================================
+/* =========================================================
    TEXT
 ========================================================= */
 
-    .sidebar-text {
-        flex: 1;
+.sidebar-text {
 
-        white-space: nowrap;
+    flex: 1;
 
-        overflow: hidden;
+    overflow: hidden;
 
-        text-overflow: ellipsis;
-    }
+    white-space: nowrap;
 
-
-    /* =========================================================
-   BADGE
-========================================================= */
-
-    .sidebar-badge {
-        min-width: 18px;
-        height: 17px;
-
-        padding: 0 5px;
-
-        display: inline-flex;
-
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 20px;
-
-        background: rgba(16, 185, 129, .15);
-
-        color: #10b981;
-
-        font-size: 8px;
-
-        font-weight: 700;
-    }
-
-    .sidebar-menu-item.active .sidebar-badge {
-        background: rgba(255, 255, 255, .2);
-
-        color: #ffffff;
-    }
+    text-overflow: ellipsis;
+}
 
 
-    /* =========================================================
+/* =========================================================
    BOTTOM
 ========================================================= */
 
-    .sidebar-bottom {
-        margin-top: auto;
+.sidebar-bottom {
 
-        padding-top: 10px;
+    margin-top: auto;
 
-        border-top: 1px solid #1e2d3d;
-    }
+    padding-top: 10px;
+
+    border-top:
+        1px solid var(--gateway-border);
+}
 
 
-    /* =========================================================
+/* =========================================================
    LOGOUT
 ========================================================= */
 
-    .sidebar-logout {
-        color: #a8b8c8;
-    }
+.sidebar-logout:hover {
 
-    .sidebar-logout .sidebar-icon {
-        color: #5f7488;
-    }
+    color: #ef4444;
 
-    .sidebar-logout:hover {
-        color: #fca5a5;
+    background:
+        rgba(239,68,68,.08);
+}
 
-        background: rgba(239, 68, 68, .1);
-    }
+.sidebar-logout:hover
+.sidebar-icon {
 
-    .sidebar-logout:hover .sidebar-icon {
-        color: #f87171;
-    }
+    color: #ef4444;
+}
 
 
-    /* =========================================================
+/* =========================================================
+   MAIN CONTENT OFFSET
+========================================================= */
+
+.admin-main,
+.main-content,
+.page-content {
+
+    margin-left:
+        var(--gateway-sidebar-width);
+
+    padding-top:
+        var(--gateway-topbar-height);
+
+    min-height: 100vh;
+
+    box-sizing: border-box;
+
+    background:
+        var(--gateway-bg);
+
+    color:
+        var(--gateway-text);
+
+    transition:
+        background .2s ease,
+        color .2s ease;
+}
+
+
+/* =========================================================
    MOBILE OVERLAY
 ========================================================= */
 
-    .sidebar-overlay {
-        display: none;
+.sidebar-overlay {
 
-        position: fixed;
+    display: none;
 
-        inset: 0;
+    position: fixed;
 
-        z-index: 999;
+    inset: 0;
 
-        background: rgba(3, 12, 20, .7);
+    z-index: 999;
 
-        backdrop-filter: blur(3px);
+    background:
+        rgba(0,0,0,.60);
 
-        -webkit-backdrop-filter: blur(3px);
-    }
+    backdrop-filter:
+        blur(3px);
+}
 
 
-    /* =========================================================
+/* =========================================================
    MOBILE
 ========================================================= */
 
-    @media (max-width: 900px) {
+@media (max-width: 900px) {
 
-        .sidebar {
-            left: -270px;
+    .sidebar {
 
-            width: 260px;
+        left: -270px;
 
-            transition: left .25s ease;
-        }
-
-        .sidebar.mobile-open {
-            left: 0;
-
-            box-shadow:
-                8px 0 40px rgba(0, 0, 0, .6);
-        }
-
-        .sidebar-overlay.mobile-open {
-            display: block;
-        }
+        width: 260px;
     }
 
+    .sidebar.mobile-open {
 
-    /* =========================================================
+        left: 0;
+    }
+
+    .sidebar-overlay.mobile-open {
+
+        display: block;
+    }
+
+    .gateway-topbar {
+
+        left: 0;
+
+        padding:
+            0 15px;
+    }
+
+    .gateway-mobile-menu {
+
+        display: flex;
+    }
+
+    .admin-main,
+    .main-content,
+    .page-content {
+
+        margin-left: 0;
+    }
+
+    .gateway-admin-info {
+
+        display: none;
+    }
+}
+
+
+/* =========================================================
    SMALL MOBILE
 ========================================================= */
 
-    @media (max-width: 480px) {
+@media (max-width: 480px) {
 
-        .sidebar {
-            width: 250px;
+    .gateway-topbar {
 
-            left: -260px;
-        }
+        height: 62px;
 
-        .sidebar.mobile-open {
-            left: 0;
-        }
+        padding:
+            0 10px;
     }
 
+    .gateway-page-title strong {
 
-    /* =========================================================
+        font-size: 15px;
+    }
+
+    .gateway-page-title span {
+
+        display: none;
+    }
+
+    .gateway-theme-button {
+
+        width: 38px;
+        height: 38px;
+    }
+
+    .gateway-admin-user {
+
+        padding: 3px;
+
+        border: none;
+
+        background: transparent;
+    }
+
+    .admin-main,
+    .main-content,
+    .page-content {
+
+        padding-top: 62px;
+    }
+}
+
+
+/* =========================================================
    PRINT
 ========================================================= */
 
-    @media print {
+@media print {
 
-        .sidebar,
-        .sidebar-overlay {
-            display: none !important;
-        }
+    .sidebar,
+    .gateway-topbar,
+    .sidebar-overlay {
+
+        display: none !important;
     }
+
+    .admin-main,
+    .main-content,
+    .page-content {
+
+        margin-left: 0 !important;
+
+        padding-top: 0 !important;
+    }
+}
+
 </style>
 
 
@@ -530,17 +1042,98 @@ if (!function_exists('gateway_menu_active')) {
      MOBILE OVERLAY
 ========================================================= -->
 
-<div class="sidebar-overlay"
+<div
     id="sidebarOverlay"
-    onclick="closeMobileSidebar()"></div>
+    class="sidebar-overlay"
+    onclick="closeMobileSidebar()">
+</div>
+
+
+<!-- =========================================================
+     TOPBAR
+========================================================= -->
+
+<header class="gateway-topbar">
+
+    <div class="gateway-topbar-left">
+
+        <button
+            type="button"
+            class="gateway-mobile-menu"
+            onclick="toggleMobileSidebar()"
+            aria-label="Open Menu">
+
+            ☰
+
+        </button>
+
+
+        <div class="gateway-page-title">
+
+            <strong>
+                GatewayLinen
+            </strong>
+
+            <span>
+                Administration Panel
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="gateway-topbar-right">
+
+        <!-- ONLY ONE THEME BUTTON -->
+
+        <button
+            type="button"
+            id="gatewayThemeButton"
+            class="gateway-theme-button"
+            onclick="toggleGatewayTheme()"
+            aria-label="Change theme"
+            title="Change theme">
+
+            ☀️
+
+        </button>
+
+
+        <!-- ADMIN USER -->
+
+        <div class="gateway-admin-user">
+
+            <div class="gateway-admin-avatar">
+                GL
+            </div>
+
+            <div class="gateway-admin-info">
+
+                <strong>
+                    GatewayLinen Administrator
+                </strong>
+
+                <span>
+                    Administrator
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
 
 
 <!-- =========================================================
      SIDEBAR
 ========================================================= -->
 
-<aside class="sidebar"
-    id="adminSidebar">
+<aside
+    id="adminSidebar"
+    class="sidebar">
 
 
     <!-- =====================================================
@@ -551,16 +1144,21 @@ if (!function_exists('gateway_menu_active')) {
 
         <div class="sidebar-logo">
 
-            <img src="<?= htmlspecialchars(
-                            gateway_admin_url('uploads/logo/logo.png'),
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ) ?>"
-                alt="GatewayLinen"
+            <img
+                src="<?= htmlspecialchars(
+                    gateway_admin_url(
+                        'uploads/logo/logo.png'
+                    ),
+                    ENT_QUOTES,
+                    'UTF-8'
+                ) ?>"
+                alt="GatewayLinen Logo"
+
                 onerror="
                     this.style.display='none';
                     this.nextElementSibling.style.display='flex';
-                ">
+                "
+            >
 
             <div class="sidebar-logo-fallback">
                 GL
@@ -570,7 +1168,9 @@ if (!function_exists('gateway_menu_active')) {
 
 
         <div class="sidebar-brand-name">
-            GatewayLinen
+
+            Gateway<span>Linen</span>
+
         </div>
 
     </div>
@@ -589,40 +1189,52 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- DASHBOARD -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('dashboard.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('dashboard') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'dashboard.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('dashboard') ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
-                    <rect x="3"
+                    <rect
+                        x="3"
                         y="3"
                         width="7"
                         height="7"
-                        rx="1"></rect>
+                        rx="1">
+                    </rect>
 
-                    <rect x="14"
+                    <rect
+                        x="14"
                         y="3"
                         width="7"
                         height="7"
-                        rx="1"></rect>
+                        rx="1">
+                    </rect>
 
-                    <rect x="3"
+                    <rect
+                        x="3"
                         y="14"
                         width="7"
                         height="7"
-                        rx="1"></rect>
+                        rx="1">
+                    </rect>
 
-                    <rect x="14"
+                    <rect
+                        x="14"
                         y="14"
                         width="7"
                         height="7"
-                        rx="1"></rect>
+                        rx="1">
+                    </rect>
 
                 </svg>
 
@@ -637,12 +1249,16 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- CATEGORIES -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('categories/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('categories') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'categories/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('categories') ?>">
 
             <div class="sidebar-icon">
 
@@ -666,23 +1282,24 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- PRODUCTS -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('products/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('products') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'products/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('products') ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
                     <path d="M3 8.5L12 3l9 5.5"></path>
-
                     <path d="M3 8.5V17l9 5 9-5V8.5"></path>
-
                     <path d="M12 22V12"></path>
-
                     <path d="M3.5 8.5L12 13l8.5-4.5"></path>
 
                 </svg>
@@ -696,25 +1313,59 @@ if (!function_exists('gateway_menu_active')) {
         </a>
 
 
+        <!-- PRODUCT VARIANTS -->
+
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'variants/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('variants') ?>">
+
+            <div class="sidebar-icon">
+
+                <svg viewBox="0 0 24 24">
+
+                    <path d="M4 4h7v7H4z"></path>
+                    <path d="M13 4h7v7h-7z"></path>
+                    <path d="M4 13h7v7H4z"></path>
+                    <path d="M13 13h7v7h-7z"></path>
+
+                </svg>
+
+            </div>
+
+            <span class="sidebar-text">
+                Product Variants
+            </span>
+
+        </a>
+
+
         <!-- INVENTORY -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('inventory/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('inventory') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'inventory/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('inventory') ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
                     <path d="M4 7h16"></path>
-
                     <path d="M6 7l1-3h10l1 3"></path>
-
                     <path d="M5 7v13h14V7"></path>
-
                     <path d="M9 11h6"></path>
 
                 </svg>
@@ -730,26 +1381,36 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- ORDERS -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('orders/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('orders') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'orders/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('orders') ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
-                    <circle cx="9"
+                    <circle
+                        cx="9"
                         cy="20"
-                        r="1"></circle>
+                        r="1">
+                    </circle>
 
-                    <circle cx="18"
+                    <circle
+                        cx="18"
                         cy="20"
-                        r="1"></circle>
+                        r="1">
+                    </circle>
 
-                    <path d="M3 4h2l2.2 11h10.9l2-8H6"></path>
+                    <path
+                        d="M3 4h2l2.2 11h10.9l2-8H6">
+                    </path>
 
                 </svg>
 
@@ -764,28 +1425,40 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- CUSTOMERS -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('customers/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('customers') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'customers/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('customers') ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
-                    <circle cx="9"
+                    <circle
+                        cx="9"
                         cy="8"
-                        r="3"></circle>
+                        r="3">
+                    </circle>
 
-                    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path>
+                    <path
+                        d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6">
+                    </path>
 
-                    <circle cx="18"
+                    <circle
+                        cx="18"
                         cy="9"
-                        r="2"></circle>
+                        r="2">
+                    </circle>
 
-                    <path d="M16 15c2.8.5 4.5 2.3 4.5 5"></path>
+                    <path
+                        d="M16 15c2.8.5 4.5 2.3 4.5 5">
+                    </path>
 
                 </svg>
 
@@ -811,250 +1484,106 @@ if (!function_exists('gateway_menu_active')) {
         </div>
 
 
-        <!-- WHOLESALE -->
+        <?php
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('wholesale/index.php'),
+        $marketingMenus = [
+
+            [
+                'key'  => 'wholesale',
+                'url'  => 'wholesale/index.php',
+                'name' => 'Wholesale'
+            ],
+
+            [
+                'key'  => 'quotes',
+                'url'  => 'quotes/index.php',
+                'name' => 'Quotes'
+            ],
+
+            [
+                'key'  => 'bulk-inquiries',
+                'url'  => 'bulk-inquiries/index.php',
+                'name' => 'Bulk Inquiries'
+            ],
+
+            [
+                'key'  => 'wishlist',
+                'url'  => 'wishlist/index.php',
+                'name' => 'Wishlist'
+            ],
+
+            [
+                'key'  => 'coupons',
+                'url'  => 'coupons/index.php',
+                'name' => 'Coupons'
+            ],
+
+            [
+                'key'  => 'reviews',
+                'url'  => 'reviews/index.php',
+                'name' => 'Reviews'
+            ],
+
+            [
+                'key'  => 'newsletter',
+                'url'  => 'newsletter/index.php',
+                'name' => 'Newsletter'
+            ],
+
+            [
+                'key'  => 'back-in-stock',
+                'url'  => 'back-in-stock/index.php',
+                'name' => 'Back in Stock'
+            ]
+
+        ];
+
+        foreach ($marketingMenus as $menu):
+
+        ?>
+
+            <a
+                href="<?= htmlspecialchars(
+                    gateway_admin_url(
+                        $menu['url']
+                    ),
+                    ENT_QUOTES,
+                    'UTF-8'
+                ) ?>"
+                class="sidebar-menu-item
+                <?= gateway_menu_active(
+                    $menu['key']
+                ) ?>">
+
+                <div class="sidebar-icon">
+
+                    <svg viewBox="0 0 24 24">
+
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="7">
+                        </circle>
+
+                        <path d="M8 12h8"></path>
+
+                    </svg>
+
+                </div>
+
+                <span class="sidebar-text">
+
+                    <?= htmlspecialchars(
+                        $menu['name'],
                         ENT_QUOTES,
                         'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('wholesale') ?>">
+                    ) ?>
 
-            <div class="sidebar-icon">
+                </span>
 
-                <svg viewBox="0 0 24 24">
+            </a>
 
-                    <path d="M3 21V7l9-4 9 4v14"></path>
-
-                    <path d="M3 10h18"></path>
-
-                    <path d="M8 10v11"></path>
-
-                    <path d="M16 10v11"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Wholesale
-            </span>
-
-        </a>
-
-
-        <!-- QUOTES -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('quotes/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('quotes') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M6 3h12v18H6z"></path>
-
-                    <path d="M9 7h6"></path>
-
-                    <path d="M9 11h6"></path>
-
-                    <path d="M9 15h4"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Quotes
-            </span>
-
-        </a>
-
-
-        <!-- BULK INQUIRIES -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('bulk-inquiries/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('bulk-inquiries') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M4 5h16v12H4z"></path>
-
-                    <path d="M8 21h8"></path>
-
-                    <path d="M12 17v4"></path>
-
-                    <path d="M8 9h8"></path>
-
-                    <path d="M8 13h5"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Bulk Inquiries
-            </span>
-
-        </a>
-
-
-        <!-- WISHLIST -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('wishlist/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('wishlist') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M20.8 8.8c0 5.5-8.8 10.2-8.8 10.2S3.2 14.3 3.2 8.8A5.1 5.1 0 018.3 4c1.6 0 3 .7 3.7 1.9C12.7 4.7 14.1 4 15.7 4a5.1 5.1 0 015.1 4.8z"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Wishlist
-            </span>
-
-        </a>
-
-
-        <!-- COUPONS -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('coupons/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('coupons') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M20 12a2 2 0 010-4V5a2 2 0 00-2-2H6a2 2 0 00-2 2v3a2 2 0 010 4v3a2 2 0 002 2h12a2 2 0 002-2v-3z"></path>
-
-                    <path d="M9 9h.01"></path>
-
-                    <path d="M15 15h.01"></path>
-
-                    <path d="M9 15l6-6"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Coupons
-            </span>
-
-        </a>
-
-
-        <!-- REVIEWS -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('reviews/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('reviews') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3z"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Reviews
-            </span>
-
-        </a>
-
-
-        <!-- NEWSLETTER -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('newsletter/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('newsletter') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <rect x="3"
-                        y="5"
-                        width="18"
-                        height="14"
-                        rx="2"></rect>
-
-                    <path d="M3 7l9 6 9-6"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Newsletter
-            </span>
-
-        </a>
-
-
-        <!-- BACK IN STOCK -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('back-in-stock/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('back-in-stock') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M4 4v6h6"></path>
-
-                    <path d="M20 20v-6h-6"></path>
-
-                    <path d="M20 9a8 8 0 00-14-5L4 10"></path>
-
-                    <path d="M4 15a8 8 0 0014 5l2-6"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Back in Stock
-            </span>
-
-        </a>
+        <?php endforeach; ?>
 
     </div>
 
@@ -1072,24 +1601,24 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- WAREHOUSES -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('warehouses/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('warehouses') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'warehouses/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('warehouses') ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
                     <path d="M3 10l9-6 9 6"></path>
-
                     <path d="M5 9v11h14V9"></path>
-
                     <path d="M9 20v-6h6v6"></path>
-
-                    <path d="M8 11h8"></path>
 
                 </svg>
 
@@ -1102,57 +1631,28 @@ if (!function_exists('gateway_menu_active')) {
         </a>
 
 
-        <!-- PRODUCT VARIANTS -->
-
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('variants/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('variants') ?>">
-
-            <div class="sidebar-icon">
-
-                <svg viewBox="0 0 24 24">
-
-                    <path d="M4 4h7v7H4z"></path>
-
-                    <path d="M13 4h7v7h-7z"></path>
-
-                    <path d="M4 13h7v7H4z"></path>
-
-                    <path d="M13 13h7v7h-7z"></path>
-
-                </svg>
-
-            </div>
-
-            <span class="sidebar-text">
-                Product Variants
-            </span>
-
-        </a>
-
-
         <!-- STOCK MOVEMENTS -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('inventory/stock-movements.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('stock-movements') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'inventory/stock-movements.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active(
+                'stock-movements'
+            ) ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
                     <path d="M7 7h11l-3-3"></path>
-
                     <path d="M18 7l-3 3"></path>
-
                     <path d="M17 17H6l3 3"></path>
-
                     <path d="M6 17l3-3"></path>
 
                 </svg>
@@ -1166,30 +1666,39 @@ if (!function_exists('gateway_menu_active')) {
         </a>
 
 
-        <!-- TAXES & SHIPPING -->
+        <!-- TAXES SHIPPING -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('taxes-shipping/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('taxes-shipping') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'taxes-shipping/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active(
+                'taxes-shipping'
+            ) ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
                     <path d="M3 6h11v11H3z"></path>
-
                     <path d="M14 10h4l3 3v4h-7z"></path>
 
-                    <circle cx="7"
+                    <circle
+                        cx="7"
                         cy="19"
-                        r="2"></circle>
+                        r="2">
+                    </circle>
 
-                    <circle cx="18"
+                    <circle
+                        cx="18"
                         cy="19"
-                        r="2"></circle>
+                        r="2">
+                    </circle>
 
                 </svg>
 
@@ -1217,25 +1726,32 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- USERS -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('users/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('users') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'users/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active('users') ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
-                    <circle cx="9"
+                    <circle
+                        cx="9"
                         cy="8"
-                        r="3"></circle>
+                        r="3">
+                    </circle>
 
-                    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path>
+                    <path
+                        d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6">
+                    </path>
 
                     <path d="M16 8h5"></path>
-
                     <path d="M18.5 5.5v5"></path>
 
                 </svg>
@@ -1249,26 +1765,34 @@ if (!function_exists('gateway_menu_active')) {
         </a>
 
 
-        <!-- ROLES & PERMISSIONS -->
+        <!-- ROLES -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('roles-permissions/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('roles-permissions') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'roles-permissions/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active(
+                'roles-permissions'
+            ) ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
-                    <circle cx="12"
+                    <circle
+                        cx="12"
                         cy="8"
-                        r="3"></circle>
+                        r="3">
+                    </circle>
 
-                    <path d="M5 21c0-4 3-7 7-7s7 3 7 7"></path>
-
-                    <path d="M19 5l2 2-2 2"></path>
+                    <path
+                        d="M5 21c0-4 3-7 7-7s7 3 7 7">
+                    </path>
 
                 </svg>
 
@@ -1283,22 +1807,32 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- SETTINGS -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('settings/general.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('settings') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'settings/general.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active(
+                'settings'
+            ) ?>">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
-                    <circle cx="12"
+                    <circle
+                        cx="12"
                         cy="12"
-                        r="3"></circle>
+                        r="3">
+                    </circle>
 
-                    <path d="M19 12a7 7 0 01-.2 1.7l2 1.5-2 3.4-2.3-1a8 8 0 01-3 1.7L13 21H9l-.5-1.7a8 8 0 01-3-1.7l-2.3 1-2-3.4 2-1.5A7 7 0 013 12c0-.6.1-1.2.2-1.7l-2-1.5 2-3.4 2.3 1a8 8 0 013-1.7L9 3h4l.5 1.7a8 8 0 013 1.7l2.3-1 2 3.4-2 1.5c.1.5.2 1.1.2 1.7z"></path>
+                    <path
+                        d="M19 12a7 7 0 01-.2 1.7l2 1.5-2 3.4-2.3-1a8 8 0 01-3 1.7L13 21H9l-.5-1.7a8 8 0 01-3-1.7l-2.3 1-2-3.4 2-1.5A7 7 0 013 12c0-.6.1-1.2.2-1.7l-2-1.5 2-3.4 2.3 1a8 8 0 013-1.7L9 3h4l.5 1.7a8 8 0 013 1.7l2.3-1 2 3.4-2 1.5c.1.5.2 1.1.2 1.7z">
+                    </path>
 
                 </svg>
 
@@ -1313,12 +1847,18 @@ if (!function_exists('gateway_menu_active')) {
 
         <!-- AUDIT LOGS -->
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('audit-logs/index.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
-            class="sidebar-menu-item <?= gateway_menu_active('audit-logs') ?>">
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'audit-logs/index.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+            class="sidebar-menu-item
+            <?= gateway_menu_active(
+                'audit-logs'
+            ) ?>">
 
             <div class="sidebar-icon">
 
@@ -1327,9 +1867,7 @@ if (!function_exists('gateway_menu_active')) {
                     <path d="M4 4h16v16H4z"></path>
 
                     <path d="M8 8h8"></path>
-
                     <path d="M8 12h8"></path>
-
                     <path d="M8 16h5"></path>
 
                 </svg>
@@ -1351,22 +1889,23 @@ if (!function_exists('gateway_menu_active')) {
 
     <div class="sidebar-bottom">
 
-        <a href="<?= htmlspecialchars(
-                        gateway_admin_url('logout.php'),
-                        ENT_QUOTES,
-                        'UTF-8'
-                    ) ?>"
+        <a
+            href="<?= htmlspecialchars(
+                gateway_admin_url(
+                    'logout.php'
+                ),
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
             class="sidebar-menu-item sidebar-logout"
-            onclick="return confirmLogout();">
+            onclick="return confirmGatewayLogout();">
 
             <div class="sidebar-icon">
 
                 <svg viewBox="0 0 24 24">
 
                     <path d="M10 17l5-5-5-5"></path>
-
                     <path d="M15 12H3"></path>
-
                     <path d="M21 3v18"></path>
 
                 </svg>
@@ -1385,193 +1924,287 @@ if (!function_exists('gateway_menu_active')) {
 
 
 <script>
-    (function() {
 
-        'use strict';
+/* =========================================================
+   MOBILE SIDEBAR
+========================================================= */
 
+function openMobileSidebar() {
 
-        /* =====================================================
-           CLOSE SIDEBAR
-        ====================================================== */
+    const sidebar =
+        document.getElementById(
+            'adminSidebar'
+        );
 
-        window.closeMobileSidebar = function() {
+    const overlay =
+        document.getElementById(
+            'sidebarOverlay'
+        );
 
-            var sidebar =
-                document.getElementById('adminSidebar');
+    if (sidebar) {
 
-            var overlay =
-                document.getElementById('sidebarOverlay');
+        sidebar.classList.add(
+            'mobile-open'
+        );
+    }
 
+    if (overlay) {
 
-            if (sidebar) {
-
-                sidebar.classList.remove(
-                    'mobile-open'
-                );
-
-            }
-
-
-            if (overlay) {
-
-                overlay.classList.remove(
-                    'mobile-open'
-                );
-
-            }
+        overlay.classList.add(
+            'mobile-open'
+        );
+    }
+}
 
 
-            document.body.classList.remove(
-                'sidebar-mobile-open'
+function closeMobileSidebar() {
+
+    const sidebar =
+        document.getElementById(
+            'adminSidebar'
+        );
+
+    const overlay =
+        document.getElementById(
+            'sidebarOverlay'
+        );
+
+    if (sidebar) {
+
+        sidebar.classList.remove(
+            'mobile-open'
+        );
+    }
+
+    if (overlay) {
+
+        overlay.classList.remove(
+            'mobile-open'
+        );
+    }
+}
+
+
+function toggleMobileSidebar() {
+
+    const sidebar =
+        document.getElementById(
+            'adminSidebar'
+        );
+
+    if (!sidebar) {
+        return;
+    }
+
+    if (
+        sidebar.classList.contains(
+            'mobile-open'
+        )
+    ) {
+
+        closeMobileSidebar();
+
+    } else {
+
+        openMobileSidebar();
+    }
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function confirmGatewayLogout() {
+
+    return confirm(
+        'Are you sure you want to logout?'
+    );
+}
+
+
+/* =========================================================
+   ESC KEY
+========================================================= */
+
+document.addEventListener(
+    'keydown',
+    function (event) {
+
+        if (event.key === 'Escape') {
+
+            closeMobileSidebar();
+        }
+    }
+);
+
+
+/* =========================================================
+   MOBILE LINK CLOSE
+========================================================= */
+
+document.addEventListener(
+    'click',
+    function (event) {
+
+        const link =
+            event.target.closest(
+                '#adminSidebar a'
             );
 
-        };
+        if (
+            link &&
+            window.innerWidth <= 900
+        ) {
+
+            closeMobileSidebar();
+        }
+    }
+);
 
 
-        /* =====================================================
-           OPEN SIDEBAR
-        ====================================================== */
+/* =========================================================
+   THEME BUTTON
+========================================================= */
 
-        window.openMobileSidebar = function() {
+function updateGatewayThemeButton() {
 
-            var sidebar =
-                document.getElementById('adminSidebar');
+    const button =
+        document.getElementById(
+            'gatewayThemeButton'
+        );
 
-            var overlay =
-                document.getElementById('sidebarOverlay');
+    if (!button) {
+        return;
+    }
 
+    const theme =
+        document.documentElement.getAttribute(
+            'data-theme'
+        ) || 'light';
 
-            if (sidebar) {
+    if (theme === 'dark') {
 
-                sidebar.classList.add(
-                    'mobile-open'
-                );
+        button.innerHTML = '☀️';
 
-            }
+        button.title =
+            'Switch to Light Mode';
 
+        button.setAttribute(
+            'aria-label',
+            'Switch to Light Mode'
+        );
 
-            if (overlay) {
+    } else {
 
-                overlay.classList.add(
-                    'mobile-open'
-                );
+        button.innerHTML = '🌙';
 
-            }
+        button.title =
+            'Switch to Dark Mode';
 
-
-            document.body.classList.add(
-                'sidebar-mobile-open'
-            );
-
-        };
-
-
-        /* =====================================================
-           TOGGLE SIDEBAR
-        ====================================================== */
-
-        window.toggleMobileSidebar = function() {
-
-            var sidebar =
-                document.getElementById('adminSidebar');
-
-
-            if (!sidebar) {
-                return;
-            }
+        button.setAttribute(
+            'aria-label',
+            'Switch to Dark Mode'
+        );
+    }
+}
 
 
-            if (
-                sidebar.classList.contains(
-                    'mobile-open'
-                )
-            ) {
+/* =========================================================
+   CHANGE THEME
+========================================================= */
 
-                closeMobileSidebar();
+function toggleGatewayTheme() {
 
-            } else {
+    const html =
+        document.documentElement;
 
-                openMobileSidebar();
+    const currentTheme =
+        html.getAttribute(
+            'data-theme'
+        ) || 'light';
 
-            }
-
-        };
-
-
-        /* =====================================================
-           LOGOUT CONFIRMATION
-        ====================================================== */
-
-        window.confirmLogout = function() {
-
-            return window.confirm(
-                'Are you sure you want to logout?'
-            );
-
-        };
+    const newTheme =
+        currentTheme === 'light'
+            ? 'dark'
+            : 'light';
 
 
-        /* =====================================================
-           ESC KEY
-        ====================================================== */
+    /* Change immediately */
 
-        document.addEventListener(
-            'keydown',
-            function(event) {
+    html.setAttribute(
+        'data-theme',
+        newTheme
+    );
 
-                if (event.key === 'Escape') {
 
-                    closeMobileSidebar();
+    /* Save permanently */
 
-                }
+    localStorage.setItem(
+        'gatewaylinen-theme',
+        newTheme
+    );
 
-            }
+
+    /* Update icon */
+
+    updateGatewayThemeButton();
+}
+
+
+/* =========================================================
+   INITIAL THEME
+========================================================= */
+
+(function () {
+
+    const html =
+        document.documentElement;
+
+    let savedTheme =
+        localStorage.getItem(
+            'gatewaylinen-theme'
         );
 
 
-        /* =====================================================
-           CLOSE AFTER CLICKING LINK ON MOBILE
-        ====================================================== */
+    if (
+        savedTheme !== 'light' &&
+        savedTheme !== 'dark'
+    ) {
 
-        document.addEventListener(
-            'click',
-            function(event) {
+        savedTheme = 'light';
 
-                var link =
-                    event.target.closest(
-                        '#adminSidebar a'
-                    );
-
-
-                if (
-                    link &&
-                    window.innerWidth <= 900
-                ) {
-
-                    closeMobileSidebar();
-
-                }
-
-            }
+        localStorage.setItem(
+            'gatewaylinen-theme',
+            savedTheme
         );
+    }
 
 
-        /* =====================================================
-           CLOSE ON RESIZE
-        ====================================================== */
+    html.setAttribute(
+        'data-theme',
+        savedTheme
+    );
 
-        window.addEventListener(
-            'resize',
-            function() {
 
-                if (window.innerWidth > 900) {
+    updateGatewayThemeButton();
 
-                    closeMobileSidebar();
+})();
 
-                }
 
-            }
-        );
+/* =========================================================
+   WINDOW RESIZE
+========================================================= */
 
-    })();
+window.addEventListener(
+    'resize',
+    function () {
+
+        if (window.innerWidth > 900) {
+
+            closeMobileSidebar();
+        }
+    }
+);
+
 </script>

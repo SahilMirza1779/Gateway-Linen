@@ -1,392 +1,821 @@
 <?php
 /*
 |--------------------------------------------------------------------------
-| GATEWAYLINEN - GLOBAL DARK / LIGHT MODE
-| This file is loaded from common footer.php
+| GatewayLinen Global Theme
+|--------------------------------------------------------------------------
+| File:
+|     includes/theme.php
+|
+| Default:
+|     LIGHT
+|
+| Dark Mode:
+|     Enabled only when user selects dark mode.
+|
+| Storage:
+|     localStorage -> gatewaylinen-theme
 |--------------------------------------------------------------------------
 */
 ?>
 
+<script>
+(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | THEME INITIALIZER
+    |--------------------------------------------------------------------------
+    | Default is LIGHT.
+    | Dark will only be applied if the user has selected it.
+    |--------------------------------------------------------------------------
+    */
+
+    const savedTheme = localStorage.getItem('gatewaylinen-theme');
+
+    const theme =
+        savedTheme === 'dark'
+            ? 'dark'
+            : 'light';
+
+    document.documentElement.setAttribute(
+        'data-theme',
+        theme
+    );
+
+})();
+</script>
+
+
 <style>
-/* =========================================================
-   GLOBAL THEME VARIABLES
-========================================================= */
+
+/* ==========================================================================
+   LIGHT THEME - DEFAULT
+============================================================================= */
 
 :root {
-    --theme-bg: #0a1119;
-    --theme-sidebar: #071019;
-    --theme-card: #111b26;
-    --theme-header: #0d1620;
-    --theme-input: #0d1620;
-    --theme-border: #1e2d3d;
-    --theme-text: #f0f4f8;
-    --theme-text-soft: #a8b8c8;
-    --theme-muted: #6f8497;
-    --theme-hover: #16222e;
-    --theme-green: #10b981;
-}
 
-/* =========================================================
-   LIGHT MODE
-========================================================= */
-
-html[data-theme="light"] {
     --theme-bg: #f4f7fb;
+
     --theme-sidebar: #ffffff;
+
     --theme-card: #ffffff;
+
     --theme-header: #ffffff;
+
     --theme-input: #ffffff;
+
     --theme-border: #e2e8f0;
+
+    --theme-border-soft: #edf1f5;
+
     --theme-text: #172033;
+
     --theme-text-soft: #475569;
+
     --theme-muted: #64748b;
+
     --theme-hover: #f1f5f9;
+
     --theme-green: #059669;
+
+    --theme-green-dark: #047857;
+
+    --theme-green-soft: rgba(5, 150, 105, 0.10);
+
+    --theme-shadow:
+        0 8px 25px rgba(15, 23, 42, 0.06);
+
+    --theme-shadow-hover:
+        0 12px 30px rgba(15, 23, 42, 0.10);
 }
 
-/* =========================================================
-   GLOBAL PAGE
-========================================================= */
 
-html[data-theme="light"],
-html[data-theme="light"] body {
-    background: var(--theme-bg) !important;
-    color: var(--theme-text) !important;
+/* ==========================================================================
+   DARK THEME
+============================================================================= */
+
+html[data-theme="dark"] {
+
+    --theme-bg: #0a1119;
+
+    --theme-sidebar: #071019;
+
+    --theme-card: #111b26;
+
+    --theme-header: #0d1620;
+
+    --theme-input: #0d1620;
+
+    --theme-border: #1e2d3d;
+
+    --theme-border-soft: #182636;
+
+    --theme-text: #f0f4f8;
+
+    --theme-text-soft: #a8b8c8;
+
+    --theme-muted: #6f8497;
+
+    --theme-hover: #16222e;
+
+    --theme-green: #10b981;
+
+    --theme-green-dark: #059669;
+
+    --theme-green-soft: rgba(16, 185, 129, 0.12);
+
+    --theme-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.25);
+
+    --theme-shadow-hover:
+        0 12px 30px rgba(0, 0, 0, 0.40);
 }
 
-/* Common wrappers */
-html[data-theme="light"] .main,
-html[data-theme="light"] .content,
-html[data-theme="light"] .main-content,
-html[data-theme="light"] .page-content,
-html[data-theme="light"] .wrapper {
-    background: var(--theme-bg) !important;
-    color: var(--theme-text) !important;
-}
 
-/* =========================================================
-   SIDEBAR
-========================================================= */
+/* ==========================================================================
+   HTML
+============================================================================= */
 
-html[data-theme="light"] .sidebar,
-html[data-theme="light"] aside,
-html[data-theme="light"] #sidebar {
-    background: var(--theme-sidebar) !important;
-    border-color: var(--theme-border) !important;
-    color: var(--theme-text) !important;
-}
+html {
 
-/* =========================================================
-   HEADER / NAVBAR
-========================================================= */
+    background: var(--theme-bg);
 
-html[data-theme="light"] header,
-html[data-theme="light"] .navbar,
-html[data-theme="light"] .topbar,
-html[data-theme="light"] .main-header {
-    background: var(--theme-header) !important;
-    border-color: var(--theme-border) !important;
-    color: var(--theme-text) !important;
-}
-
-/* =========================================================
-   TEXT
-========================================================= */
-
-html[data-theme="light"] h1,
-html[data-theme="light"] h2,
-html[data-theme="light"] h3,
-html[data-theme="light"] h4,
-html[data-theme="light"] h5,
-html[data-theme="light"] h6,
-html[data-theme="light"] strong,
-html[data-theme="light"] label {
-    color: var(--theme-text) !important;
-}
-
-html[data-theme="light"] p,
-html[data-theme="light"] small,
-html[data-theme="light"] .text-muted {
-    color: var(--theme-text-soft) !important;
-}
-
-/* =========================================================
-   CARDS / PANELS / BOXES
-========================================================= */
-
-html[data-theme="light"] .card,
-html[data-theme="light"] .panel,
-html[data-theme="light"] .box,
-html[data-theme="light"] .form-card,
-html[data-theme="light"] .dashboard-card,
-html[data-theme="light"] .stat-card {
-    background: var(--theme-card) !important;
-    color: var(--theme-text) !important;
-    border-color: var(--theme-border) !important;
-}
-
-/* =========================================================
-   FORMS
-========================================================= */
-
-html[data-theme="light"] input,
-html[data-theme="light"] select,
-html[data-theme="light"] textarea,
-html[data-theme="light"] .form-control,
-html[data-theme="light"] .form-select {
-    background: var(--theme-input) !important;
-    color: var(--theme-text) !important;
-    border-color: var(--theme-border) !important;
-}
-
-html[data-theme="light"] input::placeholder,
-html[data-theme="light"] textarea::placeholder,
-html[data-theme="light"] .form-control::placeholder {
-    color: var(--theme-muted) !important;
-}
-
-/* =========================================================
-   TABLES
-========================================================= */
-
-html[data-theme="light"] table,
-html[data-theme="light"] .table {
-    color: var(--theme-text) !important;
-    border-color: var(--theme-border) !important;
-}
-
-html[data-theme="light"] table th,
-html[data-theme="light"] .table th {
-    background: var(--theme-card) !important;
-    color: var(--theme-text-soft) !important;
-    border-color: var(--theme-border) !important;
-}
-
-html[data-theme="light"] table td,
-html[data-theme="light"] .table td {
-    background: var(--theme-card) !important;
-    color: var(--theme-text) !important;
-    border-color: var(--theme-border) !important;
-}
-
-/* =========================================================
-   DROPDOWN / MODAL
-========================================================= */
-
-html[data-theme="light"] .dropdown-menu,
-html[data-theme="light"] .modal-content {
-    background: var(--theme-card) !important;
-    color: var(--theme-text) !important;
-    border-color: var(--theme-border) !important;
-}
-
-html[data-theme="light"] .dropdown-item {
-    color: var(--theme-text) !important;
-}
-
-html[data-theme="light"] .dropdown-item:hover {
-    background: var(--theme-hover) !important;
-}
-
-/* =========================================================
-   CATEGORY PAGE - YOUR EXISTING VARIABLES
-========================================================= */
-
-html[data-theme="light"] {
-    --bg-page: #f4f7fb;
-    --bg-card: #ffffff;
-    --bg-card-alt: #f8fafc;
-    --bg-header: #ffffff;
-    --bg-hover: #f1f5f9;
-    --bg-input: #ffffff;
-
-    --border: #e2e8f0;
-    --border-soft: #edf2f7;
-
-    --text-hi: #172033;
-    --text-body: #475569;
-    --text-mute: #64748b;
-
-    --green: #059669;
-    --green-dark: #047857;
-    --green-soft: rgba(5, 150, 105, 0.10);
-}
-
-/* =========================================================
-   THEME BUTTON
-========================================================= */
-
-#globalThemeToggle {
-    position: fixed;
-    top: 18px;
-    right: 24px;
-    z-index: 99999;
-
-    width: 42px;
-    height: 42px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border: 1px solid var(--theme-border);
-    border-radius: 50%;
-
-    background: var(--theme-card);
     color: var(--theme-text);
 
-    cursor: pointer;
-    font-size: 18px;
-
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
-
-    transition: all 0.25s ease;
 }
 
-#globalThemeToggle:hover {
-    border-color: var(--theme-green);
+
+/* ==========================================================================
+   BODY
+============================================================================= */
+
+html,
+body {
+
+    min-height: 100%;
+
+    background: var(--theme-bg) !important;
+
+    color: var(--theme-text) !important;
+
+    transition:
+        background-color .20s ease,
+        color .20s ease;
+
+}
+
+
+/* ==========================================================================
+   BODY
+============================================================================= */
+
+body {
+
+    margin: 0;
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        Helvetica,
+        sans-serif;
+
+}
+
+
+/* ==========================================================================
+   MAIN PAGE AREAS
+============================================================================= */
+
+.main,
+.content,
+.main-content,
+.page-content,
+.wrapper,
+.admin-main {
+
+    background: var(--theme-bg) !important;
+
+    color: var(--theme-text);
+
+}
+
+
+/* ==========================================================================
+   TOP HEADER
+============================================================================= */
+
+.topbar,
+.gateway-topbar,
+.main-header,
+.navbar {
+
+    background: var(--theme-header) !important;
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   SIDEBAR
+============================================================================= */
+
+.sidebar,
+#adminSidebar,
+#sidebar,
+aside {
+
+    background: var(--theme-sidebar) !important;
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   HEADINGS
+============================================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+
+    color: var(--theme-text);
+
+}
+
+
+/* ==========================================================================
+   NORMAL TEXT
+============================================================================= */
+
+p,
+small {
+
+    color: var(--theme-text-soft);
+
+}
+
+
+/* ==========================================================================
+   LABELS
+============================================================================= */
+
+label,
+strong {
+
+    color: var(--theme-text);
+
+}
+
+
+/* ==========================================================================
+   LINKS
+============================================================================= */
+
+a {
+
+    color: inherit;
+
+}
+
+
+/* ==========================================================================
+   CARDS
+============================================================================= */
+
+.card,
+.panel,
+.box,
+.form-card,
+.dashboard-card,
+.stat-card,
+.action {
+
+    background: var(--theme-card) !important;
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   INPUTS
+============================================================================= */
+
+input,
+select,
+textarea,
+.form-control,
+.form-select {
+
+    background: var(--theme-input) !important;
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   INPUT PLACEHOLDER
+============================================================================= */
+
+input::placeholder,
+textarea::placeholder,
+.form-control::placeholder {
+
+    color: var(--theme-muted) !important;
+
+}
+
+
+/* ==========================================================================
+   TABLE
+============================================================================= */
+
+table,
+.table {
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   TABLE HEADER
+============================================================================= */
+
+table thead,
+.table thead {
+
+    background: var(--theme-card) !important;
+
+}
+
+
+table th,
+.table th {
+
+    background: var(--theme-card) !important;
+
+    color: var(--theme-text-soft) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   TABLE BODY
+============================================================================= */
+
+table td,
+.table td {
+
+    background: var(--theme-card) !important;
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   TABLE ROW HOVER
+============================================================================= */
+
+table tbody tr:hover td,
+.table tbody tr:hover td {
+
+    background: var(--theme-hover) !important;
+
+}
+
+
+/* ==========================================================================
+   DROPDOWN
+============================================================================= */
+
+.dropdown-menu {
+
+    background: var(--theme-card) !important;
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+.dropdown-item {
+
+    color: var(--theme-text) !important;
+
+}
+
+
+.dropdown-item:hover {
+
+    background: var(--theme-hover) !important;
+
+    color: var(--theme-text) !important;
+
+}
+
+
+/* ==========================================================================
+   MODAL
+============================================================================= */
+
+.modal-content {
+
+    background: var(--theme-card) !important;
+
+    color: var(--theme-text) !important;
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   BORDER
+============================================================================= */
+
+.border,
+.border-top,
+.border-bottom,
+.border-start,
+.border-end {
+
+    border-color: var(--theme-border) !important;
+
+}
+
+
+/* ==========================================================================
+   BG WHITE
+============================================================================= */
+
+.bg-white {
+
+    background: var(--theme-card) !important;
+
+}
+
+
+/* ==========================================================================
+   BG LIGHT
+============================================================================= */
+
+.bg-light {
+
+    background: var(--theme-card) !important;
+
+    color: var(--theme-text) !important;
+
+}
+
+
+/* ==========================================================================
+   TEXT DARK
+============================================================================= */
+
+.text-dark {
+
+    color: var(--theme-text) !important;
+
+}
+
+
+/* ==========================================================================
+   TEXT SECONDARY
+============================================================================= */
+
+.text-secondary {
+
+    color: var(--theme-text-soft) !important;
+
+}
+
+
+/* ==========================================================================
+   BUTTON OUTLINE
+============================================================================= */
+
+.btn-outline-secondary {
+
+    color: var(--theme-text-soft);
+
+    border-color: var(--theme-border);
+
+}
+
+
+.btn-outline-secondary:hover {
+
+    background: var(--theme-hover);
+
+    color: var(--theme-text);
+
+}
+
+
+/* ==========================================================================
+   GREEN ELEMENTS
+============================================================================= */
+
+.stat-icon,
+.action-icon {
+
+    background: var(--theme-green-soft);
+
     color: var(--theme-green);
-    transform: rotate(15deg);
+
 }
 
-/* Light mode button */
-html[data-theme="light"] #globalThemeToggle {
-    background: #ffffff;
-    color: #172033;
-    border-color: #dbe3ec;
+
+/* ==========================================================================
+   FOOTER
+============================================================================= */
+
+.gateway-footer {
+
+    background: var(--theme-header) !important;
+
+    color: var(--theme-muted) !important;
+
+    border-color: var(--theme-border) !important;
+
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-    #globalThemeToggle {
-        top: 14px;
-        right: 14px;
-        width: 38px;
-        height: 38px;
-        font-size: 16px;
+
+/* ==========================================================================
+   SCROLLBAR
+============================================================================= */
+
+* {
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+        rgba(100, 116, 139, .45)
+        transparent;
+
+}
+
+
+*::-webkit-scrollbar {
+
+    width: 7px;
+
+    height: 7px;
+
+}
+
+
+*::-webkit-scrollbar-track {
+
+    background: transparent;
+
+}
+
+
+*::-webkit-scrollbar-thumb {
+
+    background:
+        rgba(100, 116, 139, .45);
+
+    border-radius: 10px;
+
+}
+
+
+/* ==========================================================================
+   PRINT
+============================================================================= */
+
+@media print {
+
+    html,
+    body {
+
+        background: #ffffff !important;
+
+        color: #000000 !important;
+
     }
+
 }
+
 </style>
 
 
 <script>
+
+/* ==========================================================================
+   GATEWAYLINEN THEME MANAGER
+============================================================================= */
+
 (function () {
 
-    const html = document.documentElement;
+    "use strict";
 
-    /*
-    |----------------------------------------------------------
-    | LOAD SAVED THEME
-    |----------------------------------------------------------
-    */
 
-    const savedTheme =
-        localStorage.getItem('gatewaylinen-theme') || 'dark';
+    const STORAGE_KEY =
+        "gatewaylinen-theme";
 
-    html.setAttribute('data-theme', savedTheme);
+
+    const html =
+        document.documentElement;
 
 
     /*
-    |----------------------------------------------------------
-    | CREATE BUTTON AUTOMATICALLY
-    |----------------------------------------------------------
-    | Isliye header.php mein button add karne ki zarurat nahi.
+    |--------------------------------------------------------------------------
+    | GET CURRENT THEME
+    |--------------------------------------------------------------------------
     */
 
-    function createThemeButton() {
+    function getTheme() {
 
-        if (document.getElementById('globalThemeToggle')) {
-            return;
-        }
+        const saved =
+            localStorage.getItem(STORAGE_KEY);
 
-        const button = document.createElement('button');
-
-        button.id = 'globalThemeToggle';
-        button.type = 'button';
-
-        document.body.appendChild(button);
-
-        updateButton();
-
-        button.addEventListener('click', function () {
-
-            const currentTheme =
-                html.getAttribute('data-theme');
-
-            const newTheme =
-                currentTheme === 'light' ? 'dark' : 'light';
-
-            html.setAttribute('data-theme', newTheme);
-
-            localStorage.setItem(
-                'gatewaylinen-theme',
-                newTheme
-            );
-
-            updateButton();
-
-        });
+        return saved === "dark"
+            ? "dark"
+            : "light";
 
     }
 
 
     /*
-    |----------------------------------------------------------
-    | UPDATE ICON
-    |----------------------------------------------------------
+    |--------------------------------------------------------------------------
+    | APPLY THEME
+    |--------------------------------------------------------------------------
     */
 
-    function updateButton() {
+    function applyTheme(theme) {
 
-        const button =
-            document.getElementById('globalThemeToggle');
-
-        if (!button) return;
-
-        const currentTheme =
-            html.getAttribute('data-theme');
-
-        if (currentTheme === 'light') {
-
-            button.innerHTML = '☀️';
-            button.title = 'Switch to Dark Mode';
-            button.setAttribute(
-                'aria-label',
-                'Switch to Dark Mode'
-            );
-
-        } else {
-
-            button.innerHTML = '🌙';
-            button.title = 'Switch to Light Mode';
-            button.setAttribute(
-                'aria-label',
-                'Switch to Light Mode'
-            );
-
-        }
-
-    }
+        theme =
+            theme === "dark"
+                ? "dark"
+                : "light";
 
 
-    /*
-    |----------------------------------------------------------
-    | START
-    |----------------------------------------------------------
-    */
-
-    if (document.readyState === 'loading') {
-
-        document.addEventListener(
-            'DOMContentLoaded',
-            createThemeButton
+        html.setAttribute(
+            "data-theme",
+            theme
         );
 
-    } else {
 
-        createThemeButton();
+        localStorage.setItem(
+            STORAGE_KEY,
+            theme
+        );
+
+
+        /*
+        | Update theme button if it exists
+        */
+
+        const button =
+            document.getElementById(
+                "gatewayThemeButton"
+            );
+
+
+        if (button) {
+
+            if (theme === "dark") {
+
+                button.innerHTML = "☀️";
+
+                button.setAttribute(
+                    "aria-label",
+                    "Switch to Light Mode"
+                );
+
+                button.setAttribute(
+                    "title",
+                    "Switch to Light Mode"
+                );
+
+            } else {
+
+                button.innerHTML = "🌙";
+
+                button.setAttribute(
+                    "aria-label",
+                    "Switch to Dark Mode"
+                );
+
+                button.setAttribute(
+                    "title",
+                    "Switch to Dark Mode"
+                );
+
+            }
+
+        }
 
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | TOGGLE THEME
+    |--------------------------------------------------------------------------
+    */
+
+    window.toggleGatewayTheme =
+        function () {
+
+            const current =
+                html.getAttribute(
+                    "data-theme"
+                ) || "light";
+
+
+            const next =
+                current === "dark"
+                    ? "light"
+                    : "dark";
+
+
+            applyTheme(next);
+
+        };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | INITIALIZE
+    |--------------------------------------------------------------------------
+    */
+
+    applyTheme(
+        getTheme()
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CROSS-TAB SUPPORT
+    |--------------------------------------------------------------------------
+    */
+
+    window.addEventListener(
+        "storage",
+        function (event) {
+
+            if (
+                event.key === STORAGE_KEY
+            ) {
+
+                applyTheme(
+                    event.newValue === "dark"
+                        ? "dark"
+                        : "light"
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DOM READY
+    |--------------------------------------------------------------------------
+    */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            applyTheme(
+                getTheme()
+            );
+
+        }
+    );
+
+
 })();
+
 </script>

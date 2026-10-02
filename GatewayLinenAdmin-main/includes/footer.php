@@ -10,23 +10,23 @@
 |     Common footer for all authenticated admin pages.
 |
 | Features:
-|     - Centered footer (DARK THEME)
+|     - Professional light/dark theme support
 |     - Responsive footer
-|     - Current year automatically
+|     - Automatic current year
 |     - Mobile sidebar support
-|     - Overlay support
+|     - Sidebar overlay support
 |     - ESC key support
 |     - Resize support
+|     - No duplicate theme button
 |--------------------------------------------------------------------------
 */
 ?>
 
-
 <!-- =========================================================
-     GATEWAYLINEN FOOTER - DARK
+     GATEWAYLINEN FOOTER
 ========================================================= -->
 
-<footer class="gateway-footer">
+<footer class="gateway-footer" id="gatewayFooter">
 
     <div class="gateway-footer-content">
 
@@ -34,7 +34,7 @@
             © <?= date("Y") ?> GatewayLinen
         </span>
 
-        <span class="footer-dot">•</span>
+        <span class="footer-separator">•</span>
 
         <span class="footer-rights">
             All Rights Reserved
@@ -46,14 +46,59 @@
 
 
 <!-- =========================================================
-     FOOTER CSS - DARK THEME
+     FOOTER CSS
+     LIGHT + DARK THEME
 ========================================================= -->
 
 <style>
 
-    /* =====================================================
-       MAIN FOOTER - DARK
-    ===================================================== */
+    /* =========================================================
+       FOOTER THEME VARIABLES
+    ========================================================== */
+
+    :root {
+
+        --footer-bg: #ffffff;
+        --footer-border: #e2e8f0;
+
+        --footer-text: #64748b;
+        --footer-text-strong: #475569;
+
+        --footer-accent: #10b981;
+        --footer-separator: #cbd5e1;
+
+        --footer-shadow:
+            0 -4px 18px rgba(15, 23, 42, 0.04);
+
+    }
+
+
+    /* =========================================================
+       DARK MODE
+    ========================================================== */
+
+    html[data-theme="dark"],
+    body.dark-mode,
+    body[data-theme="dark"] {
+
+        --footer-bg: #0d1620;
+        --footer-border: #1e2d3d;
+
+        --footer-text: #71859a;
+        --footer-text-strong: #a8b8c8;
+
+        --footer-accent: #10b981;
+        --footer-separator: #35495c;
+
+        --footer-shadow:
+            0 -4px 18px rgba(0, 0, 0, 0.25);
+
+    }
+
+
+    /* =========================================================
+       MAIN FOOTER
+    ========================================================== */
 
     .gateway-footer {
 
@@ -63,11 +108,13 @@
 
         margin-top: 30px;
 
-        padding: 16px 20px;
+        padding: 16px 24px;
 
-        background: #0d1620;
+        background: var(--footer-bg);
 
-        border-top: 1px solid #1e2d3d;
+        border-top: 1px solid var(--footer-border);
+
+        box-shadow: var(--footer-shadow);
 
         box-sizing: border-box;
 
@@ -79,6 +126,8 @@
 
         text-align: center;
 
+        color: var(--footer-text);
+
         font-family:
             "Segoe UI",
             Arial,
@@ -87,16 +136,26 @@
 
         font-size: 13px;
 
-        color: #5f7488;
+        line-height: 1.5;
+
+        transition:
+            background-color 0.25s ease,
+            border-color 0.25s ease,
+            color 0.25s ease,
+            box-shadow 0.25s ease;
 
     }
 
 
-    /* =====================================================
+    /* =========================================================
        FOOTER CONTENT
-    ===================================================== */
+    ========================================================== */
 
     .gateway-footer-content {
+
+        width: 100%;
+
+        max-width: 1400px;
 
         display: flex;
 
@@ -106,71 +165,120 @@
 
         gap: 10px;
 
-        width: 100%;
-
         text-align: center;
 
-        line-height: 1.5;
+        flex-wrap: wrap;
 
     }
 
 
-    /* =====================================================
+    /* =========================================================
        COPYRIGHT
-    ===================================================== */
+    ========================================================== */
 
     .footer-copy {
 
-        color: #a8b8c8;
+        color: var(--footer-text-strong);
 
-        font-weight: 500;
-
-        white-space: nowrap;
-
-    }
-
-    .footer-copy::before {
-        content: "◆ ";
-        color: #10b981;
-        font-size: 8px;
-        vertical-align: middle;
-        margin-right: 2px;
-    }
-
-
-    /* =====================================================
-       DOT
-    ===================================================== */
-
-    .footer-dot {
-
-        color: #35495c;
+        font-size: 13px;
 
         font-weight: 600;
 
-        line-height: 1;
+        white-space: nowrap;
+
+        transition:
+            color 0.25s ease;
 
     }
 
 
-    /* =====================================================
-       ALL RIGHTS RESERVED
-    ===================================================== */
+    /* Green small indicator */
+
+    .footer-copy::before {
+
+        content: "";
+
+        display: inline-block;
+
+        width: 6px;
+
+        height: 6px;
+
+        margin-right: 8px;
+
+        vertical-align: middle;
+
+        border-radius: 50%;
+
+        background: var(--footer-accent);
+
+        box-shadow:
+            0 0 0 3px rgba(16, 185, 129, 0.10);
+
+    }
+
+
+    /* =========================================================
+       SEPARATOR
+    ========================================================== */
+
+    .footer-separator {
+
+        color: var(--footer-separator);
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        line-height: 1;
+
+        transition:
+            color 0.25s ease;
+
+    }
+
+
+    /* =========================================================
+       RIGHTS
+    ========================================================== */
 
     .footer-rights {
 
-        color: #5f7488;
+        color: var(--footer-text);
+
+        font-size: 12px;
 
         font-weight: 500;
 
         white-space: nowrap;
 
+        transition:
+            color 0.25s ease;
+
     }
 
 
-    /* =====================================================
+    /* =========================================================
+       HOVER
+    ========================================================== */
+
+    .footer-copy:hover {
+
+        color: var(--footer-accent);
+
+    }
+
+
+    .footer-rights:hover {
+
+        color: var(--footer-text-strong);
+
+    }
+
+
+    /* =========================================================
        TABLET
-    ===================================================== */
+    ========================================================== */
 
     @media (max-width: 1100px) {
 
@@ -178,18 +286,18 @@
 
             min-height: 56px;
 
-            padding: 15px 18px;
-
             margin-top: 25px;
+
+            padding: 15px 20px;
 
         }
 
     }
 
 
-    /* =====================================================
-       MOBILE
-    ===================================================== */
+    /* =========================================================
+       MOBILE / TABLET
+    ========================================================== */
 
     @media (max-width: 900px) {
 
@@ -197,35 +305,36 @@
 
             min-height: 55px;
 
-            margin-top: 20px;
+            margin-top: 22px;
 
-            padding: 15px 12px;
-
-            justify-content: center;
-
-            text-align: center;
+            padding: 15px 16px;
 
         }
 
-
         .gateway-footer-content {
 
-            justify-content: center;
+            gap: 8px;
 
-            text-align: center;
+        }
 
-            flex-wrap: wrap;
+        .footer-copy {
 
-            gap: 7px;
+            font-size: 12px;
+
+        }
+
+        .footer-rights {
+
+            font-size: 11px;
 
         }
 
     }
 
 
-    /* =====================================================
+    /* =========================================================
        SMALL MOBILE
-    ===================================================== */
+    ========================================================== */
 
     @media (max-width: 480px) {
 
@@ -233,12 +342,13 @@
 
             min-height: 52px;
 
+            margin-top: 18px;
+
             padding: 14px 10px;
 
             font-size: 12px;
 
         }
-
 
         .gateway-footer-content {
 
@@ -246,18 +356,38 @@
 
         }
 
+        .footer-copy {
+
+            font-size: 11px;
+
+        }
+
+        .footer-rights {
+
+            font-size: 10px;
+
+        }
+
+        .footer-copy::before {
+
+            width: 5px;
+
+            height: 5px;
+
+            margin-right: 6px;
+
+        }
+
     }
 
 
-    /* =====================================================
+    /* =========================================================
        VERY SMALL MOBILE
-    ===================================================== */
+    ========================================================== */
 
     @media (max-width: 360px) {
 
         .gateway-footer {
-
-            font-size: 11px;
 
             padding-left: 8px;
 
@@ -265,32 +395,67 @@
 
         }
 
+        .gateway-footer-content {
+
+            gap: 5px;
+
+        }
+
+        .footer-copy {
+
+            font-size: 10px;
+
+        }
+
+        .footer-rights {
+
+            font-size: 9px;
+
+        }
+
+        .footer-separator {
+
+            font-size: 10px;
+
+        }
+
     }
 
 
-    /* =====================================================
+    /* =========================================================
        PRINT
-    ===================================================== */
+    ========================================================== */
 
     @media print {
 
         .gateway-footer {
 
-            background: #ffffff;
+            background: #ffffff !important;
 
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #dddddd !important;
 
-            color: #666;
+            box-shadow: none !important;
+
+            color: #666666 !important;
 
         }
 
         .footer-copy,
-        .footer-rights {
-            color: #666;
+
+        .footer-rights,
+
+        .footer-separator {
+
+            color: #666666 !important;
+
         }
 
         .footer-copy::before {
-            color: #666;
+
+            background: #666666 !important;
+
+            box-shadow: none !important;
+
         }
 
     }
@@ -309,9 +474,9 @@
     "use strict";
 
 
-    /* =====================================================
+    /* =========================================================
        GET SIDEBAR
-    ===================================================== */
+    ========================================================== */
 
     function getSidebar() {
 
@@ -320,9 +485,9 @@
     }
 
 
-    /* =====================================================
+    /* =========================================================
        GET OVERLAY
-    ===================================================== */
+    ========================================================== */
 
     function getOverlay() {
 
@@ -331,9 +496,9 @@
     }
 
 
-    /* =====================================================
-       OPEN MOBILE SIDEBAR
-    ===================================================== */
+    /* =========================================================
+       OPEN MOBILE MENU
+    ========================================================== */
 
     function openMobileMenu() {
 
@@ -342,16 +507,12 @@
         const overlay = getOverlay();
 
 
-        /* Sidebar does not exist */
-
         if (!sidebar) {
 
             return;
 
         }
 
-
-        /* Only open on mobile/tablet */
 
         if (window.innerWidth <= 900) {
 
@@ -365,6 +526,8 @@
             }
 
 
+            document.body.classList.add("sidebar-is-open");
+
             document.body.style.overflow = "hidden";
 
         }
@@ -372,9 +535,9 @@
     }
 
 
-    /* =====================================================
-       CLOSE MOBILE SIDEBAR
-    ===================================================== */
+    /* =========================================================
+       CLOSE MOBILE MENU
+    ========================================================== */
 
     function closeMobileMenu() {
 
@@ -397,14 +560,16 @@
         }
 
 
+        document.body.classList.remove("sidebar-is-open");
+
         document.body.style.overflow = "";
 
     }
 
 
-    /* =====================================================
+    /* =========================================================
        GLOBAL FUNCTIONS
-    ===================================================== */
+    ========================================================== */
 
     window.openMobileMenu = openMobileMenu;
 
@@ -415,166 +580,231 @@
     window.closeMobileSidebar = closeMobileMenu;
 
 
-    /* =====================================================
+    /* =========================================================
        OVERLAY CLICK
-    ===================================================== */
+    ========================================================== */
 
-    document.addEventListener(
-        "click",
-        function (event) {
+    document.addEventListener("click", function (event) {
 
-            const overlay = getOverlay();
+        const overlay = getOverlay();
 
 
-            if (
-                overlay &&
-                event.target === overlay
-            ) {
+        if (!overlay) {
+
+            return;
+
+        }
+
+
+        if (event.target === overlay) {
+
+            closeMobileMenu();
+
+        }
+
+    });
+
+
+    /* =========================================================
+       SIDEBAR LINK CLICK
+    ========================================================== */
+
+    document.addEventListener("click", function (event) {
+
+        const sidebar = getSidebar();
+
+
+        if (!sidebar) {
+
+            return;
+
+        }
+
+
+        const link = event.target.closest(
+            "#adminSidebar a"
+        );
+
+
+        if (!link) {
+
+            return;
+
+        }
+
+
+        if (window.innerWidth <= 900) {
+
+            setTimeout(function () {
 
                 closeMobileMenu();
 
-            }
+            }, 100);
 
         }
-    );
+
+    });
 
 
-    /* =====================================================
-       SIDEBAR MENU ITEM CLICK
-    ===================================================== */
+    /* =========================================================
+       ESC KEY
+    ========================================================== */
 
-    document.addEventListener(
-        "click",
-        function (event) {
+    document.addEventListener("keydown", function (event) {
 
-            const link = event.target.closest(
-                "#adminSidebar .sidebar-menu-item"
-            );
+        if (event.key === "Escape") {
 
-
-            if (!link) {
-
-                return;
-
-            }
-
-
-            if (window.innerWidth <= 900) {
-
-                setTimeout(
-                    function () {
-
-                        closeMobileMenu();
-
-                    },
-                    100
-                );
-
-            }
+            closeMobileMenu();
 
         }
-    );
+
+    });
 
 
-    /* =====================================================
-       SIDEBAR LINK BACKUP
-    ===================================================== */
-
-    document.addEventListener(
-        "click",
-        function (event) {
-
-            const sidebar = getSidebar();
-
-
-            if (!sidebar) {
-
-                return;
-
-            }
-
-
-            const link = event.target.closest(
-                "#adminSidebar a"
-            );
-
-
-            if (!link) {
-
-                return;
-
-            }
-
-
-            if (window.innerWidth <= 900) {
-
-                setTimeout(
-                    function () {
-
-                        closeMobileMenu();
-
-                    },
-                    100
-                );
-
-            }
-
-        }
-    );
-
-
-    /* =====================================================
-       ESCAPE KEY
-    ===================================================== */
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (event.key === "Escape") {
-
-                closeMobileMenu();
-
-            }
-
-        }
-    );
-
-
-    /* =====================================================
+    /* =========================================================
        WINDOW RESIZE
-    ===================================================== */
+    ========================================================== */
 
-    window.addEventListener(
-        "resize",
-        function () {
+    window.addEventListener("resize", function () {
 
-            if (window.innerWidth > 900) {
+        if (window.innerWidth > 900) {
 
-                closeMobileMenu();
-
-            }
+            closeMobileMenu();
 
         }
-    );
+
+    });
 
 
-    /* =====================================================
-       PAGE LOAD
-    ===================================================== */
+    /* =========================================================
+       THEME CHANGE SUPPORT
+       Footer automatically follows:
+       data-theme="dark"
+       body.dark-mode
+    ========================================================== */
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
+    function syncFooterTheme() {
 
-            if (window.innerWidth > 900) {
+        const footer = document.getElementById(
+            "gatewayFooter"
+        );
 
-                closeMobileMenu();
 
-            }
+        if (!footer) {
+
+            return;
 
         }
-    );
+
+
+        const htmlTheme =
+            document.documentElement.getAttribute(
+                "data-theme"
+            );
+
+        const bodyTheme =
+            document.body.getAttribute(
+                "data-theme"
+            );
+
+        const darkMode =
+            document.body.classList.contains(
+                "dark-mode"
+            );
+
+
+        const isDark =
+            htmlTheme === "dark" ||
+            bodyTheme === "dark" ||
+            darkMode;
+
+
+        footer.setAttribute(
+            "data-footer-theme",
+            isDark ? "dark" : "light"
+        );
+
+    }
+
+
+    /* =========================================================
+       OBSERVE THEME CHANGES
+    ========================================================== */
+
+    function watchThemeChanges() {
+
+        const observer = new MutationObserver(
+            function () {
+
+                syncFooterTheme();
+
+            }
+        );
+
+
+        observer.observe(
+            document.documentElement,
+            {
+                attributes: true,
+                attributeFilter: [
+                    "class",
+                    "data-theme"
+                ]
+            }
+        );
+
+
+        observer.observe(
+            document.body,
+            {
+                attributes: true,
+                attributeFilter: [
+                    "class",
+                    "data-theme"
+                ]
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       PAGE READY
+    ========================================================== */
+
+    function initializeFooter() {
+
+        if (window.innerWidth > 900) {
+
+            closeMobileMenu();
+
+        }
+
+        syncFooterTheme();
+
+        watchThemeChanges();
+
+    }
+
+
+    /* =========================================================
+       DOM READY
+    ========================================================== */
+
+    if (
+        document.readyState === "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeFooter
+        );
+
+    } else {
+
+        initializeFooter();
+
+    }
 
 
 })();
@@ -583,10 +813,34 @@
 
 
 <!-- =========================================================
-     CLOSE BODY / HTML
+     COMMON THEME FILE
 ========================================================= -->
 
-<?php require_once __DIR__ . '/theme.php'; ?>
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| IMPORTANT
+|--------------------------------------------------------------------------
+| theme.php should contain ONLY the theme functionality.
+| Do not create another moon/sun button in footer.php.
+|--------------------------------------------------------------------------
+*/
+
+$themeFile = __DIR__ . '/theme.php';
+
+if (file_exists($themeFile)) {
+
+    require_once $themeFile;
+
+}
+
+?>
+
+
+<!-- =========================================================
+     CLOSE BODY / HTML
+========================================================= -->
 
 </body>
 

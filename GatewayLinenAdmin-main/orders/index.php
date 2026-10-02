@@ -136,8 +136,65 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/sidebar.php';
 ?>
 
+<script>
+(function () {
+    try {
+        const savedTheme = localStorage.getItem('gatewaylinen-theme');
+        const theme = savedTheme === 'dark' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+})();
+</script>
+
 <style>
+    /* =========================================================
+       THEME SYSTEM
+       Light theme is the default.
+       Add data-theme="dark" to <html> for dark mode.
+       ========================================================= */
     :root {
+        color-scheme: light;
+
+        --bg-page: #f5f7fa;
+        --bg-card: #ffffff;
+        --bg-card-alt: #f8fafc;
+        --bg-header: #f1f5f9;
+        --bg-hover: #f7fafc;
+        --bg-input: #ffffff;
+
+        --border: #dbe3ec;
+        --border-soft: #e7edf3;
+
+        --text-hi: #172033;
+        --text-body: #4b5a6b;
+        --text-mute: #718096;
+
+        --green: #10b981;
+        --green-soft: rgba(16, 185, 129, .11);
+
+        --blue: #0ea5e9;
+        --blue-soft: rgba(14, 165, 233, .11);
+
+        --amber: #d97706;
+        --amber-soft: rgba(217, 119, 6, .12);
+
+        --purple: #9333ea;
+        --purple-soft: rgba(147, 51, 234, .11);
+
+        --red: #dc2626;
+        --red-soft: rgba(220, 38, 38, .10);
+
+        --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+        --shadow-md: 0 8px 24px rgba(15, 23, 42, .07);
+
+        --radius: 12px;
+    }
+
+    html[data-theme="dark"] {
+        color-scheme: dark;
+
         --bg-page: #0a1119;
         --bg-card: #111b26;
         --bg-card-alt: #0f1823;
@@ -167,12 +224,39 @@ require_once __DIR__ . '/../includes/sidebar.php';
         --red: #ef4444;
         --red-soft: rgba(239, 68, 68, .15);
 
-        --radius: 12px;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, .25);
+        --shadow-md: 0 12px 32px rgba(0, 0, 0, .35);
     }
 
     html, body, .main, .content {
         background: var(--bg-page) !important;
         color: var(--text-body) !important;
+        transition: background-color .2s ease, color .2s ease;
+    }
+
+    body {
+        min-height: 100vh;
+    }
+
+    /* Keep common admin-shell elements synchronized with this page theme. */
+    .main, .content, .orders-page {
+        color: var(--text-body);
+    }
+
+    html[data-theme="light"] .sidebar,
+    html[data-theme="light"] .admin-sidebar,
+    html[data-theme="light"] aside {
+        background: #ffffff !important;
+        color: var(--text-body) !important;
+        border-color: var(--border) !important;
+    }
+
+    html[data-theme="dark"] .sidebar,
+    html[data-theme="dark"] .admin-sidebar,
+    html[data-theme="dark"] aside {
+        background: #0d1620 !important;
+        color: var(--text-body) !important;
+        border-color: var(--border) !important;
     }
 
     .orders-page {
@@ -264,6 +348,42 @@ require_once __DIR__ . '/../includes/sidebar.php';
     }
 
     .btn-blue { color: var(--blue) !important; }
+
+    /* THEME TOGGLE */
+    .theme-toggle-btn {
+        min-width: 92px;
+        gap: 8px;
+    }
+
+    .theme-toggle-btn #themeToggleIcon {
+        width: 18px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1;
+    }
+
+    /* Light theme surfaces */
+    html[data-theme="light"] .stat-card,
+    html[data-theme="light"] .content-card,
+    html[data-theme="light"] .shortcut-box,
+    html[data-theme="light"] .order-modal {
+        box-shadow: var(--shadow-sm);
+    }
+
+    html[data-theme="light"] .btn:hover {
+        box-shadow: 0 2px 8px rgba(15, 23, 42, .06);
+    }
+
+    /* Native form controls follow the selected theme. */
+    .input-search::placeholder {
+        color: var(--text-mute);
+        opacity: .9;
+    }
+
+    .filter-select option {
+        background: var(--bg-card);
+        color: var(--text-hi);
+    }
 
     /* STATS GRID */
     .stats-grid {
@@ -684,6 +804,43 @@ require_once __DIR__ . '/../includes/sidebar.php';
         background: var(--bg-card-alt);
     }
 
+    /* PRINT */
+    @media print {
+        :root,
+        html[data-theme="dark"] {
+            color-scheme: light;
+
+            --bg-page: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-alt: #ffffff;
+            --bg-header: #f1f5f9;
+            --bg-hover: #ffffff;
+            --bg-input: #ffffff;
+            --border: #dbe3ec;
+            --border-soft: #e7edf3;
+            --text-hi: #111827;
+            --text-body: #374151;
+            --text-mute: #6b7280;
+        }
+
+        .header-actions,
+        .export-bar,
+        .shortcut-box,
+        .actions-wrap,
+        .theme-toggle-btn {
+            display: none !important;
+        }
+
+        .content-card,
+        .stat-card {
+            box-shadow: none !important;
+        }
+
+        .table-wrapper {
+            overflow: visible !important;
+        }
+    }
+
     @media (max-width: 900px) {
         .stats-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -706,6 +863,10 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     <button type="button" class="btn btn-blue" id="printBtn">🖨 Print <kbd>P</kbd></button>
                     <button type="button" class="btn" id="pdfBtn">↓ PDF <kbd>D</kbd></button>
                     <button type="button" class="btn" id="excelBtn">↓ Excel <kbd>E</kbd></button>
+                    <button type="button" class="btn theme-toggle-btn" id="themeToggleBtn" aria-label="Switch theme">
+                        <span id="themeToggleIcon">☾</span>
+                        <span id="themeToggleText">Dark</span>
+                    </button>
                     <button type="button" class="btn" id="toggleShortcutsBtn">⌨ Keys <kbd>?</kbd></button>
                 </div>
             </div>
@@ -1010,6 +1171,45 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    /* =========================================================
+       LIGHT / DARK THEME TOGGLE
+       - Light mode is default.
+       - User selection is remembered in localStorage.
+       ========================================================= */
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const themeToggleIcon = document.getElementById("themeToggleIcon");
+    const themeToggleText = document.getElementById("themeToggleText");
+
+    function applyTheme(theme) {
+        const isDark = theme === "dark";
+        document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+
+        if (themeToggleIcon) themeToggleIcon.textContent = isDark ? "☀" : "☾";
+        if (themeToggleText) themeToggleText.textContent = isDark ? "Light" : "Dark";
+        if (themeToggleBtn) {
+            themeToggleBtn.setAttribute(
+                "aria-label",
+                isDark ? "Switch to light theme" : "Switch to dark theme"
+            );
+                themeToggleBtn.title = isDark ? "Switch to light theme" : "Switch to dark theme";
+        }
+
+        try {
+            localStorage.setItem("gatewaylinen-theme", isDark ? "dark" : "light");
+        } catch (e) {}
+    }
+
+    applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+
+    themeToggleBtn?.addEventListener("click", function () {
+        const nextTheme =
+            document.documentElement.getAttribute("data-theme") === "dark"
+                ? "light"
+                : "dark";
+
+        applyTheme(nextTheme);
+    });
+
     const searchInput = document.getElementById("orderSearch");
     const statusFilter = document.getElementById("statusFilter");
     const rows = Array.from(document.querySelectorAll("#ordersTable tbody .order-row"));

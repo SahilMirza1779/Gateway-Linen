@@ -12,205 +12,6 @@ import {
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 
-import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
-import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
-import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
-import egyptianCottonKingSheet from "../assets/newImages/egyptianCottonKingSheet.jpg";
-import commercialGradeWhiteFittedSheet from "../assets/newImages/commercialGradeWhiteFittedSheet.jpg";
-import waterproofHospitalityMattressPad from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
-import plushPillowTopMattressProtector from "../assets/newImages/plushPillowTopMattressProtector.jpg";
-import downAlternativeHotelPillow from "../assets/newImages/downAlternativeHotelPillow.jpg";
-import firmSupportGussetedPillow from "../assets/newImages/firmSupportGussetedPillow.jpg";
-import thermalWaffleWeaveBlanket from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
-import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospitalityBlanket.jpg";
-import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
-import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
-
-const productsData = {
-  1: {
-    name: "Luxury Hotel Bath Towel",
-    category: "TOWELS",
-    basePrice: 24.99,
-    image: luxuryhotelbathtowel,
-    gallery: [
-      luxuryhotelbathtowel,
-      premiumspapooltowel,
-      ultraPlushHandTowel,
-      luxuryBathMatSet,
-      waterproofShowerCurtain,
-      egyptianCottonKingSheet,
-    ],
-  },
-  2: {
-    name: "Premium Spa Pool Towel",
-    category: "TOWELS",
-    basePrice: 29.99,
-    image: premiumspapooltowel,
-    gallery: [
-      premiumspapooltowel,
-      luxuryhotelbathtowel,
-      ultraPlushHandTowel,
-      waterproofShowerCurtain,
-      luxuryBathMatSet,
-      thermalWaffleWeaveBlanket,
-    ],
-  },
-  3: {
-    name: "Ultra-Plush Hand Towel",
-    category: "TOWELS",
-    basePrice: 12.99,
-    image: ultraPlushHandTowel,
-    gallery: [
-      ultraPlushHandTowel,
-      luxuryhotelbathtowel,
-      premiumspapooltowel,
-      luxuryBathMatSet,
-      waterproofShowerCurtain,
-      firmSupportGussetedPillow,
-    ],
-  },
-  4: {
-    name: "Egyptian Cotton King Sheet Set",
-    category: "BED SHEETS",
-    basePrice: 89.99,
-    image: egyptianCottonKingSheet,
-    gallery: [
-      egyptianCottonKingSheet,
-      commercialGradeWhiteFittedSheet,
-      waterproofHospitalityMattressPad,
-      plushPillowTopMattressProtector,
-      thermalWaffleWeaveBlanket,
-      plushFleeceHospitalityBlanket,
-    ],
-  },
-  5: {
-    name: "Commercial Grade White Fitted Sheet",
-    category: "BED SHEETS",
-    basePrice: 45.0,
-    image: commercialGradeWhiteFittedSheet,
-    gallery: [
-      commercialGradeWhiteFittedSheet,
-      egyptianCottonKingSheet,
-      waterproofHospitalityMattressPad,
-      plushPillowTopMattressProtector,
-      thermalWaffleWeaveBlanket,
-      downAlternativeHotelPillow,
-    ],
-  },
-  6: {
-    name: "Waterproof Hospitality Mattress Pad",
-    category: "MATTRESS PADS",
-    basePrice: 54.99,
-    image: waterproofHospitalityMattressPad,
-    gallery: [
-      waterproofHospitalityMattressPad,
-      plushPillowTopMattressProtector,
-      commercialGradeWhiteFittedSheet,
-      egyptianCottonKingSheet,
-      downAlternativeHotelPillow,
-      firmSupportGussetedPillow,
-    ],
-  },
-  7: {
-    name: "Plush Pillow-Top Mattress Protector",
-    category: "MATTRESS PADS",
-    basePrice: 69.99,
-    image: plushPillowTopMattressProtector,
-    gallery: [
-      plushPillowTopMattressProtector,
-      waterproofHospitalityMattressPad,
-      egyptianCottonKingSheet,
-      commercialGradeWhiteFittedSheet,
-      firmSupportGussetedPillow,
-      downAlternativeHotelPillow,
-    ],
-  },
-  8: {
-    name: "Down-Alternative Hotel Pillow",
-    category: "PILLOWS",
-    basePrice: 34.99,
-    image: downAlternativeHotelPillow,
-    gallery: [
-      downAlternativeHotelPillow,
-      firmSupportGussetedPillow,
-      plushPillowTopMattressProtector,
-      waterproofHospitalityMattressPad,
-      thermalWaffleWeaveBlanket,
-      plushFleeceHospitalityBlanket,
-    ],
-  },
-  9: {
-    name: "Firm Support Gusseted Pillow",
-    category: "PILLOWS",
-    basePrice: 39.99,
-    image: firmSupportGussetedPillow,
-    gallery: [
-      firmSupportGussetedPillow,
-      downAlternativeHotelPillow,
-      plushPillowTopMattressProtector,
-      waterproofHospitalityMattressPad,
-      plushFleeceHospitalityBlanket,
-      thermalWaffleWeaveBlanket,
-    ],
-  },
-  10: {
-    name: "Thermal Waffle Weave Blanket",
-    category: "BLANKETS",
-    basePrice: 49.99,
-    image: thermalWaffleWeaveBlanket,
-    gallery: [
-      thermalWaffleWeaveBlanket,
-      plushFleeceHospitalityBlanket,
-      egyptianCottonKingSheet,
-      commercialGradeWhiteFittedSheet,
-      luxuryhotelbathtowel,
-      premiumspapooltowel,
-    ],
-  },
-  11: {
-    name: "Plush Fleece Hospitality Blanket",
-    category: "BLANKETS",
-    basePrice: 59.99,
-    image: plushFleeceHospitalityBlanket,
-    gallery: [
-      plushFleeceHospitalityBlanket,
-      thermalWaffleWeaveBlanket,
-      egyptianCottonKingSheet,
-      commercialGradeWhiteFittedSheet,
-      premiumspapooltowel,
-      luxuryhotelbathtowel,
-    ],
-  },
-  12: {
-    name: "Luxury Bath Mat Set",
-    category: "OTHERS",
-    basePrice: 19.99,
-    image: luxuryBathMatSet,
-    gallery: [
-      luxuryBathMatSet,
-      waterproofShowerCurtain,
-      luxuryhotelbathtowel,
-      premiumspapooltowel,
-      ultraPlushHandTowel,
-      egyptianCottonKingSheet,
-    ],
-  },
-  13: {
-    name: "Waterproof Shower Curtain",
-    category: "OTHERS",
-    basePrice: 22.99,
-    image: waterproofShowerCurtain,
-    gallery: [
-      waterproofShowerCurtain,
-      luxuryBathMatSet,
-      luxuryhotelbathtowel,
-      premiumspapooltowel,
-      ultraPlushHandTowel,
-      egyptianCottonKingSheet,
-    ],
-  },
-};
-
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -218,34 +19,99 @@ export default function ProductDetail() {
   const { addToCart } = useCart();
   const { toggleWishlistItem, isInWishlist } = useWishlist();
 
-  const productId = Number(id) || 1;
-  const product = productsData[productId] || productsData[1];
-
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState("Standard");
   const [quantity, setQuantity] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const fetchProductDetails = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php?id=${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        const result = await response.json();
+        if (result.success && result.data) {
+          const item = result.data;
+
+          let formattedMainImage =
+            "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800";
+          const rawMainImg = item.imageUrl || item.ImageUrl || item.image || "";
+
+          if (rawMainImg.startsWith("http")) {
+            formattedMainImage = rawMainImg;
+          } else if (rawMainImg !== "") {
+            const cleanPath = rawMainImg.replace(/^\/+/, "");
+            formattedMainImage = `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
+          }
+
+          let formattedImages = [];
+          if (item.images && item.images.length > 0) {
+            formattedImages = item.images.map((imgObj) => {
+              const path = imgObj.imageUrl || imgObj.ImageUrl || "";
+              if (path.startsWith("http")) return path;
+              if (path !== "") {
+                return `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${path.replace(/^\/+/, "")}`;
+              }
+              return formattedMainImage;
+            });
+          } else {
+            formattedImages = [formattedMainImage];
+          }
+
+          setProduct({
+            ...item,
+            imageUrl: formattedMainImage,
+            images: formattedImages,
+            image: formattedMainImage, // Cart aur direct buy ke liye
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProductDetails();
+  }, [id]);
+
+  const basePrice = product?.basePrice || product?.BasePrice || 0;
   const sizePricing = {
-    Standard: product.basePrice,
-    "Queen Size": Number((product.basePrice * 1.15).toFixed(2)),
-    "King Size": Number((product.basePrice * 1.3).toFixed(2)),
+    Standard: basePrice,
+    "Queen Size": Number((basePrice * 1.15).toFixed(2)),
+    "King Size": Number((basePrice * 1.3).toFixed(2)),
   };
 
-  const unitPrice = sizePricing[selectedSize];
+  const unitPrice = sizePricing[selectedSize] || basePrice;
   const totalPrice = Number((unitPrice * quantity).toFixed(2));
   const sizes = ["Standard", "Queen Size", "King Size"];
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [productId]);
+  const galleryImages =
+    product?.images && product.images.length > 0
+      ? product.images
+      : [
+          product?.imageUrl ||
+            product?.image ||
+            "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800",
+        ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % product.gallery.length);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [product.gallery]);
+    if (galleryImages.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % galleryImages.length);
+      }, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [galleryImages.length]);
 
   const handleAuthAction = (actionCallback) => {
     const loggedInUser = localStorage.getItem("user");
@@ -259,12 +125,17 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     handleAuthAction(() => {
       addToCart(
-        { ...product, id: productId },
+        {
+          ...product,
+          id: product.productId || product.ProductId,
+          price: `CAD $${basePrice}`,
+          image: galleryImages[0],
+        },
         quantity,
         selectedSize,
         unitPrice,
       );
-      alert(`Added ${product.name} to cart!`);
+      alert(`Added ${product.name || product.Name} to cart!`);
     });
   };
 
@@ -272,7 +143,13 @@ export default function ProductDetail() {
     handleAuthAction(() => {
       navigate("/checkout", {
         state: {
-          product: { ...product, id: productId },
+          product: {
+            ...product,
+            id: product.productId || product.ProductId,
+            name: product.name || product.Name,
+            price: unitPrice,
+            image: galleryImages[0],
+          },
           quantity,
           selectedSize,
           currentPrice: totalPrice,
@@ -281,6 +158,30 @@ export default function ProductDetail() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-[#F0EAE1] flex items-center justify-center font-bold text-xs uppercase tracking-widest text-[#031D44]">
+        Loading Product Details...
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="w-full min-h-screen bg-[#F0EAE1] flex flex-col items-center justify-center font-sans">
+        <h2 className="text-xl font-serif font-bold text-[#031D44] mb-3">
+          Product Not Found
+        </h2>
+        <button
+          onClick={() => navigate("/")}
+          className="px-4 py-2 bg-[#031D44] text-white text-xs rounded-xl uppercase"
+        >
+          Back to Home
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen bg-[#F0EAE1] py-4 md:py-6 px-3 md:px-8 font-sans text-gray-800 relative">
       <div className="max-w-[1300px] mx-auto">
@@ -288,18 +189,23 @@ export default function ProductDetail() {
           onClick={() => navigate(-1)}
           className="mb-3 inline-flex items-center gap-2 px-3 py-1.5 bg-[#F7F2EB] border border-[#E5DCD0] text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-xl text-[#031D44] hover:border-[#B58E58] transition-all cursor-pointer shadow-2xs"
         >
-          <FiArrowLeft size={13} /> Back to Products
+          <FiArrowLeft size={13} /> Back
         </button>
 
-        {/* Compact & Screen-Fit Card */}
         <div className="bg-[#F7F2EB] p-4 md:p-8 rounded-[24px] md:rounded-[28px] border border-[#E5DCD0] shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
-          {/* Left Gallery Section (Span 5) */}
+          {/* Left Gallery Section */}
           <div className="lg:col-span-5 flex flex-col gap-3">
             <div className="relative w-full h-[260px] sm:h-[320px] md:h-[360px] bg-[#FAF7F2] rounded-2xl overflow-hidden border border-[#E5DCD0] shadow-sm flex items-center justify-center">
               <button
                 onClick={() =>
                   handleAuthAction(() =>
-                    toggleWishlistItem({ ...product, id: productId }),
+                    toggleWishlistItem({
+                      ...product,
+                      id: product.productId || product.ProductId,
+                      price: `CAD $${basePrice}`,
+                      name: product.name || product.Name,
+                      image: galleryImages[0],
+                    }),
                   )
                 }
                 className="absolute top-3 right-3 z-10 p-2.5 bg-white rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
@@ -308,7 +214,7 @@ export default function ProductDetail() {
                 <FiHeart
                   size={16}
                   className={
-                    isInWishlist(productId)
+                    isInWishlist(product.productId || product.ProductId)
                       ? "fill-red-500 text-red-500"
                       : "text-gray-400"
                   }
@@ -316,23 +222,31 @@ export default function ProductDetail() {
               </button>
 
               <img
-                src={product.gallery[currentIndex]}
-                alt={product.name}
+                src={galleryImages[currentIndex]}
+                alt={product.name || product.Name}
+                onError={(e) => {
+                  e.target.src =
+                    "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800";
+                }}
                 className="w-full h-full object-cover transition-all duration-500"
               />
             </div>
 
             {/* Thumbnails */}
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {product.gallery.map((img, index) => (
+              {galleryImages.map((img, index) => (
                 <div
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`min-w-[55px] h-12 md:min-w-[65px] md:h-14 bg-[#FAF7F2] rounded-xl overflow-hidden border-2 cursor-pointer transition-all flex-shrink-0 shadow-2xs ${currentIndex === index ? "border-[#B58E58] scale-105" : "border-[#E5DCD0] hover:border-[#B58E58]"}`}
+                  className={`min-w-[55px] h-12 md:min-w-[65px] md:h-14 bg-[#FAF7F2] rounded-xl overflow-hidden border-2 cursor-pointer transition-all flex-shrink-0 shadow-2xs ${currentIndex === index ? "border-[#B58E58] scale-105" : "border-[#E5DCD0]"}`}
                 >
                   <img
                     src={img}
                     alt={`Thumb ${index}`}
+                    onError={(e) => {
+                      e.target.src =
+                        "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800";
+                    }}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -340,22 +254,22 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* Right Product Info Section (Span 7) */}
+          {/* Right Info Section */}
           <div className="lg:col-span-7 flex flex-col justify-between">
             <div>
               <div className="inline-flex items-center gap-1.5 bg-[#B58E58]/15 px-2.5 py-0.5 rounded-full mb-1.5 border border-[#B58E58]/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#B58E58]"></span>
                 <span className="text-[9px] md:text-[9.5px] font-bold text-[#B58E58] tracking-[0.2em] uppercase">
-                  {product.category}
+                  {product.categoryName || product.CategoryName || "LINEN"}
                 </span>
               </div>
 
               <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#031D44] tracking-tight mb-1.5">
-                {product.name}
+                {product.name || product.Name}
               </h1>
 
               <div className="text-lg md:text-2xl font-bold text-[#031D44] mb-2.5 flex items-baseline gap-2.5">
-                <span>CAD ${totalPrice}</span>
+                <span>CAD ${totalPrice.toFixed(2)}</span>
                 <span className="text-[10px] md:text-[11px] font-normal text-gray-500">
                   ({quantity} item{quantity > 1 ? "s" : ""} &bull;{" "}
                   {selectedSize})
@@ -363,9 +277,11 @@ export default function ProductDetail() {
               </div>
 
               <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed mb-3.5 border-b border-[#E5DCD0] pb-3.5 font-light">
-                Premium hospitality linen crafted for superior comfort,
-                durability, and luxury feel. Designed specifically for elite
-                hotels and resorts.
+                {product.shortDescription ||
+                  product.ShortDescription ||
+                  product.description ||
+                  product.Description ||
+                  "Premium hospitality linen crafted for superior comfort, durability, and luxury feel."}
               </p>
 
               {/* Size Selector */}
@@ -386,7 +302,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Quantity Selector */}
+              {/* Quantity */}
               <div className="mb-4">
                 <label className="block text-[10px] md:text-[10.5px] font-bold text-[#031D44] uppercase tracking-wider mb-1.5">
                   Quantity
@@ -414,7 +330,6 @@ export default function ProductDetail() {
             </div>
 
             <div>
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
                 <button
                   onClick={handleAddToCart}
@@ -431,7 +346,6 @@ export default function ProductDetail() {
                 </button>
               </div>
 
-              {/* Trust Perks */}
               <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-[#E5DCD0] text-[10px] md:text-[11px] text-gray-600 font-light">
                 <div className="flex items-center gap-1.5 bg-white/50 p-2 rounded-lg border border-gray-200/30">
                   <FiTruck className="text-[#B58E58] shrink-0" size={15} />
@@ -447,7 +361,6 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Login Modal */}
       {showLoginModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity p-4">
           <div className="bg-[#F7F2EB] border border-[#E5DCD0] p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center relative">
@@ -457,11 +370,9 @@ export default function ProductDetail() {
             >
               <FiX size={16} />
             </button>
-
             <div className="w-14 h-14 bg-[#031D44] text-[#B58E58] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
               <FiUser size={24} />
             </div>
-
             <h3 className="text-lg font-serif font-bold text-[#031D44] mb-1">
               Login Required
             </h3>
@@ -469,7 +380,6 @@ export default function ProductDetail() {
               Please login first to add items to your cart, wishlist, or proceed
               to checkout.
             </p>
-
             <button
               onClick={() => navigate("/login")}
               className="w-full py-3 bg-[#031D44] text-white rounded-xl text-[11px] font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"

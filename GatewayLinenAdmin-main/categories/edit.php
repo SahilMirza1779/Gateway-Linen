@@ -583,29 +583,45 @@ require_once __DIR__ . '/../includes/sidebar.php';
 ?>
 
 <style>
+/* ============================================================
+   GATEWAYLINEN - EDIT CATEGORY (Fully Unified Theme)
+   ============================================================ */
 
-:root{
-    --bg-page:#0a1119;
-    --bg-card:#111b26;
-    --bg-card-alt:#0f1823;
-    --bg-input:#0d1620;
-    --border:#1e2d3d;
-    --border-soft:#182636;
+:root {
+    --bg-page: #f5f7fa;
+    --bg-card: #ffffff;
+    --bg-input: #ffffff;
+    --border: #d9e1ea;
+    --border-soft: #e7edf3;
+    --text-hi: #17212b;
+    --text-body: #344454;
+    --text-mute: #687789;
+    --green: #10b981;
+    --green-dark: #059669;
+    --green-soft: #ecfdf5;
+    --red: #dc2626;
+    --red-soft: #fef2f2;
+    --blue: #2563eb;
+    --radius: 12px;
+}
 
-    --text-hi:#f0f4f8;
-    --text-body:#a8b8c8;
-    --text-mute:#6b7f91;
-
-    --green:#10b981;
-    --green-dark:#059669;
-    --green-soft:rgba(16,185,129,.12);
-
-    --red:#ef4444;
-    --red-soft:rgba(239,68,68,.12);
-
-    --blue:#38bdf8;
-
-    --radius:12px;
+/* Comprehensive Dark Mode Selectors */
+body.dark-mode, 
+body[data-theme="dark"], 
+body.dark,
+.dark-mode, 
+[data-theme="dark"],
+html.dark {
+    --bg-page: #0f172a;
+    --bg-card: #1e293b;
+    --bg-input: #1e293b;
+    --border: #334155;
+    --border-soft: #273548;
+    --text-hi: #f8fafc;
+    --text-body: #cbd5e1;
+    --text-mute: #94a3b8;
+    --green-soft: rgba(16, 185, 129, 0.15);
+    --red-soft: rgba(220, 38, 38, 0.15);
 }
 
 *{
@@ -622,35 +638,35 @@ body,
 
 .category-edit-page{
     width:100%;
-    max-width:1250px;
+    max-width:1320px;
     margin:0 auto;
-    padding:0 0 30px;
+    padding:8px 0 35px;
 }
+
+/* =========================
+   PAGE HEADER
+   ========================= */
 
 .page-header{
     display:flex;
     align-items:flex-end;
     justify-content:space-between;
-    gap:20px;
-
-    padding-bottom:18px;
-    margin-bottom:20px;
-
+    gap:24px;
+    padding:0 0 20px;
+    margin-bottom:22px;
     border-bottom:1px solid var(--border);
 }
 
 .breadcrumb{
     display:flex;
-    gap:8px;
-
-    margin-bottom:8px;
-
+    align-items:center;
+    gap:9px;
+    margin-bottom:10px;
     color:var(--text-mute);
-    font-size:11px;
+    font-size:12px;
     font-weight:800;
-
     text-transform:uppercase;
-    letter-spacing:.4px;
+    letter-spacing:.55px;
 }
 
 .breadcrumb .current{
@@ -659,51 +675,46 @@ body,
 
 .page-header h1{
     margin:0;
-
     color:var(--text-hi);
-
-    font-size:26px;
+    font-size:30px;
+    line-height:1.2;
     font-weight:800;
+    letter-spacing:-.3px;
 }
 
 .page-header p{
-    margin:6px 0 0;
-
+    margin:8px 0 0;
     color:var(--text-mute);
-
-    font-size:12px;
+    font-size:14px;
+    line-height:1.5;
 }
 
 .header-actions{
     display:flex;
-    gap:8px;
+    gap:10px;
     flex-wrap:wrap;
 }
 
-.btn{
-    min-height:39px;
+/* =========================
+   BUTTONS
+   ========================= */
 
+.btn{
+    min-height:42px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    gap:7px;
-
-    padding:0 14px;
-
+    gap:8px;
+    padding:0 17px;
     border:1px solid var(--border);
     border-radius:8px;
-
-    background:var(--bg-input);
+    background:var(--bg-card);
     color:var(--text-body)!important;
-
-    font-size:11px;
+    font-size:13px;
     font-weight:800;
-
     text-decoration:none;
-
     cursor:pointer;
-
-    transition:.18s;
+    transition:.18s ease;
 }
 
 .btn:hover{
@@ -714,165 +725,156 @@ body,
 
 .btn-primary{
     border-color:transparent;
-
-    background:linear-gradient(
-        135deg,
-        var(--green-dark),
-        var(--green)
-    );
-
-    color:#fff!important;
-
-    box-shadow:
-        0 7px 20px
-        rgba(16,185,129,.18);
+    background:linear-gradient(135deg,var(--green-dark),var(--green));
+    color:#ffffff!important;
+    box-shadow:0 6px 16px rgba(16,185,129,.18);
 }
 
 .btn-primary:hover{
-    color:#fff!important;
+    color:#ffffff!important;
     transform:translateY(-1px);
 }
 
 .btn-danger{
-    color:#f87171!important;
+    color:var(--red)!important;
 }
 
 .notice{
-    margin-bottom:15px;
-
-    padding:12px 14px;
-
+    margin-bottom:18px;
+    padding:14px 16px;
     border-radius:9px;
-
-    font-size:12px;
+    font-size:13px;
+    line-height:1.5;
     font-weight:700;
 }
 
 .notice-error{
-    border:1px solid rgba(239,68,68,.3);
+    border:1px solid rgba(220, 38, 38, 0.3);
     background:var(--red-soft);
-    color:#fca5a5;
+    color:var(--red);
 }
+
+/* =========================
+   MAIN GRID
+   ========================= */
 
 .edit-layout{
     display:grid;
-
-    grid-template-columns:
-        minmax(0,1fr)
-        360px;
-
-    gap:16px;
+    grid-template-columns:minmax(0,1fr) 390px;
+    gap:18px;
 }
+
+/* =========================
+   CARD
+   ========================= */
 
 .card{
     background:var(--bg-card);
-
     border:1px solid var(--border);
-
     border-radius:var(--radius);
-
     overflow:hidden;
+    box-shadow:0 3px 14px rgba(15,23,42,.045);
 }
 
 .card-header{
-    padding:16px 18px;
-
-    border-bottom:1px solid var(--border);
+    padding:18px 20px;
+    background:var(--bg-card);
+    border-bottom:1px solid var(--border-soft);
 }
 
 .card-header h2{
     margin:0;
-
     color:var(--text-hi);
-
-    font-size:15px;
+    font-size:18px;
+    line-height:1.35;
     font-weight:800;
 }
 
 .card-header p{
-    margin:5px 0 0;
-
+    margin:6px 0 0;
     color:var(--text-mute);
-
-    font-size:11px;
+    font-size:13px;
+    line-height:1.45;
 }
 
 .card-body{
-    padding:20px;
+    padding:24px 22px;
 }
 
+/* =========================
+   FORM
+   ========================= */
+
 .form-group{
-    margin-bottom:17px;
+    margin-bottom:20px;
 }
 
 .form-label{
     display:flex;
     align-items:center;
     justify-content:space-between;
-
-    margin-bottom:7px;
-
-    color:var(--text-body);
-
-    font-size:11px;
+    margin-bottom:8px;
+    color:var(--text-hi);
+    font-size:13px;
+    line-height:1.4;
     font-weight:800;
 }
 
 .required{
-    color:#f87171;
+    color:var(--red);
 }
 
 .input,
 .textarea,
 .select{
     width:100%;
-
     border:1px solid var(--border);
     border-radius:8px;
-
     outline:none;
-
     background:var(--bg-input);
     color:var(--text-hi);
-
     font-family:inherit;
-    font-size:12px;
+    font-size:14px;
+    font-weight:500;
+    transition:.18s ease;
+    box-shadow:inset 0 1px 2px rgba(15,23,42,.025);
+}
 
-    transition:.18s;
+.input::placeholder,
+.textarea::placeholder{
+    color:var(--text-mute);
 }
 
 .input,
 .select{
-    height:42px;
-    padding:0 12px;
+    height:46px;
+    padding:0 14px;
 }
 
 .textarea{
-    min-height:125px;
-
-    padding:12px;
-
+    min-height:145px;
+    padding:13px 14px;
     resize:vertical;
+    line-height:1.6;
+}
 
-    line-height:1.5;
+.input:hover,
+.textarea:hover,
+.select:hover{
+    border-color:var(--text-mute);
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus{
     border-color:var(--green);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(16,185,129,.1);
+    box-shadow:0 0 0 3px rgba(16,185,129,.15);
 }
 
 .slug-row{
     display:grid;
-
-    grid-template-columns:1fr 105px;
-
-    gap:10px;
+    grid-template-columns:1fr 120px;
+    gap:12px;
 }
 
 .input-prefix{
@@ -881,76 +883,66 @@ body,
 
 .input-prefix span{
     position:absolute;
-
-    left:12px;
+    left:14px;
     top:50%;
-
     transform:translateY(-50%);
-
     color:var(--text-mute);
-
-    font-size:12px;
-
+    font-size:14px;
+    font-weight:700;
     pointer-events:none;
 }
 
 .input-prefix .input{
-    padding-left:25px;
+    padding-left:30px;
 }
 
 .help-text{
-    margin-top:6px;
-
+    margin-top:7px;
     color:var(--text-mute);
-
-    font-size:10px;
+    font-size:11px;
+    line-height:1.45;
 }
 
 .two-column{
     display:grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap:12px;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
 }
 
+/* =========================
+   STATUS
+   ========================= */
+
 .status-box{
+    min-height:46px;
     display:flex;
     align-items:center;
     justify-content:space-between;
-
-    padding:13px 14px;
-
+    padding:9px 13px;
     border:1px solid var(--border);
     border-radius:9px;
-
     background:var(--bg-input);
 }
 
 .status-info strong{
     display:block;
-
     color:var(--text-hi);
-
-    font-size:12px;
+    font-size:13px;
+    font-weight:800;
 }
 
 .status-info span{
     display:block;
-
     margin-top:3px;
-
     color:var(--text-mute);
-
-    font-size:10px;
+    font-size:11px;
 }
 
 .switch{
     position:relative;
-
-    width:44px;
-    height:24px;
+    width:46px;
+    height:25px;
+    flex-shrink:0;
 }
 
 .switch input{
@@ -962,31 +954,22 @@ body,
 .slider{
     position:absolute;
     inset:0;
-
     cursor:pointer;
-
     border-radius:30px;
-
-    background:#263544;
-
+    background:var(--border);
     transition:.2s;
 }
 
 .slider:before{
     content:"";
-
     position:absolute;
-
-    width:18px;
-    height:18px;
-
+    width:19px;
+    height:19px;
     left:3px;
     top:3px;
-
     border-radius:50%;
-
-    background:#fff;
-
+    background:#ffffff;
+    box-shadow:0 1px 3px rgba(15,23,42,.18);
     transition:.2s;
 }
 
@@ -995,260 +978,224 @@ body,
 }
 
 .switch input:checked + .slider:before{
-    transform:translateX(20px);
+    transform:translateX(21px);
 }
 
+/* =========================
+   IMAGE CARD
+   ========================= */
+
 .image-card{
-    padding:18px;
+    padding:20px;
+    background:var(--bg-card);
 }
 
 .image-preview{
     width:100%;
     aspect-ratio:1/1;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     overflow:hidden;
-
     border:1px solid var(--border);
-
     border-radius:10px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #16222e,
-            #0f1823
-        );
-
+    background:var(--bg-input);
     color:var(--text-mute);
-
-    font-size:35px;
+    font-size:40px;
 }
 
 .image-preview img{
     width:100%;
     height:100%;
-
     object-fit:cover;
-
     display:block;
 }
 
 .file-input-wrap{
-    margin-top:12px;
+    margin-top:15px;
 }
 
 .file-input{
     width:100%;
-
-    padding:10px;
-
+    padding:11px;
     border:1px dashed var(--border);
-
     border-radius:8px;
-
     background:var(--bg-input);
-
     color:var(--text-body);
-
-    font-size:11px;
-
+    font-size:12px;
+    font-weight:600;
     cursor:pointer;
 }
 
 .file-input:hover{
     border-color:var(--green);
+    background:var(--green-soft);
 }
 
 .file-info{
-    margin-top:7px;
-
+    margin-top:8px;
     color:var(--text-mute);
+    font-size:11px;
+    line-height:1.6;
+}
 
-    font-size:10px;
-
-    line-height:1.5;
+.file-info strong{
+    color:var(--text-hi);
 }
 
 .current-image{
-    margin-top:12px;
-
-    padding:10px;
-
-    border:1px solid var(--border-soft);
-
+    margin-top:13px;
+    padding:11px;
+    border:1px solid var(--border);
     border-radius:8px;
-
     background:var(--bg-input);
-
     color:var(--text-mute);
-
-    font-size:10px;
-
+    font-size:11px;
+    line-height:1.5;
     word-break:break-all;
 }
 
+/* =========================
+   FOOTER ACTIONS
+   ========================= */
+
 .action-footer{
     display:flex;
-
     justify-content:flex-end;
-
-    gap:8px;
-
-    padding:15px 20px;
-
-    border-top:1px solid var(--border);
-}
-
-.shortcut-box{
-    margin-top:16px;
-
-    padding:15px 18px;
-
-    border:1px solid var(--border);
-
-    border-radius:12px;
-
+    gap:10px;
+    padding:17px 22px;
     background:var(--bg-card);
+    border-top:1px solid var(--border-soft);
 }
 
-.shortcut-title{
-    display:flex;
-    align-items:center;
-    gap:8px;
+/* =========================
+   ACTION BUTTON SHORTCUT BADGES
+   ========================= */
 
-    color:var(--text-hi);
-
-    font-size:12px;
-    font-weight:800;
-}
-
-.shortcut-grid{
-    display:grid;
-
-    grid-template-columns:
-        repeat(3,minmax(0,1fr));
-
-    gap:8px;
-
-    margin-top:12px;
-}
-
-.shortcut{
-    display:flex;
-    align-items:center;
-    gap:8px;
-
-    padding:8px 10px;
-
-    border:1px solid var(--border-soft);
-
-    border-radius:7px;
-
-    background:var(--bg-input);
-}
-
-.key{
+.btn-shortcut{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-
-    min-width:38px;
-    height:24px;
-
-    padding:0 6px;
-
-    border:1px solid var(--border);
-
+    min-width:30px;
+    min-height:22px;
+    padding:2px 7px;
+    border:1px solid rgba(255,255,255,.28);
     border-radius:5px;
-
-    background:#080e15;
-
-    color:var(--green);
-
-    font-family:monospace;
-    font-size:9px;
+    background:rgba(255,255,255,.12);
+    color:inherit;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    font-size:10px;
+    line-height:1;
     font-weight:800;
+    white-space:nowrap;
 }
 
-.key-text{
-    color:var(--text-body);
+.btn:not(.btn-primary) .btn-shortcut{
+    border-color:var(--border);
+    background:var(--bg-input);
+    color:var(--green);
+}
 
-    font-size:10px;
-    font-weight:600;
+.btn-primary .btn-shortcut{
+    color:#ffffff;
+}
+
+.btn{
+    white-space:nowrap;
+}
+
+@media(max-width:1050px){
+    .category-edit-page{
+        max-width:100%;
+        padding-left:15px;
+        padding-right:15px;
+    }
+    .edit-layout{
+        grid-template-columns:1fr 340px;
+    }
 }
 
 @media(max-width:950px){
-
     .edit-layout{
         grid-template-columns:1fr;
     }
-
     .image-card{
         display:grid;
-
-        grid-template-columns:
-            220px 1fr;
-
-        gap:18px;
+        grid-template-columns:260px 1fr;
+        gap:22px;
+        align-items:center;
     }
-
     .file-input-wrap{
         margin-top:0;
         align-self:center;
     }
-
 }
 
 @media(max-width:650px){
-
     .category-edit-page{
         padding:0 10px 25px;
     }
-
     .page-header{
         flex-direction:column;
         align-items:flex-start;
+        gap:15px;
     }
-
+    .page-header h1{
+        font-size:26px;
+    }
+    .page-header p{
+        font-size:13px;
+    }
     .header-actions{
         width:100%;
     }
-
     .header-actions .btn{
         flex:1;
     }
-
+    .card-header{
+        padding:16px;
+    }
+    .card-header h2{
+        font-size:17px;
+    }
+    .card-body{
+        padding:20px 16px;
+    }
     .two-column,
     .slug-row{
         grid-template-columns:1fr;
     }
-
     .image-card{
         display:block;
+        padding:16px;
     }
-
     .file-input-wrap{
-        margin-top:12px;
+        margin-top:14px;
     }
-
-    .shortcut-grid{
-        grid-template-columns:1fr;
-    }
-
     .action-footer{
         flex-direction:column-reverse;
+        padding:15px 16px;
     }
-
     .action-footer .btn{
         width:100%;
     }
-
 }
 
+@media(max-width:430px){
+    .page-header h1{
+        font-size:24px;
+    }
+    .breadcrumb{
+        font-size:11px;
+    }
+    .input,
+    .select{
+        height:44px;
+    }
+    .textarea{
+        min-height:130px;
+    }
+}
 </style>
 
 
@@ -1287,7 +1234,8 @@ body,
                 class="btn"
                 title="Cancel (Esc)"
             >
-                ← Back
+                <span class="btn-shortcut">Esc</span>
+                <span>← Back</span>
             </a>
 
             <button
@@ -1296,7 +1244,8 @@ body,
                 class="btn btn-primary"
                 title="Save (Ctrl + S)"
             >
-                ✓ Save Changes
+                <span>✓ Save Changes</span>
+                <span class="btn-shortcut">Ctrl+S</span>
             </button>
 
         </div>
@@ -1542,14 +1491,16 @@ body,
                         href="index.php"
                         class="btn"
                     >
-                        Cancel
+                        <span class="btn-shortcut">Esc</span>
+                        <span>Cancel</span>
                     </a>
 
                     <button
                         type="submit"
                         class="btn btn-primary"
                     >
-                        ✓ Update Category
+                        <span>✓ Update Category</span>
+                        <span class="btn-shortcut">Ctrl+S</span>
                     </button>
 
                 </div>
@@ -1652,43 +1603,6 @@ body,
     </form>
 
 
-    <!-- SHORTCUTS -->
-
-    <div class="shortcut-box">
-
-        <div class="shortcut-title">
-
-            ⌨ Keyboard Shortcuts
-
-        </div>
-
-        <div class="shortcut-grid">
-
-            <div class="shortcut">
-                <span class="key">Ctrl+S</span>
-                <span class="key-text">Save Changes</span>
-            </div>
-
-            <div class="shortcut">
-                <span class="key">Ctrl+Shift+S</span>
-                <span class="key-text">Save Changes</span>
-            </div>
-
-            <div class="shortcut">
-                <span class="key">Esc</span>
-                <span class="key-text">Cancel / Back</span>
-            </div>
-
-        </div>
-
-    </div>
-
-
-</div>
-
-</section>
-
-</main>
 
 
 <script>
@@ -1946,23 +1860,6 @@ document.addEventListener(
                 if (
                     e.ctrlKey &&
                     !e.shiftKey &&
-                    e.key.toLowerCase() === 's'
-                ) {
-
-                    e.preventDefault();
-
-                    form.requestSubmit();
-
-                    return;
-                }
-
-
-                /*
-                 * Ctrl + Shift + S
-                 */
-                if (
-                    e.ctrlKey &&
-                    e.shiftKey &&
                     e.key.toLowerCase() === 's'
                 ) {
 

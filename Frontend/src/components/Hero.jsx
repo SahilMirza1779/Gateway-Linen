@@ -139,8 +139,9 @@ const Hero = () => {
                 />
               </button>
 
+              {/* 🔴 YAHAN CHANGE KIYA HAI: Direct QuoteBuilder par bhejega */}
               <button
-                onClick={() => setShowQuoteModal(true)}
+                onClick={() => navigate("/quote-builder")}
                 className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 sm:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl text-[11px] md:text-sm font-bold tracking-widest uppercase backdrop-blur-md transition-all cursor-pointer"
               >
                 Request a Quote
@@ -170,7 +171,7 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Mobile Optimized Quote Request Modal */}
+      {/* Mobile Optimized Quote Request Modal (Code as it is rakha hai) */}
       {showQuoteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
           <div className="bg-[#FAF7F2] rounded-[24px] md:rounded-3xl max-w-lg w-full p-4 sm:p-6 md:p-8 shadow-2xl relative border border-[#E5DCD0] max-h-[90vh] overflow-y-auto">

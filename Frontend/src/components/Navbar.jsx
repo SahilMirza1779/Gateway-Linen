@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FiSearch,
@@ -101,6 +101,10 @@ const Navbar = () => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Categories API State
+  const [categories, setCategories] = useState([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -115,6 +119,20 @@ const Navbar = () => {
 
   const { wishlistItems, toggleWishlistDrawer } = useWishlist();
   const { cartItems, toggleCart } = useCart();
+
+  // Fetch Categories from API
+  useEffect(() => {
+    fetch(
+      "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/categories/api.php?action=get_categories",
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.categories) {
+          setCategories(data.categories);
+        }
+      })
+      .catch((err) => console.error("Error fetching categories:", err));
+  }, []);
 
   if (location.pathname === "/login" || location.pathname === "/register") {
     return null;
@@ -204,50 +222,66 @@ const Navbar = () => {
             >
               Products
             </Link>
+
+            {/* 🔴 MODIFIED: Category Text Redirects to Page, Arrow opens Dropdown */}
+            <div
+              className="relative flex items-center"
+              onMouseLeave={() => setShowCategoryDropdown(false)}
+            >
+              <Link
+                to="/categories"
+                className="hover:text-[#B58E58] transition-colors cursor-pointer mr-1"
+              >
+                Categories
+              </Link>
+              <button
+                onMouseEnter={() => setShowCategoryDropdown(true)}
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="flex items-center hover:text-[#B58E58] transition-colors cursor-pointer p-1"
+              >
+                <FiChevronDown size={14} />
+              </button>
+
+              {showCategoryDropdown && (
+                <div className="absolute top-full left-0 mt-4 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+                  {categories.length > 0 ? (
+                    categories.map((cat) => (
+                      <Link
+                        key={cat.id || cat.name}
+                        to={`/category/${cat.slug || cat.name.toLowerCase().replace(/\s+/g, "-")}`}
+                        onClick={() => setShowCategoryDropdown(false)}
+                        className="block px-4 py-2 text-xs font-semibold text-[#031D44] hover:bg-[#FAF9F6] hover:text-[#B58E58] transition-colors"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-xs text-gray-400">
+                      Loading...
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <Link
-              to="/category/towels"
+              to="/contact"
               className="hover:text-[#B58E58] transition-colors"
             >
-              Towels
+              Contacts
             </Link>
             <Link
-              to="/category/bed-sheets"
+              to="/bulk-order"
               className="hover:text-[#B58E58] transition-colors"
             >
-              Bed Sheets
+              Bulk Order
             </Link>
             <Link
-              to="/category/mattress-pads"
+              to="/order-history"
               className="hover:text-[#B58E58] transition-colors"
             >
-              Mattress Pads
+              Order History
             </Link>
-            <Link
-              to="/category/pillows"
-              className="hover:text-[#B58E58] transition-colors"
-            >
-              Pillows
-            </Link>
-            <Link
-              to="/category/blankets"
-              className="hover:text-[#B58E58] transition-colors"
-            >
-              Blankets
-            </Link>
-            <Link
-              to="/category/others"
-              className="hover:text-[#B58E58] transition-colors"
-            >
-              Others
-            </Link>
-            <span
-              onClick={() => {
-                window.location.href = "/contact";
-              }}
-              className="hover:text-[#B58E58] transition-colors cursor-pointer"
-            >
-              Contact
-            </span>
           </nav>
 
           {/* Right Action Icons */}
@@ -604,59 +638,56 @@ const Navbar = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all"
               >
-                Products Catalog
+                Products
+              </Link>
+
+              <div className="py-2 px-4 flex items-center justify-between">
+                <Link
+                  to="/categories"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-[10px] uppercase font-bold text-[#B58E58] tracking-wider"
+                >
+                  Categories
+                </Link>
+              </div>
+              {categories.length > 0 ? (
+                categories.map((cat) => (
+                  <Link
+                    key={cat.id || cat.name}
+                    to={`/category/${cat.slug || cat.name.toLowerCase().replace(/\s+/g, "-")}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-2 px-6 bg-white/40 hover:bg-white rounded-xl text-[11px] transition-all"
+                  >
+                    {cat.name}
+                  </Link>
+                ))
+              ) : (
+                <div className="py-2 px-6 text-[11px] text-gray-400">
+                  Loading...
+                </div>
+              )}
+
+              <Link
+                to="/contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all mt-2"
+              >
+                Contacts
               </Link>
               <Link
-                to="/category/towels"
+                to="/bulk-order"
                 onClick={() => setMobileMenuOpen(false)}
                 className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all"
               >
-                Towels
+                Bulk Order
               </Link>
               <Link
-                to="/category/bed-sheets"
+                to="/order-history"
                 onClick={() => setMobileMenuOpen(false)}
                 className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all"
               >
-                Bed Sheets
+                Order History
               </Link>
-              <Link
-                to="/category/mattress-pads"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all"
-              >
-                Mattress Pads
-              </Link>
-              <Link
-                to="/category/pillows"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all"
-              >
-                Pillows
-              </Link>
-              <Link
-                to="/category/blankets"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all"
-              >
-                Blankets
-              </Link>
-              <Link
-                to="/category/others"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all"
-              >
-                Others
-              </Link>
-              <span
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  window.location.href = "/contact";
-                }}
-                className="py-2.5 px-4 bg-white/60 hover:bg-white rounded-xl border border-transparent hover:border-[#E5DCD0] transition-all cursor-pointer block"
-              >
-                Contact Us
-              </span>
             </div>
 
             {currentUser && (
@@ -687,7 +718,7 @@ const Navbar = () => {
       <CartDrawer />
       <WishlistDrawer />
 
-      {/* Contact & Google Map Modal - Mobile Optimized */}
+      {/* Contact & Google Map Modal */}
       {showContactModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
           <div className="bg-[#F7F2EB] border border-[#E5DCD0] rounded-[24px] md:rounded-[28px] max-w-lg w-full p-4 sm:p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">

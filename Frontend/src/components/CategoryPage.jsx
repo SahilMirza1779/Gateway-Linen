@@ -6,142 +6,77 @@ import {
   FiArrowLeft,
   FiX,
   FiUser,
+  FiChevronRight,
 } from "react-icons/fi";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 
-// Local imported images
-import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
-import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
-import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
-import egyptianCottonKingSheet from "../assets/newImages/egyptianCottonKingSheet.jpg";
-import commercialGradeWhiteFittedSheet from "../assets/newImages/commercialGradeWhiteFittedSheet.jpg";
-import waterproofHospitalityMattressPad from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
-import plushPillowTopMattressProtector from "../assets/newImages/plushPillowTopMattressProtector.jpg";
-import downAlternativeHotelPillow from "../assets/newImages/downAlternativeHotelPillow.jpg";
-import firmSupportGussetedPillow from "../assets/newImages/firmSupportGussetedPillow.jpg";
-import thermalWaffleWeaveBlanket from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
-import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospitalityBlanket.jpg";
-import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
-import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
-
-const allProducts = [
-  {
-    id: 1,
-    category: "towels",
-    name: "Luxury Hotel Bath Towel",
-    price: "CAD 24.99",
-    tag: "BEST SELLER",
-    image: luxuryhotelbathtowel,
-  },
-  {
-    id: 2,
-    category: "towels",
-    name: "Premium Spa Pool Towel",
-    price: "CAD 29.99",
-    tag: "POPULAR",
-    image: premiumspapooltowel,
-  },
-  {
-    id: 3,
-    category: "towels",
-    name: "Ultra-Plush Hand Towel",
-    price: "CAD 12.99",
-    tag: "TOP RATED",
-    image: ultraPlushHandTowel,
-  },
-  {
-    id: 4,
-    category: "bed-sheets",
-    name: "Egyptian Cotton King Sheet Set",
-    price: "CAD 89.99",
-    tag: "NEW ARRIVAL",
-    image: egyptianCottonKingSheet,
-  },
-  {
-    id: 5,
-    category: "bed-sheets",
-    name: "Commercial Grade White Fitted Sheet",
-    price: "CAD 45.00",
-    tag: "FEATURED",
-    image: commercialGradeWhiteFittedSheet,
-  },
-  {
-    id: 6,
-    category: "mattress-pads",
-    name: "Waterproof Hospitality Mattress Pad",
-    price: "CAD 54.99",
-    tag: "POPULAR",
-    image: waterproofHospitalityMattressPad,
-  },
-  {
-    id: 7,
-    category: "mattress-pads",
-    name: "Plush Pillow-Top Mattress Protector",
-    price: "CAD 69.99",
-    tag: "PREMIUM",
-    image: plushPillowTopMattressProtector,
-  },
-  {
-    id: 8,
-    category: "pillows",
-    name: "Down-Alternative Hotel Pillow",
-    price: "CAD 34.99",
-    tag: "TOP RATED",
-    image: downAlternativeHotelPillow,
-  },
-  {
-    id: 9,
-    category: "pillows",
-    name: "Firm Support Gusseted Pillow",
-    price: "CAD 39.99",
-    tag: "BEST SELLER",
-    image: firmSupportGussetedPillow,
-  },
-  {
-    id: 10,
-    category: "blankets",
-    name: "Thermal Waffle Weave Blanket",
-    price: "CAD 49.99",
-    tag: "TRENDING",
-    image: thermalWaffleWeaveBlanket,
-  },
-  {
-    id: 11,
-    category: "blankets",
-    name: "Plush Fleece Hospitality Blanket",
-    price: "CAD 59.99",
-    tag: "HOT DEAL",
-    image: plushFleeceHospitalityBlanket,
-  },
-  {
-    id: 12,
-    category: "others",
-    name: "Luxury Bath Mat Set",
-    price: "CAD 19.99",
-    tag: "POPULAR",
-    image: luxuryBathMatSet,
-  },
-  {
-    id: 13,
-    category: "others",
-    name: "Waterproof Shower Curtain",
-    price: "CAD 22.99",
-    tag: "NEW",
-    image: waterproofShowerCurtain,
-  },
-];
-
 const CategoryPage = () => {
   const { categoryName } = useParams();
   const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const { toggleWishlistItem, isInWishlist } = useWishlist();
+  const { isInWishlist, toggleWishlistItem } = useWishlist();
   const { addToCart } = useCart();
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    const fetchCategoryProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php?action=get_products",
+          {
+            method: "GET",
+            headers: {
+              "X-API-KEY": "GatewayLinen@2026",
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        const result = await response.json();
+
+        let fetchedItems = [];
+        if (result.success && Array.isArray(result.data)) {
+          fetchedItems = result.data;
+        } else if (
+          result.success &&
+          result.data &&
+          Array.isArray(result.data.items)
+        ) {
+          fetchedItems = result.data.items;
+        } else if (Array.isArray(result)) {
+          fetchedItems = result;
+        }
+
+        const formattedItems = fetchedItems.map((item) => {
+          const rawImg = item.ImageUrl || item.imageUrl || item.image || "";
+          let finalProductImg =
+            "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=500&auto=format&fit=crop";
+
+          if (rawImg.startsWith("http")) {
+            finalProductImg = rawImg;
+          } else if (rawImg !== "") {
+            const cleanPath = rawImg.replace(/^\/+/, "");
+            finalProductImg = `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
+          }
+
+          return {
+            ...item,
+            image: finalProductImg,
+          };
+        });
+
+        setProducts(formattedItems);
+      } catch (error) {
+        console.error("Error fetching category products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategoryProducts();
   }, [categoryName]);
 
   const handleAuthAction = (actionCallback) => {
@@ -153,108 +88,174 @@ const CategoryPage = () => {
     }
   };
 
-  const formattedCategory = categoryName ? categoryName.replace("-", " ") : "";
+  const formattedCategory = categoryName
+    ? categoryName.replace(/-/g, " ").toUpperCase()
+    : "COLLECTION";
 
-  const filteredProducts = allProducts.filter(
-    (item) => item.category.toLowerCase() === categoryName?.toLowerCase(),
-  );
+  // Filter products matching category slug
+  const filteredProducts = products.filter((item) => {
+    const catName =
+      item.categoryName || item.CategoryName || item.category || "";
+    const catSlug = catName.toLowerCase().replace(/\s+/g, "-");
+    return catSlug === categoryName?.toLowerCase() || categoryName === "all";
+  });
 
   return (
-    <div className="w-full bg-[#F0EAE1] min-h-screen py-12 px-3 md:px-10 font-sans">
-      <div className="max-w-[1536px] mx-auto">
-        {/* Back Link & Header */}
-        <div className="mb-10">
-          <button
+    <div className="w-full bg-white min-h-screen py-8 md:py-14 px-4 sm:px-6 md:px-12 font-sans">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Breadcrumb Header */}
+        <div className="flex items-center gap-2 text-xs text-gray-500 mb-6">
+          <span
             onClick={() => navigate("/")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#F7F2EB] border border-[#E5DCD0] text-xs font-bold uppercase tracking-wider rounded-xl text-[#031D44] hover:border-[#B58E58] transition-all cursor-pointer shadow-2xs mb-4"
+            className="hover:text-[#031D44] cursor-pointer"
           >
-            <FiArrowLeft size={14} /> Back to Home
-          </button>
-          <h1 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] uppercase tracking-wide">
+            Home
+          </span>
+          <FiChevronRight size={12} />
+          <span
+            onClick={() => navigate("/products")}
+            className="hover:text-[#031D44] cursor-pointer"
+          >
+            Collections
+          </span>
+          <FiChevronRight size={12} />
+          <span className="text-[#031D44] font-bold uppercase">
             {formattedCategory}
-          </h1>
-          <p className="text-xs md:text-sm text-gray-600 font-light mt-2">
-            Explore our premium hospitality collection for wholesale and
-            professional supplies.
-          </p>
+          </span>
         </div>
 
-        {/* Products Grid - Mobile par 2 columns, Laptop par 5 columns */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3.5 md:gap-6">
-            {filteredProducts.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => navigate(`/product/${item.id}`)}
-                className="group flex flex-col bg-[#F7F2EB] rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer p-3 relative"
-              >
-                {/* Wishlist Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAuthAction(() => toggleWishlistItem(item));
-                  }}
-                  className="absolute top-4 right-4 z-20 p-2 bg-white/95 backdrop-blur-xs rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
-                  title="Wishlist"
+        {/* Header Section */}
+        <div className="mb-8 md:mb-10 border-b border-[#E5DCD0] pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <button
+              onClick={() => navigate("/")}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border border-[#E5DCD0] text-xs font-bold uppercase tracking-wider rounded-xl text-[#031D44] hover:border-[#031D44] transition-all cursor-pointer mb-4 shadow-2xs"
+            >
+              <FiArrowLeft size={14} /> Back to Home
+            </button>
+            <span className="text-[10px] font-bold text-[#B58E58] tracking-[0.25em] uppercase block mb-1">
+              EXCLUSIVE WHOLESALE CATALOG
+            </span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#031D44] uppercase tracking-tight">
+              {formattedCategory}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 font-light mt-2 max-w-2xl leading-relaxed">
+              Explore our premium hospitality collection for wholesale and
+              professional supplies tailored for luxury comfort.
+            </p>
+          </div>
+          <div className="bg-[#FAF7F2] px-4 py-2 rounded-xl border border-[#E5DCD0] text-xs font-bold text-[#031D44] shadow-2xs shrink-0">
+            {filteredProducts.length} Products Available
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-20 text-xs font-bold text-gray-500 uppercase tracking-widest">
+            Loading Category Products...
+          </div>
+        ) : filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-5">
+            {filteredProducts.map((item) => {
+              const productId = item.productId || item.ProductId || item.id;
+              const productName = item.name || item.Name || "Product Name";
+              const priceVal =
+                item.basePrice || item.price || item.Price || "29.99";
+              const formattedPrice = `$ ${Number(priceVal).toFixed(2)}`;
+              const unitVal = item.unit || item.Unit || "EACH";
+              const catLabel =
+                item.categoryName || item.CategoryName || "LINEN";
+
+              return (
+                <div
+                  key={productId}
+                  onClick={() => navigate(`/product/${productId}`)}
+                  className="group flex flex-col bg-white rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] overflow-hidden shadow-2xs hover:shadow-md transition-all cursor-pointer p-3 sm:p-4 justify-between relative"
                 >
-                  <FiHeart
-                    size={14}
-                    className={
-                      isInWishlist(item.id)
-                        ? "fill-red-500 text-red-500"
-                        : "text-gray-400 hover:text-gray-600"
-                    }
-                  />
-                </button>
-
-                {/* Image Container */}
-                <div className="relative h-36 sm:h-44 md:h-52 bg-[#FAF7F2] rounded-xl overflow-hidden mb-3 border border-gray-100">
-                  <span className="absolute top-2 left-2 z-10 bg-[#031D44] text-white text-[8px] md:text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-md shadow-md">
-                    {item.tag}
-                  </span>
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-
-                {/* Details */}
-                <div className="flex flex-col flex-grow justify-between">
-                  <div>
-                    <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
-                      {item.category}
-                    </span>
-                    <h3 className="text-xs font-serif font-bold text-[#031D44] mt-1 line-clamp-1">
-                      {item.name}
-                    </h3>
-                    <div className="text-xs font-bold text-gray-900 mt-1">
-                      {item.price}
-                    </div>
-                  </div>
-
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAuthAction(() => {
-                        const numericPrice = Number(
-                          item.price.replace(/[^0-9.]/g, ""),
-                        );
-                        addToCart(item, 1, "Standard", numericPrice);
-                        alert(`Added ${item.name} to cart!`);
-                      });
+                      handleAuthAction(() =>
+                        toggleWishlistItem({
+                          ...item,
+                          id: productId,
+                          price: formattedPrice,
+                          name: productName,
+                          category: catLabel,
+                        }),
+                      );
                     }}
-                    className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 md:py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-[10px] md:text-[11px] font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all shadow-2xs cursor-pointer"
+                    className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-7 h-7 sm:w-8 sm:h-8 bg-white/90 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 shadow-xs transition-transform hover:scale-110"
+                    title="Wishlist"
                   >
-                    <FiShoppingCart size={12} />
-                    <span>Add to Cart</span>
+                    <FiHeart
+                      size={14}
+                      className={
+                        isInWishlist(productId)
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-400 hover:text-red-500"
+                      }
+                    />
                   </button>
+
+                  <div>
+                    <div className="w-full aspect-[4/3] bg-gray-50 rounded-xl overflow-hidden mb-3 relative border border-gray-100">
+                      <img
+                        src={item.image}
+                        alt={productName}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src =
+                            "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=500&auto=format&fit=crop";
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[9px] text-[#B58E58] font-bold uppercase tracking-widest">
+                        {catLabel}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xs sm:text-sm font-medium text-[#031D44] mb-3 line-clamp-2 min-h-[34px] leading-tight">
+                      {productName}
+                    </h3>
+                  </div>
+
+                  <div>
+                    <div className="pt-2.5 border-t border-[#E5DCD0] flex flex-col sm:flex-row items-baseline justify-between mb-2.5 gap-0.5">
+                      <span className="text-[10px] text-gray-400">
+                        Starting at:
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-[#B58E58]">
+                        {formattedPrice} / {unitVal}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAuthAction(() => {
+                          addToCart({
+                            ...item,
+                            id: productId,
+                            name: productName,
+                            price: priceVal,
+                          });
+                        });
+                      }}
+                      className="w-full py-2.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] sm:text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <FiShoppingCart size={14} />
+                      <span>Add to Cart</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
-          <div className="py-20 text-center">
+          <div className="py-20 text-center bg-[#FAF7F2] rounded-2xl border border-dashed border-[#E5DCD0]">
             <p className="text-sm text-gray-500 font-light">
               No products found in this category.
             </p>
@@ -262,32 +263,28 @@ const CategoryPage = () => {
         )}
       </div>
 
-      {/* Login Required Modal */}
       {showLoginModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity p-4">
-          <div className="bg-[#F7F2EB] border border-[#E5DCD0] p-8 rounded-[28px] shadow-2xl w-full max-w-sm text-center relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#FAF7F2] border border-[#E5DCD0] p-6 sm:p-8 rounded-[24px] shadow-2xl w-full max-w-sm text-center relative">
             <button
               onClick={() => setShowLoginModal(false)}
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-white p-1.5 rounded-full transition-colors cursor-pointer border border-[#E5DCD0]"
             >
               <FiX size={18} />
             </button>
-
-            <div className="w-16 h-16 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
-              <FiUser size={28} />
+            <div className="w-14 h-14 bg-[#031D44] text-[#B58E58] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
+              <FiUser size={26} />
             </div>
-
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+            <h3 className="text-lg font-serif font-bold text-[#031D44] mb-2">
               Login Required
             </h3>
-            <p className="text-xs text-gray-600 mb-8 font-light leading-relaxed px-2">
+            <p className="text-xs text-gray-500 mb-6 font-light leading-relaxed">
               Please login first to add items to your cart, wishlist, or proceed
               to checkout.
             </p>
-
             <button
               onClick={() => navigate("/login")}
-              className="w-full py-3.5 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
+              className="w-full py-3 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
             >
               Login Now
             </button>

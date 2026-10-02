@@ -1,308 +1,419 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FiShoppingCart, FiHeart, FiX, FiUser, FiCheck } from "react-icons/fi";
-import { useWishlist } from "../context/WishlistContext";
-import { useCart } from "../context/CartContext";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { FiChevronLeft, FiChevronRight, FiHeart } from "react-icons/fi";
 
-// Saare images import kar liye without spaces
-import luxuryhotelbathtowel from "../assets/newImages/luxuryhotelbathtowel.jpg";
-import premiumspapooltowel from "../assets/newImages/premiumspapooltowel.jpg";
-import ultraPlushHandTowel from "../assets/newImages/ultra-plushhandtowel.jpg";
-import egyptianCottonKingSheet from "../assets/newImages/egyptianCottonKingSheet.jpg";
-import commercialGradeWhiteFittedSheet from "../assets/newImages/commercialGradeWhiteFittedSheet.jpg";
-import waterproofHospitalityMattressPad from "../assets/newImages/waterproofHospitalityMattressPad.jpg";
-import plushPillowTopMattressProtector from "../assets/newImages/plushPillowTopMattressProtector.jpg";
-import downAlternativeHotelPillow from "../assets/newImages/downAlternativeHotelPillow.jpg";
-import firmSupportGussetedPillow from "../assets/newImages/firmSupportGussetedPillow.jpg";
-import thermalWaffleWeaveBlanket from "../assets/newImages/thermalWaffleWeaveBlanket.jpg";
-import plushFleeceHospitalityBlanket from "../assets/newImages/plushFleeceHospitalityBlanket.jpg";
-import luxuryBathMatSet from "../assets/newImages/luxuryBathMatSet.jpg";
-import waterproofShowerCurtain from "../assets/newImages/waterproofShowerCurtain.jpg";
-
-const allFeaturedItems = [
-  {
-    id: 1,
-    category: "TOWELS",
-    name: "Luxury Hotel Bath Towel",
-    price: "CAD 24.99",
-    tag: "BEST SELLER",
-    image: luxuryhotelbathtowel,
-  },
-  {
-    id: 2,
-    category: "TOWELS",
-    name: "Premium Spa Pool Towel",
-    price: "CAD 29.99",
-    tag: "POPULAR",
-    image: premiumspapooltowel,
-  },
-  {
-    id: 3,
-    category: "TOWELS",
-    name: "Ultra-Plush Hand Towel",
-    price: "CAD 12.99",
-    tag: "TOP RATED",
-    image: ultraPlushHandTowel,
-  },
-  {
-    id: 4,
-    category: "BED SHEETS",
-    name: "Egyptian Cotton King Sheet Set",
-    price: "CAD 89.99",
-    tag: "NEW ARRIVAL",
-    image: egyptianCottonKingSheet,
-  },
-  {
-    id: 5,
-    category: "BED SHEETS",
-    name: "Commercial Grade White Fitted Sheet",
-    price: "CAD 45.00",
-    tag: "FEATURED",
-    image: commercialGradeWhiteFittedSheet,
-  },
-  {
-    id: 6,
-    category: "MATTRESS PADS",
-    name: "Waterproof Hospitality Mattress Pad",
-    price: "CAD 54.99",
-    tag: "POPULAR",
-    image: waterproofHospitalityMattressPad,
-  },
-  {
-    id: 7,
-    category: "MATTRESS PADS",
-    name: "Plush Pillow-Top Mattress Protector",
-    price: "CAD 69.99",
-    tag: "PREMIUM",
-    image: plushPillowTopMattressProtector,
-  },
-  {
-    id: 8,
-    category: "PILLOWS",
-    name: "Down-Alternative Hotel Pillow",
-    price: "CAD 34.99",
-    tag: "TOP RATED",
-    image: downAlternativeHotelPillow,
-  },
-  {
-    id: 9,
-    category: "PILLOWS",
-    name: "Firm Support Gusseted Pillow",
-    price: "CAD 39.99",
-    tag: "BEST SELLER",
-    image: firmSupportGussetedPillow,
-  },
-  {
-    id: 10,
-    category: "BLANKETS",
-    name: "Thermal Waffle Weave Blanket",
-    price: "CAD 49.99",
-    tag: "TRENDING",
-    image: thermalWaffleWeaveBlanket,
-  },
-  {
-    id: 11,
-    category: "BLANKETS",
-    name: "Plush Fleece Hospitality Blanket",
-    price: "CAD 59.99",
-    tag: "HOT DEAL",
-    image: plushFleeceHospitalityBlanket,
-  },
-  {
-    id: 12,
-    category: "OTHERS",
-    name: "Luxury Bath Mat Set",
-    price: "CAD 19.99",
-    tag: "POPULAR",
-    image: luxuryBathMatSet,
-  },
-  {
-    id: 13,
-    category: "OTHERS",
-    name: "Waterproof Shower Curtain",
-    price: "CAD 22.99",
-    tag: "NEW",
-    image: waterproofShowerCurtain,
-  },
-];
+// Helper function to format image paths correctly
+const resolveImageUrl = (rawImg) => {
+  let finalImg =
+    "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600";
+  if (rawImg) {
+    if (rawImg.startsWith("http")) {
+      finalImg = rawImg;
+    } else if (rawImg.startsWith("/")) {
+      finalImg = `http://localhost${rawImg}`;
+    } else {
+      const cleanPath = rawImg.replace(/^\/+/, "");
+      if (cleanPath.includes("Gateway-Linen")) {
+        finalImg = `http://localhost/${cleanPath}`;
+      } else {
+        finalImg = `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
+      }
+    }
+  }
+  return finalImg;
+};
 
 const FeaturedProducts = () => {
-  const [visibleCount, setVisibleCount] = useState(5);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
   const navigate = useNavigate();
-  const { toggleWishlistItem, isInWishlist } = useWishlist();
-  const { addToCart } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("Featured Products");
 
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage("");
-    }, 2500);
+  const [currentImageIndices, setCurrentImageIndices] = useState({});
+
+  const tabs = [
+    "Featured Products",
+    "Bedding",
+    "Bathroom",
+    "Amenities",
+    "Table Linen",
+    "Healthcare",
+    "New Products",
+  ];
+
+  const fallbackProducts = [
+    {
+      productId: 6,
+      name: "Mattress Pad",
+      basePrice: "24.78",
+      unit: "EACH",
+      resolvedImages: [
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=500&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=500&auto=format&fit=crop",
+      ],
+      categoryName: "Bedding",
+    },
+  ];
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        const result = await response.json();
+
+        let rawItems = [];
+        if (result.success && result.data && result.data.items) {
+          rawItems = result.data.items;
+        } else if (result.success && Array.isArray(result.data)) {
+          rawItems = result.data;
+        } else if (Array.isArray(result)) {
+          rawItems = result;
+        }
+
+        if (rawItems.length > 0) {
+          const formattedProducts = rawItems.map((item) => {
+            let imageList = [];
+
+            if (
+              item.images &&
+              Array.isArray(item.images) &&
+              item.images.length > 0
+            ) {
+              imageList = item.images.map((imgObj) => {
+                const raw = imgObj.imageUrl || imgObj.ImageUrl || "";
+                return resolveImageUrl(raw);
+              });
+            }
+
+            if (imageList.length === 0) {
+              let rawImg =
+                item.imageUrl ||
+                item.ImageUrl ||
+                item.image ||
+                item.Image ||
+                "";
+              if (rawImg) {
+                imageList.push(resolveImageUrl(rawImg));
+              }
+            }
+
+            if (imageList.length === 0) {
+              imageList.push(
+                "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=600",
+              );
+            }
+
+            return {
+              ...item,
+              resolvedImages: imageList,
+            };
+          });
+
+          setProducts(formattedProducts);
+        } else {
+          setProducts(fallbackProducts);
+        }
+      } catch (error) {
+        console.error("Products API Fetch Error:", error);
+        setProducts(fallbackProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
+
+  useEffect(() => {
+    if (products.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndices((prevIndices) => {
+        const updated = { ...prevIndices };
+        products.forEach((prod) => {
+          const id = prod.productId || prod.ProductId || prod.id || 6;
+          const totalImages = prod.resolvedImages
+            ? prod.resolvedImages.length
+            : 1;
+          if (totalImages > 1) {
+            const currentIndex = prevIndices[id] || 0;
+            updated[id] = (currentIndex + 1) % totalImages;
+          }
+        });
+        return updated;
+      });
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [products]);
+
+  const scrollLeft = () => {
+    document
+      .getElementById("featured-product-slider")
+      .scrollBy({ left: -300, behavior: "smooth" });
   };
 
-  const handleAuthAction = (actionCallback) => {
-    const loggedInUser = localStorage.getItem("user");
-    if (!loggedInUser) {
-      setShowLoginModal(true);
-    } else {
-      actionCallback();
-    }
+  const scrollRight = () => {
+    document
+      .getElementById("featured-product-slider")
+      .scrollBy({ left: 300, behavior: "smooth" });
   };
 
-  const handleLoadMore = () => {
-    setVisibleCount((prevCount) =>
-      Math.min(prevCount + 5, allFeaturedItems.length),
-    );
-  };
+  const displayProducts = products.length > 0 ? products : fallbackProducts;
+  const filteredProducts = displayProducts.filter((prod) => {
+    if (activeTab === "Featured Products") return true;
+    const catName =
+      prod.categoryName || prod.CategoryName || prod.category || "";
+    return catName.toLowerCase().includes(activeTab.toLowerCase());
+  });
 
-  const displayedItems = allFeaturedItems.slice(0, visibleCount);
+  const finalProductsToRender =
+    filteredProducts.length > 0 ? filteredProducts : displayProducts;
 
   return (
-    <section className="w-full py-12 md:py-16 px-3 md:px-10 bg-[#F0EAE1] font-sans relative">
-      <div className="max-w-[1536px] mx-auto">
-        {/* Header Title */}
-        <div className="text-center mb-8 md:mb-12">
-          <span className="text-[10px] md:text-[11px] font-bold text-[#B58E58] tracking-[0.25em] uppercase">
-            Top Picks For You
-          </span>
-          <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#031D44] mt-1">
-            Featured Products
-          </h2>
-          <div className="w-12 h-0.5 bg-[#B58E58] mx-auto mt-2 md:mt-3"></div>
+    <section className="py-12 md:py-20 px-4 md:px-10 bg-white font-sans border-t border-gray-100 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto relative">
+        {/* Header Title & All Products Link */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 md:mb-8 gap-4">
+          <div className="text-center sm:text-left">
+            <span className="text-[10px] md:text-xs font-bold text-[#B58E58] tracking-[0.25em] uppercase block mb-1">
+              Top Picks For You
+            </span>
+            <h2 className="text-2xl md:text-[36px] font-bold text-[#4A5568] tracking-tight">
+              Featured Products
+            </h2>
+          </div>
+
+          <Link
+            to="/products"
+            className="hidden md:block text-xs md:text-sm font-bold text-[#A03434] hover:underline uppercase tracking-wider cursor-pointer"
+          >
+            ALL PRODUCTS &rarr;
+          </Link>
         </div>
 
-        {/* Product Grid - Mobile par 2 columns, Laptop par 5 columns */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-3.5 md:gap-6">
-          {displayedItems.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => navigate(`/product/${item.id}`)}
-              className="group flex flex-col bg-[#F7F2EB] rounded-2xl border border-[#E5DCD0] hover:border-[#B58E58] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer p-3 relative"
+        {/* Category Tabs Header */}
+        <div className="flex items-center justify-start md:justify-center gap-5 md:gap-10 overflow-x-auto scrollbar-hide border-b border-gray-200 pb-3 mb-8 md:mb-10">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`text-xs md:text-sm font-medium whitespace-nowrap pb-2 transition-colors cursor-pointer relative ${
+                activeTab === tab
+                  ? "text-[#A03434] font-semibold"
+                  : "text-gray-500 hover:text-[#031D44]"
+              }`}
             >
-              {/* Wishlist Heart Icon Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAuthAction(() => toggleWishlistItem(item));
-                }}
-                className="absolute top-4 right-4 z-20 p-2 bg-white/95 backdrop-blur-xs rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer border border-gray-100"
-                title="Wishlist"
-              >
-                <FiHeart
-                  size={14}
-                  className={
-                    isInWishlist(item.id)
-                      ? "fill-red-500 text-red-500"
-                      : "text-gray-400 hover:text-gray-600"
-                  }
-                />
-              </button>
-
-              {/* Image Container */}
-              <div className="relative h-36 sm:h-44 md:h-52 bg-[#FAF7F2] rounded-xl overflow-hidden mb-3 border border-gray-100">
-                <span className="absolute top-2 left-2 z-10 bg-[#031D44] text-white text-[8px] md:text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-md shadow-md">
-                  {item.tag}
-                </span>
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-
-              {/* Details */}
-              <div className="flex flex-col flex-grow justify-between">
-                <div>
-                  <span className="text-[9px] md:text-[10px] font-bold text-[#B58E58] tracking-widest uppercase">
-                    {item.category}
-                  </span>
-                  <h3 className="text-xs font-serif font-bold text-[#031D44] mt-1 line-clamp-1">
-                    {item.name}
-                  </h3>
-                  <div className="text-xs font-bold text-gray-900 mt-1">
-                    {item.price}
-                  </div>
-                </div>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAuthAction(() => {
-                      const numericPrice = Number(
-                        item.price.replace(/[^0-9.]/g, ""),
-                      );
-                      addToCart(item, 1, "Standard", numericPrice);
-                      showToast(`Added ${item.name} to cart!`);
-                    });
-                  }}
-                  className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 md:py-2.5 bg-white border border-[#E5DCD0] rounded-xl text-[10px] md:text-[11px] font-bold text-[#031D44] hover:bg-[#031D44] hover:text-white hover:border-[#031D44] transition-all shadow-2xs cursor-pointer"
-                >
-                  <FiShoppingCart size={12} />
-                  <span>Add to Cart</span>
-                </button>
-              </div>
-            </div>
+              {tab}
+              {activeTab === tab && (
+                <span className="absolute bottom-[-13px] left-0 w-full h-[2px] bg-[#A03434]"></span>
+              )}
+            </button>
           ))}
         </div>
 
-        {/* Load More Button */}
-        {visibleCount < allFeaturedItems.length && (
-          <div className="text-center mt-10 md:mt-12">
-            <button
-              onClick={handleLoadMore}
-              className="px-6 py-3 md:px-8 md:py-3.5 bg-[#031D44] text-white text-xs font-semibold tracking-widest uppercase rounded-xl shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
-            >
-              Load More Products
-            </button>
+        {loading && (
+          <div className="text-center py-6 text-xs text-gray-500 uppercase tracking-widest font-bold">
+            Loading products from database...
           </div>
         )}
+
+        {/* ======================================================== */}
+        {/* 📱 MOBILE VIEW: 2x2 Grid for first 4 products */}
+        {/* ======================================================== */}
+        <div className="grid grid-cols-2 gap-3 md:hidden">
+          {finalProductsToRender.slice(0, 4).map((prod) => {
+            const prodId = prod.productId || prod.ProductId || prod.id || 6;
+            const prodName =
+              prod.name || prod.Name || prod.productName || "Product Name";
+            const prodPrice =
+              prod.basePrice || prod.price || prod.Price || "24.78";
+            const prodUnit = prod.unit || prod.Unit || "EACH";
+
+            const imageList = prod.resolvedImages || [
+              "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=400&auto=format&fit=crop",
+            ];
+            const activeIndex = currentImageIndices[prodId] || 0;
+            const currentImage = imageList[activeIndex] || imageList[0];
+
+            return (
+              <div
+                key={`mobile-${prodId}`}
+                onClick={() => navigate(`/product/${prodId}`)}
+                className="w-full bg-white border border-gray-200 rounded-xl p-2.5 flex flex-col justify-between group cursor-pointer shadow-2xs hover:shadow-md transition-all"
+              >
+                <div>
+                  <div className="w-full aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2.5 relative">
+                    <img
+                      key={currentImage}
+                      src={currentImage}
+                      alt={prodName}
+                      className="w-full h-full object-cover transition-opacity duration-700 group-hover:scale-105"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src =
+                          "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=400&auto=format&fit=crop";
+                      }}
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      className="absolute top-2 right-2 w-6 h-6 bg-white/80 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 shadow-xs cursor-pointer"
+                    >
+                      <FiHeart size={12} />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1 mb-1.5">
+                    <span className="text-[9px] text-gray-400">Colors:</span>
+                    <span className="w-2.5 h-2.5 rounded-full border border-gray-300 inline-block bg-white shadow-2xs"></span>
+                  </div>
+                  <h3 className="text-[11px] font-medium text-[#4A5568] mb-2 line-clamp-2 min-h-[32px] leading-tight">
+                    {prodName}
+                  </h3>
+                </div>
+                <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5">
+                  <span className="text-[9px] text-gray-400">Starting at:</span>
+                  <span className="text-[11px] font-bold text-[#A03434]">
+                    $ {Number(prodPrice).toFixed(2)} / {prodUnit}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Mobile View All Products Button */}
+        <div className="mt-6 md:hidden">
+          <button
+            onClick={() => navigate("/products")}
+            className="w-full bg-transparent border border-[#A03434] text-[#A03434] hover:bg-[#A03434] hover:text-white px-6 py-3.5 text-[11px] font-bold uppercase tracking-widest transition-colors cursor-pointer rounded-none shadow-sm"
+          >
+            View All Products
+          </button>
+        </div>
+
+        {/* ======================================================== */}
+        {/* 💻 DESKTOP/LAPTOP VIEW: Horizontal Scrollable Slider */}
+        {/* ======================================================== */}
+        <div className="relative mt-4 hidden md:block">
+          <button
+            onClick={scrollLeft}
+            className="absolute left-0 top-[45%] -translate-y-1/2 -ml-5 z-10 bg-white shadow-md p-2.5 rounded-full border border-gray-200 text-gray-600 hover:text-black transition-colors cursor-pointer flex items-center justify-center"
+          >
+            <FiChevronLeft size={20} />
+          </button>
+
+          <button
+            onClick={scrollRight}
+            className="absolute right-0 top-[45%] -translate-y-1/2 -mr-5 z-10 bg-white shadow-md p-2.5 rounded-full border border-gray-200 text-gray-600 hover:text-black transition-colors cursor-pointer flex items-center justify-center"
+          >
+            <FiChevronRight size={20} />
+          </button>
+
+          {/* Products Horizontal Slider */}
+          <div
+            id="featured-product-slider"
+            className="flex gap-5 overflow-x-auto scrollbar-hide pb-6 snap-x snap-mandatory px-2"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {finalProductsToRender.map((prod) => {
+              const prodId = prod.productId || prod.ProductId || prod.id || 6;
+              const prodName =
+                prod.name || prod.Name || prod.productName || "Product Name";
+              const prodPrice =
+                prod.basePrice || prod.price || prod.Price || "24.78";
+              const prodUnit = prod.unit || prod.Unit || "EACH";
+
+              const imageList = prod.resolvedImages || [
+                "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=400&auto=format&fit=crop",
+              ];
+              const activeIndex = currentImageIndices[prodId] || 0;
+              const currentImage = imageList[activeIndex] || imageList[0];
+
+              return (
+                <div
+                  key={`desktop-${prodId}`}
+                  onClick={() => navigate(`/product/${prodId}`)}
+                  className="min-w-[220px] max-w-[240px] bg-white border border-gray-200 rounded-xl p-4 flex flex-col justify-between snap-start group cursor-pointer shadow-2xs hover:shadow-md transition-all"
+                >
+                  <div>
+                    {/* Image Box with 6-second Auto Slider */}
+                    <div className="w-full aspect-square bg-gray-50 rounded-lg overflow-hidden mb-3 relative">
+                      <img
+                        key={currentImage}
+                        src={currentImage}
+                        alt={prodName}
+                        className="w-full h-full object-cover transition-opacity duration-700 group-hover:scale-105"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src =
+                            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=400&auto=format&fit=crop";
+                        }}
+                      />
+
+                      {imageList.length > 1 && (
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10 bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-xs">
+                          {imageList.map((_, dotIdx) => (
+                            <span
+                              key={dotIdx}
+                              className={`w-1.5 h-1.5 rounded-full transition-all ${
+                                dotIdx === activeIndex
+                                  ? "bg-white w-3"
+                                  : "bg-white/60"
+                              }`}
+                            ></span>
+                          ))}
+                        </div>
+                      )}
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        className="absolute top-2.5 right-2.5 w-7 h-7 bg-white/80 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 shadow-xs cursor-pointer"
+                      >
+                        <FiHeart size={14} />
+                      </button>
+                    </div>
+
+                    {/* Available Color Option */}
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="text-[10px] text-gray-400">
+                        Available Color:
+                      </span>
+                      <span className="w-3 h-3 rounded-full border border-gray-300 inline-block bg-white shadow-2xs"></span>
+                    </div>
+
+                    {/* Product Title */}
+                    <h3 className="text-sm font-medium text-[#4A5568] mb-3 line-clamp-2 min-h-[36px]">
+                      {prodName}
+                    </h3>
+                  </div>
+
+                  {/* Price & Unit */}
+                  <div className="pt-3 border-t border-gray-100 flex items-baseline justify-between">
+                    <span className="text-[11px] text-gray-400">
+                      Starting at:
+                    </span>
+                    <span className="text-sm font-bold text-[#A03434]">
+                      $ {Number(prodPrice).toFixed(2)} / {prodUnit}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
-
-      {/* Custom Theme-Matched Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#031D44] text-white px-5 py-3 rounded-2xl shadow-2xl border border-[#B58E58]/40 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="w-6 h-6 bg-[#B58E58] text-white rounded-full flex items-center justify-center shrink-0">
-            <FiCheck size={14} />
-          </div>
-          <span className="text-xs font-bold tracking-wide">
-            {toastMessage}
-          </span>
-        </div>
-      )}
-
-      {/* Login Required Modal */}
-      {showLoginModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity p-4">
-          <div className="bg-[#F7F2EB] border border-[#E5DCD0] p-8 rounded-[28px] shadow-2xl w-full max-w-sm text-center relative">
-            <button
-              onClick={() => setShowLoginModal(false)}
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 bg-white p-2 rounded-full transition-colors cursor-pointer border border-gray-200"
-            >
-              <FiX size={18} />
-            </button>
-
-            <div className="w-16 h-16 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
-              <FiUser size={28} />
-            </div>
-
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
-              Login Required
-            </h3>
-            <p className="text-xs text-gray-600 mb-8 font-light leading-relaxed px-2">
-              Please login first to add items to your cart, wishlist, or proceed
-              to checkout.
-            </p>
-
-            <button
-              onClick={() => navigate("/login")}
-              className="w-full py-3.5 bg-[#031D44] text-white rounded-xl text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
-            >
-              Login Now
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 };

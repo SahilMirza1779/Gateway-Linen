@@ -122,11 +122,6 @@ $error = "";
 |--------------------------------------------------------------------------
 | DATABASE COLUMN COMPATIBILITY
 |--------------------------------------------------------------------------
-|
-| This checks optional columns so the page can safely work with the
-| existing Categories table.
-|
-|--------------------------------------------------------------------------
 */
 
 $hasParentCategoryId = false;
@@ -208,13 +203,6 @@ function getNextDisplayOrder(
 
     $nextOrder = 1;
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | TABLE DOES NOT HAVE PARENT COLUMN
-    |--------------------------------------------------------------------------
-    */
-
     if (!$hasParentCategoryId) {
 
         $sql = "
@@ -226,16 +214,7 @@ function getNextDisplayOrder(
 
         $params = [];
 
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MAIN CATEGORY
-    |--------------------------------------------------------------------------
-    */
-
-    elseif ($parentId === null) {
+    } elseif ($parentId === null || $parentId === "" || $parentId === "0") {
 
         $sql = "
             SELECT
@@ -247,16 +226,7 @@ function getNextDisplayOrder(
 
         $params = [];
 
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CHILD CATEGORY
-    |--------------------------------------------------------------------------
-    */
-
-    else {
+    } else {
 
         $sql = "
             SELECT
@@ -269,13 +239,11 @@ function getNextDisplayOrder(
         $params = [$parentId];
     }
 
-
     $stmt = sqlsrv_query(
         $conn,
         $sql,
         $params
     );
-
 
     if ($stmt !== false) {
 
@@ -283,7 +251,6 @@ function getNextDisplayOrder(
             $stmt,
             SQLSRV_FETCH_ASSOC
         );
-
 
         if ($row) {
 
@@ -294,17 +261,28 @@ function getNextDisplayOrder(
                 );
         }
 
-
         sqlsrv_free_stmt($stmt);
     }
-
 
     if ($nextOrder < 1) {
         $nextOrder = 1;
     }
 
-
     return $nextOrder;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| AJAX ENDPOINT FOR FETCHING DISPLAY ORDER DYNAMICALLY
+|--------------------------------------------------------------------------
+*/
+
+if (isset($_GET['get_order']) && $_GET['get_order'] == '1') {
+    $ajaxParentId = isset($_GET['parent_id']) && $_GET['parent_id'] !== '' ? $_GET['parent_id'] : null;
+    $order = getNextDisplayOrder($conn, $ajaxParentId, $hasParentCategoryId);
+    echo json_encode(['display_order' => $order]);
+    exit;
 }
 
 
@@ -330,13 +308,6 @@ $displayOrder =
 
 $parents = [];
 
-
-/*
-|--------------------------------------------------------------------------
-| ONLY ROOT CATEGORIES CAN BE PARENTS
-|--------------------------------------------------------------------------
-*/
-
 if ($hasParentCategoryId) {
 
     $parentSql = "
@@ -359,12 +330,10 @@ if ($hasParentCategoryId) {
     ";
 }
 
-
 $parentStmt = sqlsrv_query(
     $conn,
     $parentSql
 );
-
 
 if ($parentStmt !== false) {
 
@@ -378,7 +347,6 @@ if ($parentStmt !== false) {
         $parents[] = $row;
     }
 
-
     sqlsrv_free_stmt($parentStmt);
 }
 
@@ -390,13 +358,6 @@ if ($parentStmt !== false) {
 */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CSRF VALIDATION
-    |--------------------------------------------------------------------------
-    */
 
     $postedToken =
         $_POST["csrf_token"]
@@ -413,13 +374,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "Security verification failed. Please refresh the page and try again.";
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET FORM DATA
-    |--------------------------------------------------------------------------
-    */
-
     if ($error === "") {
 
         $name =
@@ -428,13 +382,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ?? ""
             );
 
-
         $slug =
             trim(
                 $_POST["slug"]
                 ?? ""
             );
-
 
         if ($hasParentCategoryId) {
 
@@ -452,13 +404,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $parentId = null;
         }
 
-
         $description =
             trim(
                 $_POST["description"]
                 ?? ""
             );
-
 
         $metaTitle =
             trim(
@@ -466,13 +416,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ?? ""
             );
 
-
         $metaDescription =
             trim(
                 $_POST["meta_description"]
                 ?? ""
             );
-
 
         $isActive =
             isset(
@@ -482,60 +430,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 : 0;
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | CATEGORY NAME VALIDATION
+    | MANDATORY FIELD VALIDATIONS
     |--------------------------------------------------------------------------
     */
+
+    if ($error === "" && $name === "") {
+        $error = "Category name is required.";
+    }
+
+    if ($error === "" && mb_strlen($name) > 100) {
+        $error = "Category name cannot be longer than 100 characters.";
+    }
+
+    if ($error === "" && $description === "") {
+        $error = "Description is required.";
+    }
+
+    if ($error === "" && mb_strlen($description) > 300) {
+        $error = "Description cannot be longer than 300 characters.";
+    }
 
     if (
         $error === "" &&
-        $name === ""
+        (!isset($_FILES["category_image"]) || $_FILES["category_image"]["error"] === UPLOAD_ERR_NO_FILE)
     ) {
-
-        $error =
-            "Category name is required.";
+        $error = "Category image is required.";
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CATEGORY NAME LENGTH
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $error === "" &&
-        mb_strlen($name) > 100
-    ) {
-
-        $error =
-            "Category name cannot be longer than 100 characters.";
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DESCRIPTION LENGTH
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $error === "" &&
-        mb_strlen($description) > 1000
-    ) {
-
-        $error =
-            "Description cannot be longer than 1000 characters.";
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | META TITLE LENGTH
-    |--------------------------------------------------------------------------
-    */
 
     if (
         $error === "" &&
@@ -546,13 +468,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "Meta title cannot be longer than 200 characters.";
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | META DESCRIPTION LENGTH
-    |--------------------------------------------------------------------------
-    */
-
     if (
         $error === "" &&
         mb_strlen($metaDescription) > 500
@@ -561,13 +476,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error =
             "Meta description cannot be longer than 500 characters.";
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | AUTO SLUG
-    |--------------------------------------------------------------------------
-    */
 
     if ($error === "") {
 
@@ -582,20 +490,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     )
                 );
 
-
             $slug =
                 trim(
                     $slug,
                     "-"
                 );
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CLEAN SLUG
-        |--------------------------------------------------------------------------
-        */
 
         $slug =
             strtolower(
@@ -606,13 +506,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 )
             );
 
-
         $slug =
             trim(
                 $slug,
                 "-"
             );
-
 
         if ($slug === "") {
 
@@ -620,13 +518,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "Please enter a valid category name or slug.";
         }
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | SLUG LENGTH
-    |--------------------------------------------------------------------------
-    */
 
     if (
         $error === "" &&
@@ -637,13 +528,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "Slug cannot be longer than 150 characters.";
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | DUPLICATE SLUG CHECK
-    |--------------------------------------------------------------------------
-    */
-
     if ($error === "") {
 
         $checkSlugSql = "
@@ -653,14 +537,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             WHERE Slug = ?
         ";
 
-
         $checkSlugStmt =
             sqlsrv_query(
                 $conn,
                 $checkSlugSql,
                 [$slug]
             );
-
 
         if ($checkSlugStmt === false) {
 
@@ -679,11 +561,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     SQLSRV_FETCH_ASSOC
                 );
 
-
             sqlsrv_free_stmt(
                 $checkSlugStmt
             );
-
 
             if ($existingSlug) {
 
@@ -692,13 +572,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATE PARENT CATEGORY
-    |--------------------------------------------------------------------------
-    */
 
     if (
         $error === "" &&
@@ -714,14 +587,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               AND ParentCategoryId IS NULL
         ";
 
-
         $parentCheckStmt =
             sqlsrv_query(
                 $conn,
                 $parentCheckSql,
                 [$parentId]
             );
-
 
         if ($parentCheckStmt === false) {
 
@@ -740,11 +611,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     SQLSRV_FETCH_ASSOC
                 );
 
-
             sqlsrv_free_stmt(
                 $parentCheckStmt
             );
-
 
             if (!$validParent) {
 
@@ -754,22 +623,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | IMAGE VARIABLES
-    |--------------------------------------------------------------------------
-    */
-
     $uploadedImagePath    = null;
     $uploadedPhysicalPath = null;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | IMAGE UPLOAD
-    |--------------------------------------------------------------------------
-    */
 
     if (
         $error === "" &&
@@ -781,13 +636,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $file =
             $_FILES["category_image"];
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPLOAD ERROR
-        |--------------------------------------------------------------------------
-        */
-
         if (
             $file["error"]
             !== UPLOAD_ERR_OK
@@ -796,13 +644,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $error =
                 "Unable to upload the category image.";
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILE SIZE
-        |--------------------------------------------------------------------------
-        */
 
         if (
             $error === "" &&
@@ -813,13 +654,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "Image size must be less than 5 MB.";
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | EMPTY FILE
-        |--------------------------------------------------------------------------
-        */
-
         if (
             $error === "" &&
             $file["size"] <= 0
@@ -828,13 +662,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $error =
                 "The uploaded image is empty.";
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEMP FILE CHECK
-        |--------------------------------------------------------------------------
-        */
 
         if (
             $error === "" &&
@@ -847,15 +674,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "Invalid image upload.";
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | IMAGE INFORMATION
-        |--------------------------------------------------------------------------
-        */
-
         $imageInformation = false;
-
 
         if ($error === "") {
 
@@ -863,7 +682,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 @getimagesize(
                     $file["tmp_name"]
                 );
-
 
             if (
                 $imageInformation === false
@@ -874,13 +692,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ALLOWED MIME TYPES
-        |--------------------------------------------------------------------------
-        */
-
         $allowedMimeTypes = [
 
             "image/jpeg",
@@ -889,7 +700,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "image/gif"
 
         ];
-
 
         if (
             $error === "" &&
@@ -904,15 +714,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "Only JPG, JPEG, PNG, WEBP and GIF images are allowed.";
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | MIME TO EXTENSION
-        |--------------------------------------------------------------------------
-        */
-
         $extension = "";
-
 
         if ($error === "") {
 
@@ -926,20 +728,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     break;
 
-
                 case "image/png":
 
                     $extension = "png";
 
                     break;
 
-
                 case "image/webp":
 
                     $extension = "webp";
 
                     break;
-
 
                 case "image/gif":
 
@@ -948,20 +747,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     break;
             }
 
-
             if ($extension === "") {
 
                 $error =
                     "Unsupported image format.";
             }
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | UNIQUE FILE NAME
-        |--------------------------------------------------------------------------
-        */
 
         if ($error === "") {
 
@@ -981,7 +772,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     );
             }
 
-
             $uniqueName =
                 "category_" .
                 date("Ymd_His") .
@@ -990,17 +780,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "." .
                 $extension;
 
-
             $uploadedPhysicalPath =
                 $uploadDirectory .
                 $uniqueName;
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | MOVE FILE
-            |--------------------------------------------------------------------------
-            */
 
             if (
                 !move_uploaded_file(
@@ -1021,13 +803,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | AUTO SEO TITLE
-    |--------------------------------------------------------------------------
-    */
-
     if (
         $error === "" &&
         $metaTitle === ""
@@ -1037,13 +812,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $name .
             " | GatewayLinen";
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | AUTO SEO DESCRIPTION
-    |--------------------------------------------------------------------------
-    */
 
     if (
         $error === "" &&
@@ -1055,13 +823,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $description;
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | CALCULATE DISPLAY ORDER
-    |--------------------------------------------------------------------------
-    */
-
     if ($error === "") {
 
         $displayOrder =
@@ -1072,21 +833,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | INSERT CATEGORY
-    |--------------------------------------------------------------------------
-    */
-
     if ($error === "") {
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | BUILD INSERT DYNAMICALLY
-        |--------------------------------------------------------------------------
-        */
 
         $columns = [
             "Name",
@@ -1098,7 +845,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "CreatedAt"
         ];
 
-
         $values = [
             "?",
             "?",
@@ -1108,7 +854,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "?",
             "GETDATE()"
         ];
-
 
         $params = [
             $name,
@@ -1123,13 +868,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $isActive
         ];
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | PARENT CATEGORY
-        |--------------------------------------------------------------------------
-        */
-
         if ($hasParentCategoryId) {
 
             array_unshift(
@@ -1137,12 +875,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "ParentCategoryId"
             );
 
-
             array_unshift(
                 $values,
                 "?"
             );
-
 
             array_unshift(
                 $params,
@@ -1150,18 +886,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             );
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | META TITLE
-        |--------------------------------------------------------------------------
-        */
-
         if ($hasMetaTitle) {
 
             $insertIndex =
                 count($columns) - 1;
-
 
             array_splice(
                 $columns,
@@ -1170,14 +898,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ["MetaTitle"]
             );
 
-
             array_splice(
                 $values,
                 $insertIndex,
                 0,
                 ["?"]
             );
-
 
             array_splice(
                 $params,
@@ -1191,18 +917,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             );
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | META DESCRIPTION
-        |--------------------------------------------------------------------------
-        */
-
         if ($hasMetaDescription) {
 
             $insertIndex =
                 count($columns) - 1;
-
 
             array_splice(
                 $columns,
@@ -1211,14 +929,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ["MetaDescription"]
             );
 
-
             array_splice(
                 $values,
                 $insertIndex,
                 0,
                 ["?"]
             );
-
 
             array_splice(
                 $params,
@@ -1231,13 +947,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ]
             );
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | INSERT SQL
-        |--------------------------------------------------------------------------
-        */
 
         $sql = "
             INSERT INTO dbo.Categories
@@ -1260,7 +969,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             )
         ";
 
-
         $stmt =
             sqlsrv_query(
                 $conn,
@@ -1268,21 +976,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $params
             );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DATABASE ERROR
-        |--------------------------------------------------------------------------
-        */
-
         if ($stmt === false) {
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE UPLOADED IMAGE
-            |--------------------------------------------------------------------------
-            */
 
             if (
                 $uploadedPhysicalPath !== null &&
@@ -1296,10 +990,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 );
             }
 
-
             $errors =
                 sqlsrv_errors();
-
 
             $error =
                 $errors[0]["message"]
@@ -1307,29 +999,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         } else {
 
-
             sqlsrv_free_stmt(
                 $stmt
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | NEW CSRF TOKEN
-            |--------------------------------------------------------------------------
-            */
 
             $_SESSION["category_csrf_token"] =
                 bin2hex(
                     random_bytes(32)
                 );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | SUCCESS
-            |--------------------------------------------------------------------------
-            */
 
             header(
                 "Location: index.php?success=category_created"
@@ -1357,72 +1034,64 @@ require_once __DIR__ . "/../includes/sidebar.php";
 
 /*
 |--------------------------------------------------------------------------
-| GLOBAL
-|--------------------------------------------------------------------------
-*/
-
-html,
-body {
-
-    background: #0a1119 !important;
-
-    color: #a8b8c8 !important;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| THEME
+| THEME VARIABLES (DYNAMIC LIGHT/DARK SUPPORT)
 |--------------------------------------------------------------------------
 */
 
 :root {
-
-    --bg-page: #0a1119;
-
-    --bg-card: #111b26;
-
-    --bg-card-alt: #0f1823;
-
-    --bg-input: #0d1620;
-
-    --bg-hover: #16222e;
-
-    --border: #1e2d3d;
-
-    --border-soft: #182636;
-
-    --text-hi: #f0f4f8;
-
-    --text-body: #a8b8c8;
-
-    --text-mute: #5f7488;
-
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-card-alt: #f1f5f9;
+    --bg-input: #ffffff;
+    --bg-hover: #e2e8f0;
+    --border: #cbd5e1;
+    --border-soft: #e2e8f0;
+    --text-hi: #0f172a;
+    --text-body: #334155;
+    --text-mute: #64748b;
     --green: #10b981;
-
     --green-dark: #059669;
-
     --green-soft: rgba(16,185,129,.12);
-
     --blue: #3b82f6;
-
     --blue-soft: rgba(59,130,246,.12);
-
     --purple: #8b5cf6;
-
     --purple-soft: rgba(139,92,246,.12);
-
     --amber: #f59e0b;
-
     --amber-soft: rgba(245,158,11,.12);
-
     --red: #ef4444;
-
     --red-soft: rgba(239,68,68,.12);
-
     --radius: 10px;
+}
 
+body.dark-theme, 
+body[data-theme="dark"],
+.dark-theme :root,
+[data-theme="dark"] {
+    --bg-page: #0a1119;
+    --bg-card: #111b26;
+    --bg-card-alt: #0f1823;
+    --bg-input: #0d1620;
+    --bg-hover: #16222e;
+    --border: #1e2d3d;
+    --border-soft: #182636;
+    --text-hi: #f0f4f8;
+    --text-body: #a8b8c8;
+    --text-mute: #5f7488;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg-page: #0a1119;
+        --bg-card: #111b26;
+        --bg-card-alt: #0f1823;
+        --bg-input: #0d1620;
+        --bg-hover: #16222e;
+        --border: #1e2d3d;
+        --border-soft: #182636;
+        --text-hi: #f0f4f8;
+        --text-body: #a8b8c8;
+        --text-mute: #5f7488;
+    }
 }
 
 
@@ -1434,26 +1103,18 @@ body {
 
 .main,
 .content {
-
-    background: var(--bg-page) !important;
-
+    background: var(--bg-page);
+    color: var(--text-body);
 }
 
 
 .add-category-page {
-
     width: 100%;
-
     max-width: 1180px;
-
     margin: 0 auto;
-
-    padding: 20px 20px 45px;
-
+    padding: 6px 20px 30px;
     box-sizing: border-box;
-
     color: var(--text-body);
-
 }
 
 
@@ -1464,144 +1125,88 @@ body {
 */
 
 .add-category-header {
-
     display: flex;
-
-    align-items: flex-end;
-
+    align-items: center;
     justify-content: space-between;
-
-    gap: 20px;
-
-    margin-bottom: 24px;
-
-    padding-bottom: 20px;
-
+    gap: 15px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
     border-bottom: 1px solid var(--border);
-
 }
 
 
 .add-category-header-left {
-
     min-width: 0;
-
 }
 
 
 .add-category-breadcrumb {
-
     display: flex;
-
     align-items: center;
-
     flex-wrap: wrap;
-
-    gap: 7px;
-
-    margin-bottom: 8px;
-
+    gap: 5px;
+    margin-bottom: 2px;
     color: var(--text-mute);
-
-    font-size: 10px;
-
+    font-size: 9px;
     font-weight: 700;
-
     letter-spacing: .4px;
-
     text-transform: uppercase;
-
 }
 
 
 .add-category-breadcrumb .current {
-
     color: var(--green);
-
 }
 
 
 .add-category-title {
-
     margin: 0;
-
     color: var(--text-hi);
-
-    font-size: 27px;
-
+    font-size: 20px;
     line-height: 1.2;
-
     font-weight: 800;
-
     letter-spacing: -.5px;
-
 }
 
 
 .add-category-subtitle {
-
-    margin: 7px 0 0;
-
+    margin: 2px 0 0;
     color: var(--text-mute);
-
-    font-size: 12px;
-
-    line-height: 1.5;
-
+    font-size: 11px;
+    line-height: 1.3;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| BACK
+| BACK BUTTON
 |--------------------------------------------------------------------------
 */
 
 .add-category-back {
-
     display: inline-flex;
-
     align-items: center;
-
     justify-content: center;
-
-    gap: 8px;
-
-    min-height: 40px;
-
-    padding: 0 16px;
-
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 12px;
     border: 1px solid var(--border);
-
-    border-radius: 9px;
-
+    border-radius: 7px;
     background: var(--bg-input);
-
     color: var(--text-body) !important;
-
-    font-size: 11px;
-
+    font-size: 10.5px;
     font-weight: 700;
-
     text-decoration: none;
-
     white-space: nowrap;
-
     transition: .2s ease;
-
 }
 
 
 .add-category-back:hover {
-
     border-color: var(--green);
-
     background: var(--green-soft);
-
     color: var(--green) !important;
-
     transform: translateY(-1px);
-
 }
 
 
@@ -1612,58 +1217,34 @@ body {
 */
 
 .add-category-error {
-
     display: flex;
-
     align-items: flex-start;
-
-    gap: 11px;
-
-    margin-bottom: 20px;
-
-    padding: 14px 16px;
-
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
     border: 1px solid rgba(239,68,68,.3);
-
     border-left: 4px solid var(--red);
-
-    border-radius: 9px;
-
+    border-radius: 8px;
     background: var(--red-soft);
-
-    color: #fca5a5;
-
-    font-size: 12px;
-
+    color: var(--text-hi);
+    font-size: 11.5px;
     font-weight: 600;
-
-    line-height: 1.5;
-
+    line-height: 1.4;
 }
 
 
 .add-category-error-icon {
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
-    width: 22px;
-
-    height: 22px;
-
-    flex: 0 0 22px;
-
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
     border-radius: 50%;
-
     background: rgba(239,68,68,.25);
-
-    color: #fca5a5;
-
+    color: var(--red);
     font-weight: 900;
-
+    font-size: 11px;
 }
 
 
@@ -1674,43 +1255,26 @@ body {
 */
 
 .add-category-form {
-
     width: 100%;
-
     background: var(--bg-card);
-
     border: 1px solid var(--border);
-
     border-radius: 12px;
-
     overflow: hidden;
-
-    box-shadow:
-        0 15px 40px rgba(0,0,0,.18);
-
+    box-shadow: 0 15px 40px rgba(0,0,0,.08);
 }
 
 
 .add-category-form-body {
-
     width: 100%;
-
-    padding: 24px 22px;
-
+    padding: 18px 20px;
     box-sizing: border-box;
-
 }
 
 
 .add-category-grid {
-
     display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 22px 26px;
-
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
 }
 
 
@@ -1721,128 +1285,80 @@ body {
 */
 
 .add-category-section {
-
     grid-column: 1 / -1;
-
     display: flex;
-
     align-items: center;
-
     gap: 10px;
-
-    margin-top: 14px;
-
-    padding: 10px 14px;
-
+    margin-top: 8px;
+    padding: 7px 12px;
     border-radius: 8px;
-
     background: var(--green-soft);
-
     border-left: 3px solid var(--green);
-
 }
 
 
 .add-category-section:first-child {
-
     margin-top: 0;
-
 }
 
 
 .add-category-section.sec-blue {
-
     background: var(--blue-soft);
-
     border-left-color: var(--blue);
-
 }
 
 
 .add-category-section.sec-purple {
-
     background: var(--purple-soft);
-
     border-left-color: var(--purple);
-
 }
 
 
 .add-category-section.sec-amber {
-
     background: var(--amber-soft);
-
     border-left-color: var(--amber);
-
 }
 
 
 .add-category-section-icon {
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
-    width: 26px;
-
-    height: 26px;
-
-    flex: 0 0 26px;
-
-    border-radius: 7px;
-
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    border-radius: 6px;
     background: rgba(16,185,129,.18);
-
     color: var(--green);
-
-    font-size: 12px;
-
+    font-size: 10.5px;
     font-weight: 900;
-
 }
 
 
 .sec-blue .add-category-section-icon {
-
     background: rgba(59,130,246,.18);
-
     color: var(--blue);
-
 }
 
 
 .sec-purple .add-category-section-icon {
-
     background: rgba(139,92,246,.18);
-
     color: var(--purple);
-
 }
 
 
 .sec-amber .add-category-section-icon {
-
     background: rgba(245,158,11,.18);
-
     color: var(--amber);
-
 }
 
 
 .add-category-section-title {
-
     color: var(--text-hi);
-
-    font-size: 10.5px;
-
+    font-size: 10px;
     font-weight: 800;
-
     text-transform: uppercase;
-
     letter-spacing: .8px;
-
 }
 
 
@@ -1853,16 +1369,12 @@ body {
 */
 
 .add-form-group {
-
     min-width: 0;
-
 }
 
 
 .add-form-group-full {
-
     grid-column: 1 / -1;
-
 }
 
 
@@ -1873,30 +1385,31 @@ body {
 */
 
 .add-form-label {
-
-    display: block;
-
-    margin-bottom: 8px;
-
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
     color: var(--text-body);
-
-    font-size: 10.5px;
-
+    font-size: 10px;
     font-weight: 700;
-
     letter-spacing: .3px;
-
     text-transform: uppercase;
+}
 
+.shortcut-badge {
+    background: var(--green-soft);
+    color: var(--green);
+    font-family: monospace;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid rgba(16,185,129,0.3);
 }
 
 
 .add-form-required {
-
     color: var(--red);
-
     margin-left: 3px;
-
 }
 
 
@@ -1909,86 +1422,54 @@ body {
 .add-form-input,
 .add-form-select,
 .add-form-textarea {
-
     width: 100%;
-
     box-sizing: border-box;
-
     border: 1px solid var(--border);
-
     border-radius: 9px;
-
     outline: none;
-
     background: var(--bg-input);
-
     color: var(--text-hi);
-
     font-family: inherit;
-
-    font-size: 12px;
-
+    font-size: 14px;
     font-weight: 500;
-
-    transition:
-        border-color .18s ease,
-        box-shadow .18s ease,
-        background .18s ease;
-
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
 }
 
 
 .add-form-input,
 .add-form-select {
-
-    height: 44px;
-
-    padding: 0 13px;
-
+    height: 42px;
+    padding: 0 12px;
 }
 
 
 .add-form-textarea {
-
-    min-height: 110px;
-
-    padding: 12px 13px;
-
+    min-height: 95px;
+    padding: 10px 12px;
     resize: vertical;
-
-    line-height: 1.6;
-
+    line-height: 1.5;
 }
 
 
 .add-form-input::placeholder,
 .add-form-textarea::placeholder {
-
     color: var(--text-mute);
-
     font-weight: 400;
-
 }
 
 
 .add-form-input:hover,
 .add-form-select:hover,
 .add-form-textarea:hover {
-
-    border-color: #304356;
-
+    border-color: var(--text-mute);
 }
 
 
 .add-form-input:focus,
 .add-form-select:focus,
 .add-form-textarea:focus {
-
     border-color: var(--green);
-
-    box-shadow:
-        0 0 0 3px rgba(16,185,129,.13);
-
+    box-shadow: 0 0 0 3px rgba(16,185,129,.13);
 }
 
 
@@ -1999,50 +1480,28 @@ body {
 */
 
 .auto-order-input {
-
-    border-color:
-        rgba(16,185,129,.35);
-
-    background:
-        rgba(16,185,129,.06);
-
-    color:
-        var(--green);
-
-    font-weight:
-        800;
-
-    cursor:
-        not-allowed;
-
+    border-color: rgba(16,185,129,.35);
+    background: rgba(16,185,129,.06);
+    color: var(--green);
+    font-weight: 800;
+    cursor: not-allowed;
 }
 
 
 .auto-order-note {
-
     display: flex;
-
     align-items: center;
-
-    gap: 6px;
-
-    margin-top: 7px;
-
+    gap: 5px;
+    margin-top: 4px;
     color: var(--text-mute);
-
-    font-size: 10px;
-
+    font-size: 9.5px;
     line-height: 1.4;
-
 }
 
 
 .auto-order-note span {
-
     color: var(--green);
-
     font-weight: 800;
-
 }
 
 
@@ -2053,32 +1512,19 @@ body {
 */
 
 .add-form-select {
-
     appearance: none;
-
-    background-image:
-        url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f7488' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f7488' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-
-    background-position:
-        right 12px center;
-
-    background-size: 14px;
-
-    padding-right: 38px;
-
+    background-position: right 12px center;
+    background-size: 13px;
+    padding-right: 36px;
     cursor: pointer;
-
 }
 
 
 .add-form-select option {
-
     background: var(--bg-card);
-
     color: var(--text-hi);
-
 }
 
 
@@ -2089,147 +1535,82 @@ body {
 */
 
 .category-upload-box {
-
     position: relative;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     width: 100%;
-
-    min-height: 180px;
-
-    padding: 22px;
-
+    min-height: 130px;
+    padding: 14px;
     box-sizing: border-box;
-
-    border: 2px dashed
-        rgba(16,185,129,.38);
-
-    border-radius: 11px;
-
-    background:
-        rgba(16,185,129,.045);
-
+    border: 2px dashed rgba(16,185,129,.38);
+    border-radius: 10px;
+    background: rgba(16,185,129,.045);
     cursor: pointer;
-
-    transition:
-        border-color .2s ease,
-        background .2s ease,
-        box-shadow .2s ease;
-
+    transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
 
 
 .category-upload-box:hover {
-
     border-color: var(--green);
-
-    background:
-        rgba(16,185,129,.09);
-
-    box-shadow:
-        0 0 0 4px
-        rgba(16,185,129,.06);
-
+    background: rgba(16,185,129,.09);
+    box-shadow: 0 0 0 4px rgba(16,185,129,.06);
 }
 
 
 .category-upload-box.dragging {
-
     border-color: var(--green);
-
-    background:
-        rgba(16,185,129,.12);
-
-    box-shadow:
-        0 0 0 4px
-        rgba(16,185,129,.08);
-
+    background: rgba(16,185,129,.12);
+    box-shadow: 0 0 0 4px rgba(16,185,129,.08);
 }
 
 
 .category-upload-input {
-
     position: absolute;
-
     width: 1px;
-
     height: 1px;
-
     opacity: 0;
-
     pointer-events: none;
-
 }
 
 
 .category-upload-content {
-
     text-align: center;
-
 }
 
 
 .category-upload-icon {
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
-    width: 50px;
-
-    height: 50px;
-
-    margin: 0 auto 11px;
-
-    border-radius: 14px;
-
-    background:
-        rgba(16,185,129,.15);
-
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 6px;
+    border-radius: 10px;
+    background: rgba(16,185,129,.15);
     color: var(--green);
-
-    font-size: 21px;
-
+    font-size: 16px;
     font-weight: 900;
-
 }
 
 
 .category-upload-title {
-
     color: var(--text-hi);
-
-    font-size: 12px;
-
+    font-size: 11px;
     font-weight: 700;
-
 }
 
 
 .category-upload-title span {
-
     color: var(--green);
-
 }
 
 
 .category-upload-help {
-
-    margin-top: 7px;
-
+    margin-top: 4px;
     color: var(--text-mute);
-
-    font-size: 10px;
-
+    font-size: 9px;
     font-weight: 500;
-
 }
 
 
@@ -2240,95 +1621,57 @@ body {
 */
 
 .category-image-preview {
-
     display: none;
-
     align-items: center;
-
-    gap: 17px;
-
+    gap: 14px;
     width: 100%;
-
 }
 
 
 .category-preview-image {
-
-    width: 100px;
-
-    height: 100px;
-
-    flex: 0 0 100px;
-
+    width: 75px;
+    height: 75px;
+    flex: 0 0 75px;
     object-fit: cover;
-
     border: 2px solid var(--border);
-
-    border-radius: 11px;
-
+    border-radius: 9px;
     background: var(--bg-card-alt);
-
-    box-shadow:
-        0 8px 22px rgba(0,0,0,.25);
-
+    box-shadow: 0 5px 15px rgba(0,0,0,.15);
 }
 
 
 .category-preview-info {
-
     min-width: 0;
-
     flex: 1;
-
     text-align: left;
-
 }
 
 
 .category-preview-name {
-
     color: var(--text-hi);
-
-    font-size: 12px;
-
+    font-size: 11px;
     font-weight: 700;
-
     word-break: break-word;
-
 }
 
 
 .category-preview-size {
-
-    margin-top: 5px;
-
+    margin-top: 3px;
     color: var(--text-mute);
-
-    font-size: 10.5px;
-
+    font-size: 9.5px;
 }
 
 
 .category-preview-change {
-
     display: inline-flex;
-
     align-items: center;
-
-    margin-top: 10px;
-
-    padding: 5px 11px;
-
+    margin-top: 6px;
+    padding: 3px 9px;
     border-radius: 20px;
-
     background: var(--green-soft);
-
     color: var(--green);
-
-    font-size: 10px;
-
+    font-size: 9px;
     font-weight: 700;
-
 }
 
 
@@ -2339,57 +1682,34 @@ body {
 */
 
 .add-active-box {
-
     display: flex;
-
     align-items: center;
-
-    min-height: 44px;
-
-    padding: 0 14px;
-
+    min-height: 42px;
+    padding: 0 12px;
     border: 1px solid var(--border);
-
     border-radius: 9px;
-
     background: var(--bg-input);
-
 }
 
 
 .add-active-label {
-
     display: inline-flex;
-
     align-items: center;
-
     gap: 10px;
-
     color: var(--text-body);
-
-    font-size: 11.5px;
-
+    font-size: 11px;
     font-weight: 600;
-
     cursor: pointer;
-
     user-select: none;
-
 }
 
 
 .add-active-checkbox {
-
-    width: 18px;
-
-    height: 18px;
-
+    width: 17px;
+    height: 17px;
     margin: 0;
-
     accent-color: var(--green);
-
     cursor: pointer;
-
 }
 
 
@@ -2400,15 +1720,17 @@ body {
 */
 
 .seo-note {
-
-    margin-top: 7px;
-
+    margin-top: 4px;
     color: var(--text-mute);
+    font-size: 9.5px;
+    line-height: 1.4;
+}
 
-    font-size: 10px;
-
-    line-height: 1.45;
-
+.char-counter {
+    text-align: right;
+    margin-top: 4px;
+    color: var(--text-mute);
+    font-size: 9.5px;
 }
 
 
@@ -2419,32 +1741,20 @@ body {
 */
 
 .add-category-form-footer {
-
     display: flex;
-
     align-items: center;
-
     justify-content: flex-end;
-
     gap: 10px;
-
-    padding: 18px 22px;
-
+    padding: 14px 20px;
     border-top: 1px solid var(--border);
-
     background: var(--bg-card-alt);
-
 }
 
 
 .add-category-footer-actions {
-
     display: flex;
-
     align-items: center;
-
     gap: 10px;
-
 }
 
 
@@ -2455,297 +1765,61 @@ body {
 */
 
 .add-category-btn {
-
     display: inline-flex;
-
     align-items: center;
-
     justify-content: center;
-
     gap: 8px;
-
-    min-height: 42px;
-
-    padding: 0 22px;
-
-    border-radius: 9px;
-
+    min-height: 38px;
+    padding: 0 18px;
+    border-radius: 8px;
     text-decoration: none;
-
     font-family: inherit;
-
-    font-size: 11.5px;
-
+    font-size: 11px;
     font-weight: 700;
-
     letter-spacing: .2px;
-
     cursor: pointer;
-
     transition: all .18s ease;
-
 }
 
 
 .add-category-btn:active {
-
     transform: translateY(1px);
-
 }
 
 
 .add-category-cancel {
-
     border: 1px solid var(--border);
-
     background: var(--bg-input);
-
     color: var(--text-body) !important;
-
 }
 
 
 .add-category-cancel:hover {
-
-    border-color: #304356;
-
+    border-color: var(--text-mute);
     background: var(--bg-hover);
-
     color: var(--text-hi) !important;
-
 }
 
 
 .add-category-save {
-
     border: 1px solid var(--green-dark);
-
-    background:
-        linear-gradient(
-            135deg,
-            #059669 0%,
-            #10b981 100%
-        );
-
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
     color: #ffffff;
-
-    box-shadow:
-        0 6px 18px
-        rgba(16,185,129,.24);
-
+    box-shadow: 0 5px 15px rgba(16,185,129,.24);
 }
 
 
 .add-category-save:hover {
-
     filter: brightness(1.08);
-
-    box-shadow:
-        0 9px 24px
-        rgba(16,185,129,.35);
-
+    box-shadow: 0 8px 20px rgba(16,185,129,.35);
     transform: translateY(-1px);
-
 }
 
 
 .add-category-save:disabled {
-
     opacity: .7;
-
     cursor: wait;
-
     transform: none;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| SHORTCUTS
-|--------------------------------------------------------------------------
-*/
-
-.shortcut-help-box {
-
-    margin-top: 22px;
-
-    padding: 18px 22px;
-
-    border: 1px solid var(--border);
-
-    border-radius: 12px;
-
-    background: var(--bg-card);
-
-    box-shadow:
-        0 10px 30px rgba(0,0,0,.12);
-
-}
-
-
-.shortcut-help-box.hidden {
-
-    display: none;
-
-}
-
-
-.shortcut-help-title {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    margin-bottom: 14px;
-
-    color: var(--text-hi);
-
-    font-size: 13px;
-
-    font-weight: 700;
-
-}
-
-
-.shortcut-help-title-icon {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    width: 28px;
-
-    height: 28px;
-
-    border-radius: 8px;
-
-    background: var(--green-soft);
-
-    color: var(--green);
-
-    font-size: 14px;
-
-}
-
-
-.shortcut-help-title small {
-
-    margin-left: auto;
-
-    color: var(--text-mute);
-
-    font-size: 10px;
-
-    font-family: monospace;
-
-}
-
-
-.shortcut-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fill, minmax(220px, 1fr));
-
-    gap: 10px;
-
-}
-
-
-.shortcut-item {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 11px;
-
-    min-height: 48px;
-
-    padding: 8px 11px;
-
-    border: 1px solid var(--border-soft);
-
-    border-radius: 9px;
-
-    background: var(--bg-input);
-
-    transition:
-        border-color .18s ease,
-        background .18s ease,
-        transform .18s ease;
-
-}
-
-
-.shortcut-item:hover {
-
-    border-color: var(--green);
-
-    background: var(--green-soft);
-
-    transform: translateY(-1px);
-
-}
-
-
-.shortcut-key {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    min-width: 38px;
-
-    height: 30px;
-
-    padding: 0 10px;
-
-    box-sizing: border-box;
-
-    border-radius: 7px;
-
-    background: #0a1119;
-
-    border: 1px solid var(--border);
-
-    color: var(--green);
-
-    font-size: 11px;
-
-    font-weight: 900;
-
-    font-family: monospace;
-
-    letter-spacing: .5px;
-
-    white-space: nowrap;
-
-    box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.02),
-        0 3px 8px rgba(0,0,0,.18);
-
-}
-
-
-.shortcut-desc {
-
-    color: var(--text-body);
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-    line-height: 1.35;
-
 }
 
 
@@ -2756,202 +1830,42 @@ body {
 */
 
 @media (max-width: 1000px) {
-
     .add-category-page {
-
         max-width: 100%;
-
     }
-
 }
 
 
 @media (max-width: 900px) {
-
     .add-category-header {
-
         align-items: flex-start;
-
         flex-direction: column;
-
-        gap: 14px;
-
+        gap: 10px;
     }
-
 
     .add-category-back {
-
         width: 100%;
-
     }
-
 
     .add-category-grid {
-
         grid-template-columns: 1fr;
-
     }
-
 
     .add-form-group-full {
-
         grid-column: auto;
-
     }
-
 
     .add-category-form-footer {
-
-        padding: 16px;
-
+        padding: 14px;
     }
-
 
     .add-category-footer-actions {
-
         width: 100%;
-
     }
 
-
     .add-category-btn {
-
         flex: 1;
-
     }
-
-
-    .shortcut-grid {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-
-    }
-
-}
-
-
-@media (max-width: 560px) {
-
-    .add-category-page {
-
-        width: 100%;
-
-        padding:
-            15px 12px 30px;
-
-    }
-
-
-    .add-category-title {
-
-        font-size: 22px;
-
-    }
-
-
-    .add-category-subtitle {
-
-        font-size: 11px;
-
-    }
-
-
-    .add-category-form-body {
-
-        padding: 18px 15px;
-
-    }
-
-
-    .add-category-grid {
-
-        gap: 18px;
-
-    }
-
-
-    .add-category-section {
-
-        padding: 9px 11px;
-
-    }
-
-
-    .add-category-footer-actions {
-
-        display: grid;
-
-        grid-template-columns:
-            1fr 1fr;
-
-    }
-
-
-    .add-category-btn {
-
-        width: 100%;
-
-        padding-left: 12px;
-
-        padding-right: 12px;
-
-    }
-
-
-    .category-upload-box {
-
-        min-height: 145px;
-
-        padding: 18px;
-
-    }
-
-
-    .category-preview-image {
-
-        width: 75px;
-
-        height: 75px;
-
-        flex-basis: 75px;
-
-    }
-
-
-    .shortcut-grid {
-
-        grid-template-columns: 1fr;
-
-    }
-
-
-    .shortcut-help-box {
-
-        padding: 14px 15px;
-
-    }
-
-
-    .shortcut-help-title {
-
-        align-items: flex-start;
-
-        flex-wrap: wrap;
-
-    }
-
-
-    .shortcut-help-title small {
-
-        width: 100%;
-
-        margin-left: 38px;
-
-        margin-top: 2px;
-
-    }
-
 }
 
 
@@ -2962,28 +1876,19 @@ body {
 */
 
 @media print {
-
     .admin-header,
     .sidebar,
     #adminSidebar,
     #sidebarOverlay,
     .add-category-header,
-    .add-category-form-footer,
-    .shortcut-help-box {
-
+    .add-category-form-footer {
         display: none !important;
-
     }
-
 
     .main {
-
         margin-left: 0 !important;
-
         padding: 0 !important;
-
     }
-
 }
 
 </style>
@@ -3046,12 +1951,13 @@ body {
                 <a
                     href="index.php"
                     class="add-category-back"
+                    title="Shortcut: B"
                 >
 
                     <span>←</span>
 
                     <span>
-                        Back to Categories
+                        Back to Categories <small style="opacity:0.7; font-size:9px;">[B]</small>
                     </span>
 
                 </a>
@@ -3125,13 +2031,11 @@ body {
                                 for="categoryName"
                                 class="add-form-label"
                             >
-
-                                Category Name
-
-                                <span class="add-form-required">
-                                    *
+                                <span>
+                                    Category Name
+                                    <span class="add-form-required">*</span>
                                 </span>
-
+                                <span class="shortcut-badge">Shortcut: N</span>
                             </label>
 
 
@@ -3157,9 +2061,8 @@ body {
                                 for="categorySlug"
                                 class="add-form-label"
                             >
-
-                                Slug
-
+                                <span>Slug</span>
+                                <span class="shortcut-badge">Shortcut: G</span>
                             </label>
 
 
@@ -3191,9 +2094,7 @@ body {
                                 for="parentCategory"
                                 class="add-form-label"
                             >
-
-                                Parent Category
-
+                                <span>Parent Category</span>
                             </label>
 
 
@@ -3280,9 +2181,7 @@ body {
                                 for="displayOrder"
                                 class="add-form-label"
                             >
-
-                                Display Order
-
+                                <span>Display Order</span>
                             </label>
 
 
@@ -3321,7 +2220,8 @@ body {
 
                             <div class="add-category-section-title">
 
-                                Category Image
+                                Category Image <small style="font-weight: normal; text-transform: none; margin-left: 8px;">[Shortcut: I]</small>
+                                <span class="add-form-required" style="margin-left: 2px;">*</span>
 
                             </div>
 
@@ -3367,7 +2267,7 @@ body {
                                         class="category-upload-title"
                                     >
 
-                                        Click to
+                                        Click or press <span>I</span> to
 
                                         <span>
                                             upload image
@@ -3460,7 +2360,7 @@ body {
                         </div>
 
 
-                        <!-- DESCRIPTION -->
+                        <!-- DESCRIPTION (Max 300 Characters, Mandatory) -->
 
                         <div
                             class="add-form-group add-form-group-full"
@@ -3470,9 +2370,10 @@ body {
                                 for="categoryDescription"
                                 class="add-form-label"
                             >
-
-                                Description
-
+                                <span>
+                                    Description (Max 300 chars)
+                                    <span class="add-form-required">*</span>
+                                </span>
                             </label>
 
 
@@ -3480,9 +2381,11 @@ body {
                                 id="categoryDescription"
                                 name="description"
                                 class="add-form-textarea"
-                                placeholder="Write a short description for this category..."
-                                maxlength="1000"
+                                placeholder="Write a short description for this category (up to 300 characters)..."
+                                maxlength="300"
+                                required
                             ><?= e($description) ?></textarea>
+                            <div class="char-counter" id="descCharCounter">0 / 300 characters</div>
 
                         </div>
 
@@ -3492,9 +2395,7 @@ body {
                         <div class="add-form-group">
 
                             <label class="add-form-label">
-
-                                Category Status
-
+                                <span>Category Status</span>
                             </label>
 
 
@@ -3544,14 +2445,14 @@ body {
                                 class="add-category-section-title"
                             >
 
-                                SEO Settings
+                                SEO Settings (Optional)
 
                             </div>
 
                         </div>
 
 
-                        <!-- META TITLE -->
+                        <!-- META TITLE (Optional) -->
 
                         <div class="add-form-group">
 
@@ -3559,9 +2460,7 @@ body {
                                 for="metaTitle"
                                 class="add-form-label"
                             >
-
-                                Meta Title
-
+                                <span>Meta Title (Optional)</span>
                             </label>
 
 
@@ -3590,7 +2489,7 @@ body {
                         </div>
 
 
-                        <!-- META DESCRIPTION -->
+                        <!-- META DESCRIPTION (Optional) -->
 
                         <div class="add-form-group">
 
@@ -3598,9 +2497,7 @@ body {
                                 for="metaDescription"
                                 class="add-form-label"
                             >
-
-                                Meta Description
-
+                                <span>Meta Description (Optional)</span>
                             </label>
 
 
@@ -3644,10 +2541,9 @@ body {
                         <a
                             href="index.php"
                             class="add-category-btn add-category-cancel"
+                            title="Shortcut: C"
                         >
-
-                            Cancel
-
+                            Cancel <small style="opacity:0.7; font-size:9px;">[C]</small>
                         </a>
 
 
@@ -3655,12 +2551,13 @@ body {
                             type="submit"
                             class="add-category-btn add-category-save"
                             id="saveCategoryButton"
+                            title="Shortcut: A"
                         >
 
                             <span>✓</span>
 
                             <span>
-                                Save Category
+                                Save Category <small style="opacity:0.8; font-size:9px;">[A]</small>
                             </span>
 
                         </button>
@@ -3670,146 +2567,6 @@ body {
                 </div>
 
             </form>
-
-
-            <!-- KEYBOARD SHORTCUTS -->
-
-            <div
-                class="shortcut-help-box"
-                id="shortcutHelpBox"
-            >
-
-                <div
-                    class="shortcut-help-title"
-                >
-
-                    <span
-                        class="shortcut-help-title-icon"
-                    >
-                        ⌨
-                    </span>
-
-                    <span>
-                        Keyboard Shortcuts
-                    </span>
-
-                    <small>
-                        Press H to show / hide
-                    </small>
-
-                </div>
-
-
-                <div class="shortcut-grid">
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            A
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Save Category
-                        </span>
-
-                    </div>
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            B
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Back to Categories
-                        </span>
-
-                    </div>
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            C
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Cancel / Back
-                        </span>
-
-                    </div>
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            N
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Focus Category Name
-                        </span>
-
-                    </div>
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            G
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Focus Slug
-                        </span>
-
-                    </div>
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            I
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Upload Image
-                        </span>
-
-                    </div>
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            H
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Show / Hide Shortcuts
-                        </span>
-
-                    </div>
-
-
-                    <div class="shortcut-item">
-
-                        <span class="shortcut-key">
-                            Esc
-                        </span>
-
-                        <span class="shortcut-desc">
-                            Blur Current Field
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
 
         </div>
 
@@ -3829,13 +2586,6 @@ body {
 document.addEventListener(
     "DOMContentLoaded",
     function () {
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ELEMENTS
-        |--------------------------------------------------------------------------
-        */
 
         const imageInput =
             document.getElementById(
@@ -3897,9 +2647,21 @@ document.addEventListener(
             );
 
 
+        const displayOrderInput =
+            document.getElementById(
+                "displayOrder"
+            );
+
+
         const descriptionInput =
             document.getElementById(
                 "categoryDescription"
+            );
+
+
+        const descCharCounter =
+            document.getElementById(
+                "descCharCounter"
             );
 
 
@@ -3927,10 +2689,47 @@ document.addEventListener(
             );
 
 
-        const shortcutBox =
-            document.getElementById(
-                "shortcutHelpBox"
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | DYNAMIC DISPLAY ORDER UPDATE ON PARENT CHANGE
+        |--------------------------------------------------------------------------
+        */
+
+        if (parentInput && displayOrderInput) {
+            parentInput.addEventListener("change", function () {
+                const parentId = this.value;
+                
+                fetch("add.php?get_order=1&parent_id=" + encodeURIComponent(parentId))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.display_order !== undefined) {
+                            displayOrderInput.value = data.display_order;
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching display order:", error);
+                    });
+            });
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DESCRIPTION CHARACTER COUNTER
+        |--------------------------------------------------------------------------
+        */
+
+        function updateCharCounter() {
+            if (descriptionInput && descCharCounter) {
+                const len = descriptionInput.value.length;
+                descCharCounter.textContent = len + " / 300 characters";
+            }
+        }
+
+        if (descriptionInput) {
+            updateCharCounter();
+            descriptionInput.addEventListener("input", updateCharCounter);
+        }
 
 
         /*
@@ -4243,11 +3042,6 @@ document.addEventListener(
 
                             } catch (error) {
 
-                                /*
-                                | Fallback:
-                                | Browser may not allow assigning files.
-                                */
-
                             }
 
                         }
@@ -4319,12 +3113,6 @@ document.addEventListener(
                     }
 
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | AUTO META TITLE
-                    |--------------------------------------------------------------------------
-                    */
-
                     if (
                         metaTitleInput &&
                         metaTitleInput.value.trim() === ""
@@ -4343,12 +3131,6 @@ document.addEventListener(
 
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | AUTO META DESCRIPTION
-        |--------------------------------------------------------------------------
-        */
 
         if (
             descriptionInput &&
@@ -4376,32 +3158,7 @@ document.addEventListener(
 
         /*
         |--------------------------------------------------------------------------
-        | PARENT CATEGORY
-        |--------------------------------------------------------------------------
-        */
-
-        if (parentInput) {
-
-            parentInput.addEventListener(
-                "change",
-                function () {
-
-                    /*
-                    | The display order is calculated again
-                    | by PHP immediately before INSERT.
-                    |
-                    | No browser-side order is trusted.
-                    */
-
-                }
-            );
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | FORM SUBMIT
+        | FORM SUBMIT VALIDATION
         |--------------------------------------------------------------------------
         */
 
@@ -4417,12 +3174,6 @@ document.addEventListener(
                 "submit",
                 function (event) {
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | CATEGORY NAME
-                    |--------------------------------------------------------------------------
-                    */
 
                     if (
                         !nameInput ||
@@ -4447,12 +3198,42 @@ document.addEventListener(
 
                     }
 
+                    if (
+                        !descriptionInput ||
+                        descriptionInput.value.trim() === ""
+                    ) {
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | PREVENT DOUBLE SUBMIT
-                    |--------------------------------------------------------------------------
-                    */
+                        event.preventDefault();
+
+                        alert(
+                            "Please enter a category description."
+                        );
+
+                        if (descriptionInput) {
+
+                            descriptionInput.focus();
+
+                        }
+
+                        return;
+
+                    }
+
+                    if (
+                        (!imageInput || !imageInput.files || imageInput.files.length === 0) &&
+                        (!document.getElementById("categoryImagePreview") || document.getElementById("categoryImagePreview").style.display !== "flex")
+                    ) {
+
+                        event.preventDefault();
+
+                        alert(
+                            "Please upload a category image."
+                        );
+
+                        return;
+
+                    }
+
 
                     if (formSubmitting) {
 
@@ -4462,12 +3243,6 @@ document.addEventListener(
 
                     }
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | IMAGE CLIENT VALIDATION
-                    |--------------------------------------------------------------------------
-                    */
 
                     if (
                         imageInput &&
@@ -4493,12 +3268,6 @@ document.addEventListener(
 
                     }
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | SUBMITTING
-                    |--------------------------------------------------------------------------
-                    */
 
                     formSubmitting =
                         true;
@@ -4530,22 +3299,7 @@ document.addEventListener(
         |--------------------------------------------------------------------------
         | KEYBOARD SHORTCUTS
         |--------------------------------------------------------------------------
-        |
-        | A = Save
-        | B = Back
-        | C = Cancel
-        | N = Name
-        | G = Slug
-        | I = Image
-        | H = Help
-        | Esc = Blur
-        |
-        |--------------------------------------------------------------------------
         */
-
-        let helpVisible =
-            true;
-
 
         document.addEventListener(
             "keydown",
@@ -4569,58 +3323,6 @@ document.addEventListener(
                     );
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | H = HELP
-                |--------------------------------------------------------------------------
-                */
-
-                if (
-                    key === "h" &&
-                    !event.ctrlKey &&
-                    !event.metaKey &&
-                    !event.altKey
-                ) {
-
-                    /*
-                    | Do not hide/show shortcuts while
-                    | the user is typing inside a text field.
-                    */
-
-                    if (isTyping) {
-
-                        return;
-
-                    }
-
-
-                    event.preventDefault();
-
-
-                    if (shortcutBox) {
-
-                        helpVisible =
-                            !helpVisible;
-
-
-                        shortcutBox.classList.toggle(
-                            "hidden",
-                            !helpVisible
-                        );
-
-                    }
-
-                    return;
-
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | ESC
-                |--------------------------------------------------------------------------
-                */
-
                 if (
                     event.key === "Escape"
                 ) {
@@ -4640,24 +3342,12 @@ document.addEventListener(
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | DON'T RUN OTHER SHORTCUTS WHILE TYPING
-                |--------------------------------------------------------------------------
-                */
-
                 if (isTyping) {
 
                     return;
 
                 }
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | IGNORE MODIFIERS
-                |--------------------------------------------------------------------------
-                */
 
                 if (
                     event.ctrlKey ||
@@ -4669,12 +3359,6 @@ document.addEventListener(
 
                 }
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | A = SAVE
-                |--------------------------------------------------------------------------
-                */
 
                 if (
                     key === "a"
@@ -4705,12 +3389,6 @@ document.addEventListener(
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | B = BACK
-                |--------------------------------------------------------------------------
-                */
-
                 if (
                     key === "b"
                 ) {
@@ -4727,12 +3405,6 @@ document.addEventListener(
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | C = CANCEL
-                |--------------------------------------------------------------------------
-                */
-
                 if (
                     key === "c"
                 ) {
@@ -4748,12 +3420,6 @@ document.addEventListener(
 
                 }
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | N = NAME
-                |--------------------------------------------------------------------------
-                */
 
                 if (
                     key === "n"
@@ -4775,12 +3441,6 @@ document.addEventListener(
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | G = SLUG
-                |--------------------------------------------------------------------------
-                */
-
                 if (
                     key === "g"
                 ) {
@@ -4800,12 +3460,6 @@ document.addEventListener(
 
                 }
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | I = IMAGE
-                |--------------------------------------------------------------------------
-                */
 
                 if (
                     key === "i"
@@ -4828,17 +3482,7 @@ document.addEventListener(
         );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | INITIAL FOCUS
-        |--------------------------------------------------------------------------
-        */
-
         if (nameInput) {
-
-            /*
-            | Don't automatically focus on mobile.
-            */
 
             if (
                 window.innerWidth > 700

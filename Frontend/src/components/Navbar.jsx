@@ -14,6 +14,9 @@ import {
   FiMapPin,
   FiLayout,
   FiHeadphones,
+  FiTruck,
+  FiPercent,
+  FiPackage,
 } from "react-icons/fi";
 import logo from "../assets/GatewayLinen-logo.png";
 import CartDrawer from "./CartDrawer";
@@ -62,7 +65,7 @@ const Navbar = () => {
   const [activeMegaMenu, setActiveMegaMenu] = useState(null);
   const [megaMenuData, setMegaMenuData] = useState([]);
   const [megaMenuImage, setMegaMenuImage] = useState(
-    "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=1200&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=1200&auto=format&fit=crop"
   );
   const [loadingMega, setLoadingMega] = useState(false);
 
@@ -112,7 +115,7 @@ const Navbar = () => {
 
   useEffect(() => {
     fetch(
-      "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/categories/api.php?action=get_categories",
+      "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/categories/api.php?action=get_categories"
     )
       .then((res) => res.json())
       .then((data) => {
@@ -125,7 +128,7 @@ const Navbar = () => {
       .catch((err) => console.error("Using fallback categories:", err));
 
     fetch(
-      "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php?action=get_products",
+      "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php?action=get_products"
     )
       .then((res) => res.json())
       .then((data) => {
@@ -148,10 +151,10 @@ const Navbar = () => {
           id: c.CategoryId || c.id,
           name: c.Name || c.name,
           slug: `category/${c.Slug || c.slug || (c.Name || c.name || "").toLowerCase().replace(/\s+/g, "-")}`,
-        })),
+        }))
       );
       setMegaMenuImage(
-        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=1200&auto=format&fit=crop"
       );
       setLoadingMega(false);
     } else if (menuType === "products") {
@@ -160,10 +163,10 @@ const Navbar = () => {
           id: p.ProductId || p.id,
           name: p.Name || p.name,
           slug: `product/${p.ProductId || p.id}`,
-        })),
+        }))
       );
       setMegaMenuImage(
-        "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=1200&auto=format&fit=crop"
       );
       setLoadingMega(false);
     } else if (menuType === "bedding") {
@@ -172,7 +175,7 @@ const Navbar = () => {
           (p.Name || p.name || "").toLowerCase().includes("bed") ||
           (p.Name || p.name || "").toLowerCase().includes("sheet") ||
           (p.Name || p.name || "").toLowerCase().includes("duvet") ||
-          (p.Name || p.name || "").toLowerCase().includes("mattress"),
+          (p.Name || p.name || "").toLowerCase().includes("mattress")
       );
       setMegaMenuData(
         filtered.length > 0
@@ -185,17 +188,17 @@ const Navbar = () => {
               id: c.CategoryId || c.id,
               name: c.Name || c.name,
               slug: `category/${c.Slug || c.slug || "bed-sheets"}`,
-            })),
+            }))
       );
       setMegaMenuImage(
-        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=1200&auto=format&fit=crop"
       );
       setLoadingMega(false);
     } else if (menuType === "towel") {
       const filtered = products.filter(
         (p) =>
           (p.Name || p.name || "").toLowerCase().includes("towel") ||
-          (p.Name || p.name || "").toLowerCase().includes("bath"),
+          (p.Name || p.name || "").toLowerCase().includes("bath")
       );
       setMegaMenuData(
         filtered.length > 0
@@ -210,10 +213,10 @@ const Navbar = () => {
                 name: "Luxury Hotel Bath Towel",
                 slug: "category/towels",
               },
-            ],
+            ]
       );
       setMegaMenuImage(
-        "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=1200&auto=format&fit=crop"
       );
       setLoadingMega(false);
     } else if (menuType === "others") {
@@ -222,10 +225,10 @@ const Navbar = () => {
           id: c.CategoryId || c.id,
           name: c.Name || c.name,
           slug: `category/${c.Slug || c.slug || "others"}`,
-        })),
+        }))
       );
       setMegaMenuImage(
-        "https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=1200&auto=format&fit=crop"
       );
       setLoadingMega(false);
     } else {
@@ -276,7 +279,7 @@ const Navbar = () => {
               .includes(searchQuery.toLowerCase()) ||
             (item.Category || item.category || "")
               .toLowerCase()
-              .includes(searchQuery.toLowerCase()),
+              .includes(searchQuery.toLowerCase())
         );
 
   const handleProductSelect = (id) => {
@@ -288,93 +291,128 @@ const Navbar = () => {
   return (
     <>
       <header className="w-full font-sans bg-white shadow-sm z-50">
-        {/* Desktop Top Bar */}
-        <div className="hidden md:flex border-b border-[#E5DCD0] bg-[#FAF7F2] text-[12px] py-2.5 px-4 md:px-8 justify-between items-center">
-          <div className="flex gap-6 font-medium text-gray-600 tracking-wide">
+        {/* ============ DESKTOP TOP BAR (Flipkart-style) ============ */}
+        <div className="hidden md:flex bg-[#F1F3F6] border-b border-gray-200 text-[11px] py-1.5 px-4 md:px-8 justify-between items-center">
+          <div className="flex gap-5 font-medium text-gray-600">
             <a
               href="mailto:gatewaylinen@gmail.com"
-              className="flex items-center gap-2 cursor-pointer hover:text-[#031D44] transition-colors"
+              className="flex items-center gap-1.5 hover:text-[#2874F0] transition-colors"
             >
-              <FiMail size={14} className="text-[#B58E58]" />{" "}
+              <FiMail size={12} className="text-[#2874F0]" />
               gatewaylinen@gmail.com
             </a>
+            <span className="text-gray-300">|</span>
             <a
               href="tel:+12049794044"
-              className="flex items-center gap-2 cursor-pointer hover:text-[#031D44] transition-colors"
+              className="flex items-center gap-1.5 hover:text-[#2874F0] transition-colors"
             >
-              <FiPhone size={14} className="text-[#B58E58]" /> +1 (204) 979-4044
+              <FiPhone size={12} className="text-[#2874F0]" />
+              +1 (204) 979-4044
             </a>
           </div>
-          <div className="bg-white border border-[#E5DCD0] px-4 py-1 rounded-full text-gray-700 font-medium text-[11px] shadow-2xs">
-            Free Shipping on orders above $350 -{" "}
+
+          <div className="flex items-center gap-2 text-gray-700 font-medium">
+            <FiTruck size={12} className="text-[#FB641B]" />
+            <span>
+              Free Shipping on orders above{" "}
+              <span className="font-bold text-[#031D44]">$350</span>
+            </span>
             <Link
               to="/products"
-              className="font-bold underline hover:text-[#B58E58] text-[#031D44]"
+              className="text-[#2874F0] font-bold underline hover:text-[#FB641B] transition-colors ml-1"
             >
               Learn More
             </Link>
           </div>
-          <div>
-            <button
-              onClick={() => setShowContactModal(true)}
-              className="bg-[#031D44] hover:bg-[#B58E58] text-white px-5 py-1.5 rounded-full font-bold transition-colors text-[10px] shadow-sm cursor-pointer uppercase tracking-widest"
-            >
-              Need Help?
-            </button>
-          </div>
+
+          <button
+            onClick={() => setShowContactModal(true)}
+            className="bg-[#2874F0] hover:bg-[#1e5bc7] text-white px-4 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm cursor-pointer transition-colors flex items-center gap-1.5"
+          >
+            <FiHeadphones size={11} />
+            Need Help?
+          </button>
         </div>
 
-        {/* Main Header */}
-        <div className="px-4 md:px-8 py-3.5 md:py-4 flex items-center justify-between border-b border-[#E5DCD0]">
-          {/* Mobile Menu & Search Toggles */}
-          <div className="flex items-center gap-2 w-1/3 md:w-1/4 lg:w-1/3">
+        {/* ============ MAIN HEADER (Flipkart Blue) ============ */}
+        <div className="bg-[#2874F0] px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+          {/* Mobile Menu + Search Toggles */}
+          <div className="flex items-center gap-2 lg:hidden shrink-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden text-[#031D44] bg-[#FAF7F2] border border-[#E5DCD0] hover:bg-[#E5DCD0] transition-colors p-2 rounded-lg cursor-pointer"
+              className="text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Open menu"
             >
               <FiMenu size={20} />
             </button>
             <button
               onClick={() => setShowMobileSearch(!showMobileSearch)}
-              className="lg:hidden text-[#031D44] bg-white border border-[#E5DCD0] hover:bg-[#FAF7F2] transition-colors p-2 rounded-lg cursor-pointer"
+              className="text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Search"
             >
               <FiSearch size={20} />
             </button>
-            <Link to="/" className="items-center gap-2 hidden lg:flex">
-              <img src={logo} alt="Gateway Linen" className="h-10 md:h-12" />
-              <span className="font-serif font-bold text-xl text-[#031D44] tracking-wide">
-                Gateway Linen
+          </div>
+
+          {/* Desktop Logo */}
+          <Link
+            to="/"
+            className="hidden lg:flex items-center gap-2.5 shrink-0"
+          >
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5 shadow-md">
+              <img
+                src={logo}
+                alt="Gateway Linen"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="leading-none">
+              <p className="text-[17px] font-bold text-white italic">
+                Gateway<span className="text-[#FFE500]">Linen</span>
+              </p>
+              <p className="text-[9px] uppercase tracking-[0.18em] text-white/85 italic mt-0.5 font-medium">
+                Explore <span className="text-[#FFE500]">Plus</span> ✦
+              </p>
+            </div>
+          </Link>
+
+          {/* Mobile Logo (Centered) */}
+          <div className="flex-1 lg:hidden flex justify-center">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center p-1">
+                <img
+                  src={logo}
+                  alt="Gateway Linen"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[15px] font-bold text-white italic">
+                Gateway<span className="text-[#FFE500]">Linen</span>
               </span>
             </Link>
           </div>
 
-          {/* Mobile Logo (Centered) */}
-          <div className="flex-1 lg:hidden flex justify-center">
-            <Link to="/">
-              <img
-                src={logo}
-                alt="Gateway Linen"
-                className="h-9 object-contain"
-              />
-            </Link>
-          </div>
-
-          {/* Desktop Search */}
-          <div className="hidden lg:flex flex-1 justify-center relative px-4">
-            <div className="relative w-full max-w-[450px]">
+          {/* Desktop Search Bar (Flipkart-style) */}
+          <div className="hidden lg:flex flex-1 max-w-[600px] relative">
+            <div className="relative w-full">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search premium products..."
-                className="w-full border border-[#E5DCD0] bg-[#FAF7F2]/50 rounded-full py-2.5 px-5 text-[13px] text-[#031D44] focus:outline-none focus:border-[#B58E58] focus:bg-white transition-all shadow-sm"
+                placeholder="Search for products, brands and more..."
+                className="w-full bg-white rounded-md py-2.5 pl-4 pr-12 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none shadow-sm border-2 border-transparent focus:border-[#FFE500] transition-all"
               />
-              <FiSearch
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                size={16}
-              />
+              <button
+                type="button"
+                className="absolute right-0 top-0 h-full px-4 flex items-center justify-center text-[#2874F0] hover:text-[#FB641B] transition-colors"
+                aria-label="Search"
+              >
+                <FiSearch size={18} />
+              </button>
+
+              {/* Search Dropdown */}
               {searchQuery.trim() !== "" && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white shadow-2xl border border-[#E5DCD0] max-h-80 overflow-y-auto z-50 p-2 rounded-2xl">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white shadow-2xl border border-gray-200 max-h-96 overflow-y-auto z-50 rounded-md">
                   {filteredSearchProducts.length > 0 ? (
                     filteredSearchProducts.map((item) => (
                       <div
@@ -382,7 +420,7 @@ const Navbar = () => {
                         onClick={() =>
                           handleProductSelect(item.ProductId || item.id)
                         }
-                        className="flex items-center gap-3 p-2.5 hover:bg-[#FAF7F2] cursor-pointer rounded-xl transition-colors"
+                        className="flex items-center gap-3 p-3 hover:bg-[#F1F3F6] cursor-pointer border-b border-gray-100 last:border-0 transition-colors"
                       >
                         <img
                           src={
@@ -391,21 +429,21 @@ const Navbar = () => {
                             "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=500&auto=format&fit=crop"
                           }
                           alt={item.Name || item.name}
-                          className="w-10 h-10 object-cover rounded-md border border-[#E5DCD0]"
+                          className="w-12 h-12 object-cover rounded border border-gray-200"
                         />
-                        <div>
-                          <p className="text-[9px] font-bold text-[#B58E58] uppercase tracking-wider mb-0.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] font-bold text-[#FB641B] uppercase tracking-wider mb-0.5">
                             {item.Category || item.category || "General"}
                           </p>
-                          <h4 className="text-xs font-bold text-[#031D44]">
+                          <h4 className="text-[13px] font-semibold text-gray-800 truncate">
                             {item.Name || item.name}
                           </h4>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-5 text-center text-xs text-gray-500 font-medium">
-                      No products found
+                    <div className="p-6 text-center text-[12px] text-gray-500">
+                      No products found for "{searchQuery}"
                     </div>
                   )}
                 </div>
@@ -414,66 +452,109 @@ const Navbar = () => {
           </div>
 
           {/* Right Action Icons */}
-          <div className="flex items-center justify-end gap-3 sm:gap-5 w-1/3 md:w-1/4 lg:w-1/3">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* User Button */}
             <div className="relative hidden lg:block" ref={dropdownRef}>
               <button
                 onClick={handleUserIconClick}
-                className={`transition-all p-2.5 rounded-full cursor-pointer border ${currentUser ? "bg-[#031D44] text-[#B58E58] border-[#031D44] hover:bg-[#B58E58] hover:text-white" : "bg-[#FAF7F2] text-[#031D44] border-[#E5DCD0] hover:text-[#B58E58] hover:bg-white shadow-sm"}`}
+                className="flex items-center gap-2 text-white px-3 py-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <FiUser size={18} />
+                <span className="text-[13px] font-semibold hidden xl:inline">
+                  {currentUser
+                    ? currentUser.fullName?.split(" ")[0] || "Account"
+                    : "Login"}
+                </span>
+                {currentUser && (
+                  <FiChevronDown
+                    size={12}
+                    className={`transition-transform ${
+                      showUserDropdown ? "rotate-180" : ""
+                    }`}
+                  />
+                )}
               </button>
+
               {showUserDropdown && currentUser && (
-                <div className="absolute right-0 top-[110%] w-56 bg-white shadow-2xl border border-[#E5DCD0] py-2 z-50 rounded-[16px] animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="px-5 py-3 border-b border-[#E5DCD0] bg-[#FAF7F2] rounded-t-[14px]">
-                    <p className="text-[9.5px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white shadow-2xl border border-gray-200 py-2 z-50 rounded-md animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="px-5 py-3 border-b border-gray-100 bg-[#F1F3F6]">
+                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">
                       Signed in as
                     </p>
-                    <p className="text-[13px] font-bold text-[#031D44] truncate">
+                    <p className="text-[13px] font-bold text-gray-800 truncate">
                       {currentUser.fullName || "Customer"}
                     </p>
                     <p className="text-[10px] text-gray-500 truncate">
                       {currentUser.email}
                     </p>
                   </div>
-                  <div className="p-2 space-y-1">
+                  <div className="p-1.5">
                     <Link
                       to="/dashboard"
                       onClick={() => setShowUserDropdown(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 text-[12px] font-bold text-[#031D44] hover:bg-[#FAF7F2] rounded-xl transition-colors"
+                      className="flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold text-gray-700 hover:bg-[#F1F3F6] rounded transition-colors"
                     >
-                      <FiLayout size={14} className="text-[#B58E58]" /> Account
-                      Dashboard
+                      <FiLayout size={14} className="text-[#2874F0]" />
+                      My Account
+                    </Link>
+                    <Link
+                      to="/orders"
+                      onClick={() => setShowUserDropdown(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold text-gray-700 hover:bg-[#F1F3F6] rounded transition-colors"
+                    >
+                      <FiPackage size={14} className="text-[#2874F0]" />
+                      My Orders
                     </Link>
                     <button
                       onClick={handleLogoutClick}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 text-[12px] font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors text-left cursor-pointer"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50 rounded transition-colors text-left cursor-pointer"
                     >
-                      <FiLogOut size={14} /> Secure Logout
+                      <FiLogOut size={14} />
+                      Logout
                     </button>
                   </div>
                 </div>
               )}
             </div>
 
+            {/* Mobile User Icon */}
+            <button
+              onClick={handleUserIconClick}
+              className="lg:hidden text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Account"
+            >
+              <FiUser size={20} />
+            </button>
+
+            {/* Wishlist Button */}
             <button
               onClick={() => handleAuthAction(() => toggleWishlistDrawer())}
-              className="relative text-[#031D44] bg-[#FAF7F2] border border-[#E5DCD0] hover:bg-white hover:text-[#B58E58] transition-colors p-2.5 rounded-full cursor-pointer shadow-sm"
+              className="relative text-white p-2 sm:px-3 rounded hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1.5"
+              aria-label="Wishlist"
             >
-              <FiHeart size={18} />
+              <FiHeart size={19} />
+              <span className="hidden xl:inline text-[13px] font-semibold">
+                Wishlist
+              </span>
               {currentUser && wishlistItems?.length > 0 && (
-                <span className="absolute -top-1 -right-1.5 bg-[#B58E58] text-white text-[9px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
+                <span className="absolute top-0 right-0 sm:right-1 bg-[#FFE500] text-[#031D44] text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {wishlistItems.length}
                 </span>
               )}
             </button>
 
+            {/* Cart Button */}
             <button
               onClick={() => handleAuthAction(() => toggleCart())}
-              className="relative text-[#031D44] bg-[#FAF7F2] border border-[#E5DCD0] hover:bg-white hover:text-[#B58E58] transition-colors p-2.5 rounded-full cursor-pointer shadow-sm"
+              className="relative text-white p-2 sm:px-3 rounded hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1.5"
+              aria-label="Cart"
             >
-              <FiShoppingCart size={18} />
+              <FiShoppingCart size={19} />
+              <span className="hidden xl:inline text-[13px] font-semibold">
+                Cart
+              </span>
               {currentUser && totalCartCount > 0 && (
-                <span className="absolute -top-1 -right-1.5 bg-[#031D44] text-white text-[9px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
+                <span className="absolute top-0 right-0 sm:right-1 bg-[#FFE500] text-[#031D44] text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {totalCartCount}
                 </span>
               )}
@@ -481,45 +562,50 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Desktop Mega Menu Navigation */}
+        {/* ============ DESKTOP MEGA MENU NAVIGATION ============ */}
         <div
-          className="hidden lg:flex bg-[#031D44] text-white px-8 justify-between items-center relative shadow-inner"
+          className="hidden lg:flex bg-white border-b border-gray-200 px-4 md:px-8 justify-between items-center relative"
           onMouseLeave={() => setActiveMegaMenu(null)}
         >
           <div className="flex items-center">
             <Link
               to="/"
-              className="px-5 py-3.5 block font-bold uppercase tracking-widest text-[11px] hover:bg-[#B58E58] hover:text-white transition-colors"
+              className="px-4 py-3.5 block font-semibold text-[13px] text-gray-700 hover:text-[#2874F0] transition-colors uppercase tracking-wide"
             >
               Home
             </Link>
             <div onMouseEnter={() => handleMenuHover("products")}>
               <Link
                 to="/products"
-                className={`px-5 py-3.5 block font-bold uppercase tracking-widest text-[11px] transition-colors ${activeMegaMenu === "products" ? "bg-white text-[#031D44]" : "hover:bg-[#B58E58] hover:text-white"}`}
+                className={`px-4 py-3.5 block font-semibold text-[13px] transition-colors uppercase tracking-wide ${
+                  activeMegaMenu === "products"
+                    ? "text-[#2874F0] border-b-2 border-[#2874F0]"
+                    : "text-gray-700 hover:text-[#2874F0]"
+                }`}
               >
                 All Products
               </Link>
             </div>
             <div onMouseEnter={() => handleMenuHover("categories")}>
               <button
-                className={`px-5 py-3.5 flex items-center gap-1.5 font-bold uppercase tracking-widest text-[11px] transition-colors cursor-pointer ${activeMegaMenu === "categories" ? "bg-white text-[#031D44]" : "hover:bg-[#B58E58] hover:text-white"}`}
+                className={`px-4 py-3.5 flex items-center gap-1.5 font-semibold text-[13px] transition-colors cursor-pointer uppercase tracking-wide ${
+                  activeMegaMenu === "categories"
+                    ? "text-[#2874F0] border-b-2 border-[#2874F0]"
+                    : "text-gray-700 hover:text-[#2874F0]"
+                }`}
               >
-                Categories{" "}
-                <FiChevronDown
-                  size={14}
-                  className={
-                    activeMegaMenu === "categories"
-                      ? "text-[#031D44]"
-                      : "text-[#B58E58]"
-                  }
-                />
+                Categories
+                <FiChevronDown size={13} />
               </button>
             </div>
             <div onMouseEnter={() => handleMenuHover("bedding")}>
               <Link
                 to="/category/bed-sheets"
-                className={`px-5 py-3.5 block font-bold uppercase tracking-widest text-[11px] transition-colors ${activeMegaMenu === "bedding" ? "bg-white text-[#031D44]" : "hover:bg-[#B58E58] hover:text-white"}`}
+                className={`px-4 py-3.5 block font-semibold text-[13px] transition-colors uppercase tracking-wide ${
+                  activeMegaMenu === "bedding"
+                    ? "text-[#2874F0] border-b-2 border-[#2874F0]"
+                    : "text-gray-700 hover:text-[#2874F0]"
+                }`}
               >
                 Bedding
               </Link>
@@ -527,64 +613,70 @@ const Navbar = () => {
             <div onMouseEnter={() => handleMenuHover("towel")}>
               <Link
                 to="/category/towels"
-                className={`px-5 py-3.5 block font-bold uppercase tracking-widest text-[11px] transition-colors ${activeMegaMenu === "towel" ? "bg-white text-[#031D44]" : "hover:bg-[#B58E58] hover:text-white"}`}
+                className={`px-4 py-3.5 block font-semibold text-[13px] transition-colors uppercase tracking-wide ${
+                  activeMegaMenu === "towel"
+                    ? "text-[#2874F0] border-b-2 border-[#2874F0]"
+                    : "text-gray-700 hover:text-[#2874F0]"
+                }`}
               >
-                Towel
+                Towels
               </Link>
             </div>
             <div onMouseEnter={() => handleMenuHover("others")}>
               <Link
                 to="/products"
-                className={`px-5 py-3.5 block font-bold uppercase tracking-widest text-[11px] transition-colors ${activeMegaMenu === "others" ? "bg-white text-[#031D44]" : "hover:bg-[#B58E58] hover:text-white"}`}
+                className={`px-4 py-3.5 block font-semibold text-[13px] transition-colors uppercase tracking-wide ${
+                  activeMegaMenu === "others"
+                    ? "text-[#2874F0] border-b-2 border-[#2874F0]"
+                    : "text-gray-700 hover:text-[#2874F0]"
+                }`}
               >
                 Others
               </Link>
             </div>
             <Link
               to="/contact"
-              className="px-5 py-3.5 block font-bold uppercase tracking-widest text-[11px] hover:bg-[#B58E58] hover:text-white transition-colors"
+              className="px-4 py-3.5 block font-semibold text-[13px] text-gray-700 hover:text-[#2874F0] transition-colors uppercase tracking-wide"
             >
               Contact
             </Link>
 
+            {/* Mega Menu Dropdown */}
             {activeMegaMenu && (
-              <div className="absolute top-full left-0 w-full bg-white shadow-2xl border-t border-[#E5DCD0] z-50 flex p-8 min-h-[350px] text-gray-800 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="w-1/4 pr-8 border-r border-[#E5DCD0]">
-                  <div className="border border-[#B58E58]/30 bg-[#FAF7F2] text-[#B58E58] text-[9.5px] uppercase tracking-widest px-3 py-1.5 inline-block mb-4 font-bold rounded-lg shadow-sm">
-                    {activeMegaMenu.toUpperCase()} CATALOG (
-                    {megaMenuData.length})
+              <div className="absolute top-full left-0 w-full bg-white shadow-2xl border-t-2 border-[#2874F0] z-50 flex p-6 min-h-[320px] text-gray-800 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="w-1/4 pr-6 border-r border-gray-200">
+                  <div className="text-[#FB641B] text-[10px] uppercase tracking-widest mb-4 font-bold flex items-center gap-1.5">
+                    <FiPackage size={12} />
+                    {activeMegaMenu.toUpperCase()} ({megaMenuData.length})
                   </div>
-                  <ul className="flex flex-col gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                  <ul className="flex flex-col gap-2.5 max-h-64 overflow-y-auto pr-2">
                     {loadingMega ? (
                       <li className="text-gray-400 text-xs font-medium">
-                        Loading collection...
+                        Loading...
                       </li>
                     ) : megaMenuData.length > 0 ? (
                       megaMenuData.map((item) => (
-                        <li
-                          key={item.id}
-                          className="group flex items-center gap-2"
-                        >
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#E5DCD0] group-hover:bg-[#B58E58] transition-colors"></div>
+                        <li key={item.id} className="group">
                           <Link
                             to={`/${item.slug}`}
                             onClick={() => setActiveMegaMenu(null)}
-                            className="text-[#031D44] hover:text-[#B58E58] text-[13px] font-bold truncate block py-0.5 transition-colors"
+                            className="text-gray-700 hover:text-[#2874F0] text-[13px] font-medium truncate block py-1 transition-colors flex items-center gap-2"
                           >
+                            <span className="w-1 h-1 rounded-full bg-gray-300 group-hover:bg-[#2874F0] transition-colors"></span>
                             {item.name}
                           </Link>
                         </li>
                       ))
                     ) : (
                       <li className="text-gray-400 text-xs font-medium">
-                        No items found in this category
+                        No items found
                       </li>
                     )}
                   </ul>
                 </div>
-                <div className="w-3/4 pl-8 flex justify-center items-center">
+                <div className="w-3/4 pl-6 flex">
                   <div
-                    className="w-full h-full max-h-[280px] rounded-2xl overflow-hidden shadow-md border border-[#E5DCD0] relative group cursor-pointer"
+                    className="w-full h-full max-h-[260px] rounded-lg overflow-hidden shadow-md relative group cursor-pointer"
                     onClick={() => setActiveMegaMenu(null)}
                   >
                     <img
@@ -592,18 +684,14 @@ const Navbar = () => {
                       alt="Featured Collection"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <div className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-white/50 inline-block">
-                        <span className="text-[10px] font-bold text-[#B58E58] uppercase tracking-widest block mb-1">
-                          Featured Collection
-                        </span>
-                        <h3 className="text-xl font-serif font-bold text-[#031D44]">
-                          {activeMegaMenu.charAt(0).toUpperCase() +
-                            activeMegaMenu.slice(1)}{" "}
-                          Essentials
-                        </h3>
-                      </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-4 left-5 right-5">
+                      <span className="inline-block bg-[#FFE500] text-[#031D44] text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mb-1.5">
+                        Featured
+                      </span>
+                      <h3 className="text-[18px] font-bold text-white capitalize">
+                        {activeMegaMenu} Essentials
+                      </h3>
                     </div>
                   </div>
                 </div>
@@ -611,30 +699,33 @@ const Navbar = () => {
             )}
           </div>
 
-          <div className="py-1.5 pr-2">
-            <button className="bg-[#B58E58] text-white px-5 py-2 rounded-full font-bold text-[10px] tracking-widest uppercase flex items-center gap-1.5 hover:bg-white hover:text-[#031D44] transition-colors shadow-sm cursor-pointer">
-              Special Offers <FiChevronDown size={14} />
+          {/* Special Offers Button */}
+          <div>
+            <button className="bg-[#FB641B] hover:bg-[#e55a15] text-white px-4 py-2 rounded text-[11px] font-bold tracking-wider uppercase flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm">
+              <FiPercent size={13} />
+              Special Offers
             </button>
           </div>
         </div>
 
-        {/* Mobile Search Bar Toggle */}
+        {/* ============ MOBILE SEARCH BAR ============ */}
         {showMobileSearch && (
-          <div className="lg:hidden px-4 pb-4 pt-2 bg-white border-b border-[#E5DCD0]">
-            <div className="relative mt-2">
+          <div className="lg:hidden bg-white border-b border-gray-200 px-4 pb-3 pt-2">
+            <div className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="w-full border border-[#E5DCD0] bg-[#FAF7F2] rounded-xl py-3 px-5 text-sm focus:outline-none focus:border-[#B58E58] shadow-inner text-[#031D44]"
+                placeholder="Search for products..."
+                className="w-full border-2 border-[#2874F0] rounded-md py-2.5 pl-4 pr-10 text-[13px] focus:outline-none text-gray-800"
+                autoFocus
               />
               <FiSearch
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#2874F0]"
                 size={18}
               />
               {searchQuery.trim() !== "" && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white shadow-2xl border border-[#E5DCD0] max-h-60 overflow-y-auto z-50 p-2 rounded-xl">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white shadow-2xl border border-gray-200 max-h-80 overflow-y-auto z-50 rounded-md">
                   {filteredSearchProducts.length > 0 ? (
                     filteredSearchProducts.map((item) => (
                       <div
@@ -642,7 +733,7 @@ const Navbar = () => {
                         onClick={() =>
                           handleProductSelect(item.ProductId || item.id)
                         }
-                        className="flex items-center gap-3 p-2.5 hover:bg-[#FAF7F2] cursor-pointer rounded-lg"
+                        className="flex items-center gap-3 p-3 hover:bg-[#F1F3F6] cursor-pointer border-b border-gray-100 last:border-0"
                       >
                         <img
                           src={
@@ -651,17 +742,20 @@ const Navbar = () => {
                             "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=500&auto=format&fit=crop"
                           }
                           alt={item.Name || item.name}
-                          className="w-10 h-10 object-cover rounded border border-[#E5DCD0]"
+                          className="w-11 h-11 object-cover rounded border border-gray-200"
                         />
-                        <div>
-                          <h4 className="text-xs font-bold text-[#031D44]">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-[13px] font-semibold text-gray-800 truncate">
                             {item.Name || item.name}
                           </h4>
+                          <p className="text-[10px] text-gray-500">
+                            {item.Category || item.category || "General"}
+                          </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 text-center text-xs text-gray-500">
+                    <div className="p-5 text-center text-[12px] text-gray-500">
                       No products found
                     </div>
                   )}
@@ -675,29 +769,29 @@ const Navbar = () => {
       <CartDrawer />
       <WishlistDrawer />
 
-      {/* Logout Confirmation Modal */}
+      {/* ============ LOGOUT CONFIRMATION MODAL ============ */}
       {showLogoutConfirmModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#FAF7F2] rounded-[24px] w-full max-w-sm p-8 text-center shadow-2xl border border-[#E5DCD0]">
-            <div className="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-200">
+          <div className="bg-white rounded-lg w-full max-w-sm p-6 text-center shadow-2xl border border-gray-200">
+            <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
               <FiLogOut size={24} />
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+            <h3 className="text-[18px] font-bold text-gray-800 mb-2">
               Confirm Logout
             </h3>
-            <p className="text-[12px] text-gray-600 mb-6 font-light">
-              Are you sure you want to securely sign out of your account?
+            <p className="text-[12px] text-gray-600 mb-6">
+              Are you sure you want to sign out of your account?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirmModal(false)}
-                className="w-1/2 py-3 bg-white border border-[#E5DCD0] rounded-xl font-bold text-[11px] text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-wider cursor-pointer shadow-sm"
+                className="w-1/2 py-3 bg-white border border-gray-300 rounded-md font-semibold text-[12px] text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmLogout}
-                className="w-1/2 py-3 bg-red-600 rounded-xl font-bold text-[11px] text-white hover:bg-red-700 transition-colors shadow-md uppercase tracking-wider cursor-pointer"
+                className="w-1/2 py-3 bg-[#FB641B] rounded-md font-semibold text-[12px] text-white hover:bg-[#e55a15] transition-colors cursor-pointer"
               >
                 Logout
               </button>
@@ -706,93 +800,97 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* Login Requirement Modal */}
+      {/* ============ LOGIN REQUIRED MODAL ============ */}
       {showLoginModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#FAF7F2] p-8 rounded-[24px] shadow-2xl w-full max-w-sm text-center relative border border-[#E5DCD0]">
+          <div className="bg-white p-7 rounded-lg shadow-2xl w-full max-w-sm text-center relative border border-gray-200">
             <button
               onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-[#031D44] bg-white border border-[#E5DCD0] p-1.5 rounded-full transition-colors cursor-pointer shadow-sm"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors cursor-pointer"
+              aria-label="Close"
             >
               <FiX size={16} />
             </button>
-            <div className="w-14 h-14 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+            <div className="w-14 h-14 bg-[#2874F0] text-white rounded-full flex items-center justify-center mx-auto mb-4">
               <FiUser size={26} />
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-2">
+            <h3 className="text-[18px] font-bold text-gray-800 mb-2">
               Login Required
             </h3>
-            <p className="text-[12px] text-gray-600 mb-6 font-light leading-relaxed">
-              Please sign in securely to access your cart, wishlist, or account
-              features.
+            <p className="text-[12px] text-gray-600 mb-6 leading-relaxed">
+              Please sign in to access your cart, wishlist, or account features.
             </p>
             <button
               onClick={() => {
                 setShowLoginModal(false);
                 navigate("/login");
               }}
-              className="w-full py-3.5 bg-[#031D44] text-white text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-[#B58E58] transition-all shadow-md cursor-pointer"
+              className="w-full py-3.5 bg-[#FB641B] text-white text-[12px] font-bold uppercase tracking-wider rounded-md hover:bg-[#e55a15] transition-all shadow-md cursor-pointer"
             >
-              Secure Login
+              Login Now
             </button>
           </div>
         </div>
       )}
 
-      {/* MOBILE FULL-SCREEN MENU DRAWER */}
+      {/* ============ MOBILE MENU DRAWER ============ */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[200] flex lg:hidden">
-          {/* Overlay */}
           <div
             onClick={() => setMobileMenuOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           ></div>
 
-          {/* Drawer Container */}
-          <div className="relative w-[85%] max-w-sm bg-[#FAF7F2] h-full shadow-2xl flex flex-col z-[210] animate-in slide-in-from-left duration-300 border-r border-[#E5DCD0]">
+          <div className="relative w-[85%] max-w-sm bg-white h-full shadow-2xl flex flex-col z-[210] animate-in slide-in-from-left duration-300">
             {/* Header */}
-            <div className="flex justify-between items-center p-5 border-b border-[#E5DCD0] bg-white">
-              <img
-                src={logo}
-                alt="Gateway Linen"
-                className="h-9 object-contain"
-              />
+            <div className="flex justify-between items-center p-4 bg-[#2874F0]">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 bg-white rounded-md flex items-center justify-center p-1">
+                  <img
+                    src={logo}
+                    alt="Gateway Linen"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-[15px] font-bold text-white italic">
+                  Gateway<span className="text-[#FFE500]">Linen</span>
+                </span>
+              </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="bg-[#FAF7F2] hover:bg-[#E5DCD0] p-2 rounded-xl border border-[#E5DCD0] transition-colors cursor-pointer text-[#031D44]"
+                className="text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Close menu"
               >
                 <FiX size={20} />
               </button>
             </div>
 
             {/* Auth Section */}
-            <div className="p-5 border-b border-[#E5DCD0] bg-white shadow-sm">
+            <div className="p-4 border-b border-gray-200 bg-[#F1F3F6]">
               {currentUser ? (
-                <div className="bg-[#FAF7F2] border border-[#E5DCD0] rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3.5 mb-4">
-                    <div className="w-11 h-11 bg-[#031D44] text-[#B58E58] rounded-xl flex items-center justify-center font-bold text-lg shadow-inner">
-                      {currentUser.fullName ? (
-                        currentUser.fullName.charAt(0).toUpperCase()
-                      ) : (
-                        <FiUser />
-                      )}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 bg-[#2874F0] text-white rounded-full flex items-center justify-center font-bold text-lg">
+                      {currentUser.fullName
+                        ? currentUser.fullName.charAt(0).toUpperCase()
+                        : "U"}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">
                         Welcome Back
                       </p>
-                      <p className="text-sm font-serif font-bold text-[#031D44] truncate">
+                      <p className="text-[14px] font-bold text-gray-800 truncate">
                         {currentUser.fullName || "Customer"}
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-2.5">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => {
                         setMobileMenuOpen(false);
                         navigate("/dashboard");
                       }}
-                      className="flex-1 bg-white border border-[#E5DCD0] py-2.5 rounded-xl text-[10px] font-bold text-[#031D44] uppercase tracking-wider shadow-2xs cursor-pointer hover:border-[#031D44] transition-colors"
+                      className="flex-1 bg-[#2874F0] py-2.5 rounded-md text-[11px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-[#1e5bc7] transition-colors"
                     >
                       Dashboard
                     </button>
@@ -801,20 +899,20 @@ const Navbar = () => {
                         setMobileMenuOpen(false);
                         handleLogoutClick();
                       }}
-                      className="flex-1 bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:bg-red-100 transition-colors shadow-2xs"
+                      className="flex-1 bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-md text-[11px] font-bold uppercase tracking-wider cursor-pointer hover:bg-red-100 transition-colors"
                     >
                       Logout
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
                       navigate("/login");
                     }}
-                    className="flex-1 bg-[#031D44] hover:bg-[#B58E58] text-white py-3.5 rounded-xl text-[11px] font-bold uppercase tracking-widest shadow-md transition-colors cursor-pointer"
+                    className="flex-1 bg-[#FB641B] hover:bg-[#e55a15] text-white py-3 rounded-md text-[12px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     Login
                   </button>
@@ -823,7 +921,7 @@ const Navbar = () => {
                       setMobileMenuOpen(false);
                       navigate("/register");
                     }}
-                    className="flex-1 bg-[#FAF7F2] border border-[#E5DCD0] hover:bg-white text-[#031D44] py-3.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-colors shadow-2xs cursor-pointer"
+                    className="flex-1 bg-white border-2 border-[#2874F0] hover:bg-[#2874F0] hover:text-white text-[#2874F0] py-3 rounded-md text-[12px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     Sign Up
                   </button>
@@ -831,64 +929,64 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Navigation Links Scrollable Area */}
-            <div className="flex-1 overflow-y-auto bg-[#FAF7F2]">
-              <div className="flex flex-col text-[12px] font-bold text-[#031D44] uppercase tracking-widest p-5">
+            {/* Navigation Links */}
+            <div className="flex-1 overflow-y-auto bg-white">
+              <div className="flex flex-col text-[13px] font-semibold text-gray-700 p-4">
                 <Link
                   to="/"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="py-3.5 flex items-center gap-3.5 border-b border-[#E5DCD0]/60 hover:text-[#B58E58] transition-colors"
+                  className="py-3 flex items-center justify-between border-b border-gray-100 hover:text-[#2874F0] transition-colors"
                 >
-                  <div className="w-1.5 h-1.5 bg-[#B58E58] rounded-full"></div>{" "}
                   Home
+                  <FiChevronDown size={14} className="-rotate-90" />
                 </Link>
                 <Link
                   to="/products"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="py-3.5 flex items-center gap-3.5 border-b border-[#E5DCD0]/60 hover:text-[#B58E58] transition-colors"
+                  className="py-3 flex items-center justify-between border-b border-gray-100 hover:text-[#2874F0] transition-colors"
                 >
-                  <div className="w-1.5 h-1.5 bg-[#B58E58] rounded-full"></div>{" "}
                   All Products
+                  <FiChevronDown size={14} className="-rotate-90" />
                 </Link>
                 <Link
                   to="/category/bed-sheets"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="py-3.5 flex items-center gap-3.5 border-b border-[#E5DCD0]/60 hover:text-[#B58E58] transition-colors"
+                  className="py-3 flex items-center justify-between border-b border-gray-100 hover:text-[#2874F0] transition-colors"
                 >
-                  <div className="w-1.5 h-1.5 bg-[#B58E58] rounded-full"></div>{" "}
                   Bedding
+                  <FiChevronDown size={14} className="-rotate-90" />
                 </Link>
                 <Link
                   to="/category/towels"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="py-3.5 flex items-center gap-3.5 border-b border-[#E5DCD0]/60 hover:text-[#B58E58] transition-colors"
+                  className="py-3 flex items-center justify-between border-b border-gray-100 hover:text-[#2874F0] transition-colors"
                 >
-                  <div className="w-1.5 h-1.5 bg-[#B58E58] rounded-full"></div>{" "}
-                  Towel
+                  Towels
+                  <FiChevronDown size={14} className="-rotate-90" />
                 </Link>
                 <Link
                   to="/contact"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="py-3.5 flex items-center gap-3.5 hover:text-[#B58E58] transition-colors"
+                  className="py-3 flex items-center justify-between border-b border-gray-100 hover:text-[#2874F0] transition-colors"
                 >
-                  <div className="w-1.5 h-1.5 bg-[#B58E58] rounded-full"></div>{" "}
                   Contact
+                  <FiChevronDown size={14} className="-rotate-90" />
                 </Link>
 
-                <div className="mt-8 mb-3 flex items-center gap-2">
-                  <span className="text-[#B58E58] font-bold text-[10px] tracking-[0.2em]">
+                <div className="mt-6 mb-3 flex items-center gap-2">
+                  <span className="text-[#FB641B] font-bold text-[10px] tracking-[0.2em]">
                     ALL CATEGORIES
                   </span>
-                  <div className="h-px bg-[#E5DCD0] flex-1"></div>
+                  <div className="h-px bg-gray-200 flex-1"></div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-1.5">
+                <div className="grid grid-cols-1 gap-1">
                   {categories.map((cat) => (
                     <Link
                       key={cat.CategoryId || cat.id}
                       to={`/category/${cat.Slug || cat.slug || (cat.Name || cat.name || "").toLowerCase().replace(/\s+/g, "-")}`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-gray-600 text-xs font-medium hover:text-[#031D44] hover:bg-white pl-3.5 py-2.5 rounded-lg border-l-2 border-transparent hover:border-[#B58E58] transition-all capitalize shadow-sm"
+                      className="text-gray-600 text-[13px] font-medium hover:text-[#2874F0] hover:bg-[#F1F3F6] pl-3 py-2.5 rounded transition-all capitalize"
                     >
                       {cat.Name || cat.name}
                     </Link>
@@ -900,62 +998,63 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* Contact Info Modal */}
+      {/* ============ CONTACT MODAL ============ */}
       {showContactModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-[#FAF7F2] border border-[#E5DCD0] max-w-md w-full p-8 shadow-2xl relative rounded-[24px]">
+          <div className="bg-white border border-gray-200 max-w-md w-full p-7 shadow-2xl relative rounded-lg">
             <button
               onClick={() => setShowContactModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-[#031D44] bg-white border border-[#E5DCD0] p-1.5 rounded-full transition-colors cursor-pointer shadow-sm"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors cursor-pointer"
+              aria-label="Close"
             >
               <FiX size={16} />
             </button>
-            <div className="w-14 h-14 bg-[#031D44] text-[#B58E58] rounded-2xl flex items-center justify-center mb-4 shadow-md">
+            <div className="w-14 h-14 bg-[#2874F0] text-white rounded-full flex items-center justify-center mb-4">
               <FiHeadphones size={24} />
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#031D44] mb-1">
+            <h3 className="text-[18px] font-bold text-gray-800 mb-1">
               Gateway Linen HQ
             </h3>
-            <p className="text-[12px] text-gray-500 mb-6 font-light">
-              Official wholesale contact information and location.
+            <p className="text-[12px] text-gray-500 mb-5">
+              Official contact information and location.
             </p>
-            <div className="space-y-4 mb-8 bg-white p-5 rounded-xl border border-[#E5DCD0] shadow-sm text-[12px]">
+            <div className="space-y-3.5 mb-6 bg-[#F1F3F6] p-4 rounded-lg border border-gray-200 text-[12px]">
               <div className="flex items-start gap-3 text-gray-700">
                 <FiMapPin
-                  className="text-[#B58E58] mt-0.5 flex-shrink-0"
+                  className="text-[#2874F0] mt-0.5 flex-shrink-0"
                   size={16}
                 />
                 <span className="leading-relaxed">
-                  <strong className="text-[#031D44] block mb-0.5">
+                  <strong className="text-gray-800 block mb-0.5">
                     Address:
-                  </strong>{" "}
+                  </strong>
                   9 Mapleridge crescent, Brandon R7A6P8, Manitoba, Canada
                 </span>
               </div>
-              <div className="w-full h-px bg-[#E5DCD0]/50"></div>
+              <div className="w-full h-px bg-gray-200"></div>
               <div className="flex items-center gap-3 text-gray-700">
-                <FiPhone className="text-[#B58E58] flex-shrink-0" size={16} />
+                <FiPhone className="text-[#2874F0] flex-shrink-0" size={16} />
                 <span>
-                  <strong className="text-[#031D44] mr-1">Phone:</strong>{" "}
+                  <strong className="text-gray-800 mr-1">Phone:</strong>
                   <a
                     href="tel:+12049794044"
-                    className="hover:text-[#B58E58] transition-colors"
+                    className="hover:text-[#FB641B] transition-colors"
                   >
                     +1 (204) 979-4044
                   </a>
                 </span>
               </div>
-              <div className="w-full h-px bg-[#E5DCD0]/50"></div>
+              <div className="w-full h-px bg-gray-200"></div>
               <div className="flex items-start gap-3 text-gray-700">
                 <FiMail
-                  className="text-[#B58E58] mt-0.5 flex-shrink-0"
+                  className="text-[#2874F0] mt-0.5 flex-shrink-0"
                   size={16}
                 />
                 <span>
-                  <strong className="text-[#031D44] mr-1">Email:</strong>{" "}
+                  <strong className="text-gray-800 mr-1">Email:</strong>
                   <a
                     href="mailto:gatewaylinen@gmail.com"
-                    className="hover:text-[#B58E58] transition-colors"
+                    className="hover:text-[#FB641B] transition-colors"
                   >
                     gatewaylinen@gmail.com
                   </a>
@@ -964,9 +1063,9 @@ const Navbar = () => {
             </div>
             <button
               onClick={() => setShowContactModal(false)}
-              className="w-full py-3.5 bg-[#031D44] hover:bg-[#B58E58] text-white text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all shadow-md cursor-pointer"
+              className="w-full py-3 bg-[#FB641B] hover:bg-[#e55a15] text-white text-[12px] font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer"
             >
-              Close Window
+              Close
             </button>
           </div>
         </div>

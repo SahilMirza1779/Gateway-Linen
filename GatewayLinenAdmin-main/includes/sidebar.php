@@ -1501,12 +1501,6 @@ body {
             ],
 
             [
-                'key'  => 'bulk-inquiries',
-                'url'  => 'bulk-inquiries/index.php',
-                'name' => 'Bulk Inquiries'
-            ],
-
-            [
                 'key'  => 'wishlist',
                 'url'  => 'wishlist/index.php',
                 'name' => 'Wishlist'
@@ -1523,19 +1517,7 @@ body {
                 'url'  => 'reviews/index.php',
                 'name' => 'Reviews'
             ],
-
-            [
-                'key'  => 'newsletter',
-                'url'  => 'newsletter/index.php',
-                'name' => 'Newsletter'
-            ],
-
-            [
-                'key'  => 'back-in-stock',
-                'url'  => 'back-in-stock/index.php',
-                'name' => 'Back in Stock'
-            ]
-
+            
         ];
 
         foreach ($marketingMenus as $menu):

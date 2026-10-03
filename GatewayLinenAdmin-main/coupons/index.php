@@ -1,99 +1,41 @@
 <?php
-
 session_start();
-
-/*
-|--------------------------------------------------------------------------
-| ADMIN LOGIN CHECK
-|--------------------------------------------------------------------------
-*/
 
 if (empty($_SESSION['admin_id'])) {
     header('Location: ../index.php');
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| DATABASE
-|--------------------------------------------------------------------------
-*/
-
 require_once __DIR__ . '/../config/database.php';
-
-/*
-|--------------------------------------------------------------------------
-| PAGE SETTINGS
-|--------------------------------------------------------------------------
-*/
 
 $activeMenu = 'coupons';
 $pageTitle  = 'GatewayLinen | Coupons';
 
-/*
-|--------------------------------------------------------------------------
-| ADMIN INFO
-|--------------------------------------------------------------------------
-*/
-
 if (!isset($_SESSION['admin_name'])) {
-    $_SESSION['admin_name'] =
-        $_SESSION['admin_username'] ??
-        'GatewayLinen Administrator';
+    $_SESSION['admin_name'] = $_SESSION['admin_username'] ?? 'GatewayLinen Administrator';
 }
-
 if (!isset($_SESSION['admin_role'])) {
     $_SESSION['admin_role'] = 'Administrator';
 }
 
-/*
-|--------------------------------------------------------------------------
-| CSRF TOKEN FOR DELETE
-|--------------------------------------------------------------------------
-*/
-
 if (empty($_SESSION['coupon_delete_token'])) {
     $_SESSION['coupon_delete_token'] = bin2hex(random_bytes(32));
 }
-
 $csrfToken = $_SESSION['coupon_delete_token'];
-
-/*
-|--------------------------------------------------------------------------
-| SUCCESS / ERROR MESSAGES
-|--------------------------------------------------------------------------
-*/
 
 $actionMessage = trim((string)($_GET['success'] ?? ''));
 $actionError   = trim((string)($_GET['error'] ?? ''));
 
-/*
-|--------------------------------------------------------------------------
-| ESCAPE FUNCTION
-|--------------------------------------------------------------------------
-*/
-
 function e($value): string
 {
-    return htmlspecialchars(
-        (string)$value,
-        ENT_QUOTES,
-        'UTF-8'
-    );
+    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-/*
-|--------------------------------------------------------------------------
-| DATE FORMAT (DEFAULT DD/MM/YYYY)
-|--------------------------------------------------------------------------
-*/
-
-function dateValue($value, $format = 'd/m/Y'): string
+function dateValue($value, $format = 'd M Y'): string
 {
     if ($value instanceof DateTimeInterface) {
         return $value->format($format);
     }
-
     if (!empty($value)) {
         try {
             $dt = new DateTime((string)$value);
@@ -102,16 +44,12 @@ function dateValue($value, $format = 'd/m/Y'): string
             return trim((string)$value);
         }
     }
-
     return '—';
 }
 
-/*
-|--------------------------------------------------------------------------
-| FETCH ALL COUPONS
-|--------------------------------------------------------------------------
-*/
-
+/* --------------------------------------------------------------------------
+   LOAD COUPONS
+   -------------------------------------------------------------------------- */
 $sql = "
     SELECT
         CouponId,
@@ -141,852 +79,355 @@ if ($stmt !== false) {
     }
     sqlsrv_free_stmt($stmt);
 } else {
-    $queryError = 'Unable to load coupons from database.';
+    $queryError = 'Unable to load coupons right now.';
 }
 
-/*
-|--------------------------------------------------------------------------
-| STATISTICS
-|--------------------------------------------------------------------------
-*/
-
-$totalCoupons    = count($allCoupons);
-$activeCoupons   = 0;
+$totalCoupons = count($allCoupons);
+$activeCoupons = 0;
 $inactiveCoupons = 0;
 $wholesaleCoupons = 0;
 
 foreach ($allCoupons as $coupon) {
-    if (!empty($coupon['IsActive'])) {
-        $activeCoupons++;
-    } else {
-        $inactiveCoupons++;
-    }
-
-    if (!empty($coupon['IsForWholesaleOnly'])) {
-        $wholesaleCoupons++;
-    }
+    if (!empty($coupon['IsActive'])) $activeCoupons++;
+    else $inactiveCoupons++;
+    if (!empty($coupon['IsForWholesaleOnly'])) $wholesaleCoupons++;
 }
-
-/*
-|--------------------------------------------------------------------------
-| HEADER / SIDEBAR
-|--------------------------------------------------------------------------
-*/
 
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/sidebar.php';
-
 ?>
-
 <style>
-    :root {
-        --bg-page: #0a1119;
-        --bg-card: #111b26;
-        --bg-card-alt: #0f1823;
-        --bg-header: #0d1620;
-        --bg-hover: #16222e;
-        --bg-input: #0d1620;
-
-        --border: #1e2d3d;
-        --border-soft: #182636;
-
-        --text-hi: #f0f4f8;
-        --text-body: #a8b8c8;
-        --text-mute: #5f7488;
-
-        --green: #10b981;
-        --green-soft: rgba(16, 185, 129, .12);
-
-        --red: #ef4444;
-        --red-soft: rgba(239, 68, 68, .12);
-
-        --blue: #38bdf8;
-        --blue-soft: rgba(56, 189, 248, .15);
-
-        --amber: #f59e0b;
-        --amber-soft: rgba(245, 158, 11, .15);
-
-        --purple: #a855f7;
-        --purple-soft: rgba(168, 85, 247, .15);
-
-        --radius: 10px;
-    }
-
-    html,
-    body,
-    .main,
-    .content {
-        background: var(--bg-page) !important;
-        color: var(--text-body) !important;
-    }
-
-    .coupon-page {
-        width: 100%;
-        max-width: 1600px;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    .coupon-page * {
-        box-sizing: border-box;
-    }
-
-    /* HEADER */
-    .coupon-page-header {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 24px;
-        margin-bottom: 20px;
-        padding-bottom: 18px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .coupon-breadcrumb {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-        color: var(--text-mute);
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .3px;
-    }
-
-    .coupon-breadcrumb .current {
-        color: var(--green);
-    }
-
-    .coupon-page-header h1 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 26px;
-        font-weight: 800;
-    }
-
-    .coupon-page-header p {
-        margin: 6px 0 0;
-        color: var(--text-mute);
-        font-size: 12px;
-    }
-
-    /* BUTTONS */
-    .header-actions,
-    .coupon-actions,
-    .coupon-filters,
-    .export-bar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .header-actions {
-        justify-content: flex-end;
-    }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        min-height: 38px;
-        padding: 0 13px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--bg-input);
-        color: var(--text-body) !important;
-        font-size: 11px;
-        font-weight: 800;
-        text-decoration: none;
-        cursor: pointer;
-        transition: .18s;
-    }
-
-    .btn:hover {
-        border-color: var(--green);
-        background: var(--green-soft);
-        color: var(--green) !important;
-    }
-
-    .btn-primary {
-        border-color: transparent;
-        background: linear-gradient(135deg, #059669, #10b981);
-        color: #fff !important;
-        box-shadow: 0 6px 16px rgba(16, 185, 129, .2);
-    }
-
-    .btn-blue {
-        color: var(--blue) !important;
-    }
-
-    /* STATS */
-    .coupon-stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .coupon-stat-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 15px 17px;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-    }
-
-    .coupon-stat-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        border-radius: 9px;
-        background: var(--green-soft);
-        color: var(--green);
-        font-size: 15px;
-        font-weight: 800;
-    }
-
-    .coupon-stat-label {
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    .coupon-stat-value {
-        margin-top: 2px;
-        color: var(--text-hi);
-        font-size: 20px;
-        font-weight: 800;
-    }
-
-    /* NOTICE */
-    .notice {
-        margin-bottom: 14px;
-        padding: 12px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .notice-success {
-        border: 1px solid rgba(16, 185, 129, .3);
-        background: var(--green-soft);
-        color: #6ee7b7;
-    }
-
-    .notice-error {
-        border: 1px solid rgba(239, 68, 68, .3);
-        background: var(--red-soft);
-        color: #fca5a5;
-    }
-
-    /* CONTENT */
-    .coupon-content {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .coupon-content-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 17px 20px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .coupon-content-title h2 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 16px;
-    }
-
-    .coupon-content-title p {
-        margin: 4px 0 0;
-        color: var(--text-mute);
-        font-size: 11px;
-    }
-
-    /* FILTERS */
-    .coupon-search-wrap {
-        position: relative;
-        width: 270px;
-    }
-
-    .coupon-search-icon {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-mute);
-        pointer-events: none;
-    }
-
-    .coupon-search,
-    .coupon-select-filter {
-        height: 36px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        outline: none;
-        background: var(--bg-input);
-        color: var(--text-hi);
-        font-size: 12px;
-    }
-
-    .coupon-search {
-        width: 100%;
-        padding: 0 12px 0 34px;
-    }
-
-    .coupon-select-filter {
-        min-width: 135px;
-        padding: 0 10px;
-    }
-
-    .coupon-search:focus,
-    .coupon-select-filter:focus {
-        border-color: var(--green);
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, .1);
-    }
-
-    /* EXPORT */
-    .export-bar {
-        padding: 10px 20px;
-        border-bottom: 1px solid var(--border);
-        background: var(--bg-card-alt);
-    }
-
-    .export-label {
-        margin-right: auto;
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-    }
-
-    /* SUMMARY */
-    .coupon-table-summary {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 11px 20px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .coupon-result-text {
-        color: var(--text-mute);
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    .coupon-result-text strong {
-        color: var(--text-hi);
-    }
-
-    /* TABLE */
-    .coupon-table-wrapper {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .coupon-table {
-        width: 100%;
-        min-width: 1200px;
-        border-collapse: collapse;
-    }
-
-    .coupon-table th {
-        height: 44px;
-        padding: 0 16px;
-        background: var(--bg-header);
-        border-bottom: 1px solid var(--border);
-        color: var(--text-mute);
-        font-size: 10px;
-        font-weight: 800;
-        text-align: left;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        white-space: nowrap;
-    }
-
-    .coupon-table td {
-        padding: 12px 16px;
-        background: transparent;
-        border-bottom: 1px solid var(--border-soft);
-        color: var(--text-body);
-        font-size: 12px;
-        vertical-align: middle;
-    }
-
-    .coupon-table tbody tr:hover {
-        background: var(--bg-hover);
-    }
-
-    .coupon-table tbody tr.keyboard-selected {
-        outline: 2px solid var(--green);
-        outline-offset: -2px;
-        background: var(--green-soft);
-    }
-
-    .coupon-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .order-box {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 44px;
-        height: 28px;
-        padding: 0 8px;
-        border-radius: 7px;
-        background: var(--bg-input);
-        border: 1px solid var(--border);
-        color: var(--text-mute);
-        font-size: 11px;
-        font-weight: 800;
-    }
-
-    .coupon-code-badge {
-        display: inline-block;
-        font-family: monospace;
-        font-size: 13px;
-        font-weight: 800;
-        color: var(--green);
-        background: var(--green-soft);
-        padding: 5px 11px;
-        border-radius: 7px;
-        border: 1px dashed rgba(16, 185, 129, 0.4);
-        letter-spacing: .8px;
-    }
-
-    .discount-val {
-        color: var(--text-hi);
-        font-weight: 800;
-        font-size: 13px;
-    }
-
-    .discount-type-tag {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 5px;
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        background: var(--blue-soft);
-        color: var(--blue);
-    }
-
-    .wholesale-tag {
-        display: inline-block;
-        padding: 2px 7px;
-        border-radius: 4px;
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-        background: var(--purple-soft);
-        color: var(--purple);
-        border: 1px solid rgba(168, 85, 247, .25);
-    }
-
-    /* STATUS */
-    .coupon-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        min-height: 25px;
-        padding: 0 10px;
-        border-radius: 20px;
-        font-size: 10px;
-        font-weight: 700;
-    }
-
-    .coupon-status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-    }
-
-    .coupon-status-active {
-        background: var(--green-soft);
-        color: var(--green);
-    }
-
-    .coupon-status-active .coupon-status-dot {
-        background: var(--green);
-        box-shadow: 0 0 6px var(--green);
-    }
-
-    .coupon-status-inactive {
-        background: var(--red-soft);
-        color: #f87171;
-    }
-
-    .coupon-status-inactive .coupon-status-dot {
-        background: #f87171;
-    }
-
-    /* ACTIONS */
-    .coupon-action {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--bg-input);
-        color: var(--text-body) !important;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .coupon-action:hover {
-        border-color: var(--green);
-        background: var(--green-soft);
-        color: var(--green) !important;
-    }
-
-    .coupon-action-delete:hover {
-        border-color: rgba(239, 68, 68, .5);
-        background: var(--red-soft);
-        color: var(--red) !important;
-    }
-
-    /* EMPTY */
-    .coupon-empty,
-    .coupon-no-result {
-        padding: 65px 20px;
-        text-align: center;
-    }
-
-    .coupon-empty-icon,
-    .coupon-no-result-icon {
-        margin-bottom: 12px;
-        color: var(--green);
-        font-size: 28px;
-    }
-
-    .coupon-empty h3,
-    .coupon-no-result h3 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 16px;
-    }
-
-    .coupon-empty p,
-    .coupon-no-result p {
-        margin: 6px 0 0;
-        color: var(--text-mute);
-        font-size: 12px;
-    }
-
-    /* SHORTCUTS */
-    .shortcut-help-box {
-        margin-top: 16px;
-        padding: 16px 20px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--bg-card);
-    }
-
-    .shortcut-help-box.hidden { display: none; }
-
-    .shortcut-help-title {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        margin-bottom: 12px;
-        color: var(--text-hi);
-        font-size: 13px;
-        font-weight: 800;
-    }
-
-    .shortcut-help-title small {
-        margin-left: auto;
-        color: var(--text-mute);
-        font: 600 10px monospace;
-    }
-
-    .shortcut-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .shortcut-item {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        padding: 8px 10px;
-        border: 1px solid var(--border-soft);
-        border-radius: 8px;
-        background: var(--bg-input);
-    }
-
-    .shortcut-key {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 36px;
-        height: 25px;
-        padding: 0 7px;
-        border-radius: 5px;
-        background: #0a1119;
-        border: 1px solid var(--border);
-        color: var(--green);
-        font: 800 10px monospace;
-    }
-
-    .shortcut-desc {
-        color: var(--text-body);
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    /* MODAL */
-    .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(0, 0, 0, .75);
-    }
-
-    .modal-backdrop.show { display: flex; }
-
-    .coupon-modal {
-        width: min(720px, 100%);
-        max-height: 90vh;
-        overflow: auto;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
-    }
-
-    .modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 15px 18px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .modal-header h3 {
-        margin: 0;
-        color: var(--text-hi);
-        font-size: 15px;
-    }
-
-    .modal-close {
-        border: 0;
-        background: transparent;
-        color: var(--text-mute);
-        font-size: 22px;
-        cursor: pointer;
-    }
-
-    .modal-body {
-        padding: 20px;
-    }
-
-    .detail-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-    }
-
-    .detail-item label {
-        display: block;
-        margin-bottom: 4px;
-        color: var(--text-mute);
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .detail-item div {
-        color: var(--text-hi);
-        font-size: 12px;
-        line-height: 1.5;
-    }
-
-    .detail-full {
-        grid-column: 1 / -1;
-    }
-
-    .detail-card {
-        padding: 12px 14px;
-        border: 1px solid var(--border-soft);
-        border-radius: 8px;
-        background: var(--bg-input);
-    }
-
-    .modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        padding: 14px 18px;
-        border-top: 1px solid var(--border);
-    }
-
-    @media (max-width: 1100px) {
-        .coupon-stats { grid-template-columns: repeat(2, 1fr); }
-        .coupon-content-header { flex-direction: column; align-items: stretch; }
-        .coupon-filters { width: 100%; }
-        .coupon-search-wrap { width: 100%; }
-        .shortcut-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 700px) {
-        .coupon-page-header { flex-direction: column; align-items: flex-start; }
-        .header-actions { width: 100%; justify-content: flex-start; }
-        .coupon-stats { grid-template-columns: 1fr 1fr; }
-        .coupon-filters { display: grid; grid-template-columns: 1fr; }
-        .coupon-select-filter { width: 100%; }
-        .shortcut-grid { grid-template-columns: 1fr; }
-        .detail-grid { grid-template-columns: 1fr; }
-    }
-
-    @media print {
-        html, body, .main, .content { background: #fff !important; color: #111 !important; }
-        .coupon-page { max-width: none; }
-        .coupon-page-header, .coupon-stats, .coupon-filters, .export-bar, .coupon-actions,
-        .shortcut-help-box, .notice, .modal-backdrop, .no-print { display: none !important; }
-        .coupon-content { border: 0; }
-        .coupon-table { min-width: 0; }
-        .coupon-table th, .coupon-table td { color: #111 !important; background: #fff !important; border-color: #ccc !important; }
-    }
+.coupon-page,
+.coupon-page * { box-sizing: border-box; }
+
+.coupon-page {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0;
+    font-size: 13px;
+
+    --coup-page: #f3f6fa;
+    --coup-card: #ffffff;
+    --coup-card-alt: #f8fafc;
+    --coup-input: #ffffff;
+    --coup-border: #dce4ec;
+    --coup-border-soft: #e8edf3;
+    --coup-text: #162334;
+    --coup-body: #536579;
+    --coup-muted: #7b8da1;
+    --coup-green: #059669;
+    --coup-green-soft: rgba(5,150,105,.10);
+    --coup-red: #dc2626;
+    --coup-red-soft: rgba(220,38,38,.09);
+    --coup-blue: #0284c7;
+    --coup-blue-soft: rgba(2,132,199,.09);
+    --coup-shadow: 0 5px 18px rgba(15,23,42,.05);
+}
+
+html[data-theme="dark"] .coupon-page,
+body[data-theme="dark"] .coupon-page,
+html.dark .coupon-page,
+body.dark .coupon-page,
+html.dark-mode .coupon-page,
+body.dark-mode .coupon-page {
+    --coup-page: #0a1119;
+    --coup-card: #111b26;
+    --coup-card-alt: #0f1823;
+    --coup-input: #0d1620;
+    --coup-border: #1e2d3d;
+    --coup-border-soft: #182636;
+    --coup-text: #f0f4f8;
+    --coup-body: #a8b8c8;
+    --coup-muted: #6f8295;
+    --coup-green: #10b981;
+    --coup-green-soft: rgba(16,185,129,.12);
+    --coup-red: #ef4444;
+    --coup-red-soft: rgba(239,68,68,.12);
+    --coup-blue: #38bdf8;
+    --coup-blue-soft: rgba(56,189,248,.12);
+    --coup-shadow: none;
+}
+
+.coupon-page { background: var(--coup-page); color: var(--coup-body); }
+
+.coupon-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    margin: 0 0 18px;
+    padding: 0 0 16px;
+    border-bottom: 1px solid var(--coup-border);
+}
+
+.coupon-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 7px;
+    color: var(--coup-muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .45px;
+}
+.coupon-breadcrumb .current { color: var(--coup-green); }
+
+.coupon-page-header h1 { margin: 0; color: var(--coup-text); font-size: 30px; font-weight: 900; letter-spacing: -.5px; }
+.coupon-page-header p { margin: 7px 0 0; color: var(--coup-muted); font-size: 13px; font-weight: 600; }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 15px;
+    border: 1px solid var(--coup-border);
+    border-radius: 9px;
+    background: var(--coup-card);
+    color: var(--coup-text) !important;
+    font-size: 13px;
+    font-weight: 900;
+    text-decoration: none;
+    cursor: pointer;
+    transition: .16s ease;
+}
+.btn:hover { border-color: var(--coup-green); background: var(--coup-green-soft); color: var(--coup-green) !important; }
+
+.btn-primary { 
+    border-color: transparent; 
+    background: linear-gradient(135deg,#059669,#10b981); 
+    color: #fff !important; 
+    box-shadow: 0 5px 14px rgba(16,185,129,.16); 
+}
+.btn-primary:hover { 
+    background: linear-gradient(135deg,#047857,#059669); 
+    color: #fff !important; 
+}
+
+html[data-theme="dark"] .btn-primary,
+body[data-theme="dark"] .btn-primary,
+html.dark .btn-primary,
+body.dark .btn-primary {
+    background: #111b26;
+    border: 1px solid #1e2d3d;
+    color: #f0f4f8 !important;
+    box-shadow: none;
+}
+html[data-theme="dark"] .btn-primary:hover,
+body[data-theme="dark"] .btn-primary:hover,
+html.dark .btn-primary:hover,
+body.dark .btn-primary:hover {
+    border-color: #10b981;
+    background: rgba(16,185,129,.12);
+    color: #10b981 !important;
+}
+
+.key-hint, .btn small {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 21px; height: 21px; padding: 0 4px;
+    border: 1px solid currentColor; border-radius: 4px; font: 800 9px/1 monospace; opacity: .9;
+}
+
+.coupon-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; margin-bottom: 16px; }
+.coupon-stat-item {
+    display: flex; align-items: center; gap: 13px; min-height: 82px; padding: 14px 17px;
+    background: var(--coup-card); border: 1px solid var(--coup-border); border-radius: 11px; box-shadow: var(--coup-shadow);
+}
+.coupon-stat-icon {
+    display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 40px;
+    border-radius: 10px; background: var(--coup-green-soft); color: var(--coup-green); font-size: 17px; font-weight: 900;
+}
+.coupon-stat-label { color: var(--coup-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .45px; }
+.coupon-stat-value { margin-top: 4px; color: var(--coup-text); font-size: 24px; font-weight: 900; line-height: 1; }
+
+.notice { margin-bottom: 12px; padding: 12px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+.notice-success { border: 1px solid rgba(5,150,105,.25); background: var(--coup-green-soft); color: var(--coup-green); }
+.notice-error { border: 1px solid rgba(220,38,38,.25); background: var(--coup-red-soft); color: var(--coup-red); }
+
+.coupon-content { background: var(--coup-card); border: 1px solid var(--coup-border); border-radius: 12px; overflow: hidden; box-shadow: var(--coup-shadow); }
+.coupon-content-header { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 20px 24px; min-height: 104px; border-bottom: 1px solid var(--coup-border); }
+.coupon-content-title h2 { margin: 0; color: var(--coup-text); font-size: 22px; font-weight: 900; }
+.coupon-content-title p { margin: 6px 0 0; color: var(--coup-muted); font-size: 11px; font-weight: 600; line-height: 1.5; }
+
+.coupon-filters { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; justify-content: flex-end; }
+.coupon-search-wrap { position: relative; width: min(420px, 100%); flex: 1 1 300px; }
+.coupon-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--coup-muted); pointer-events: none; font-size: 17px; }
+
+.coupon-search, .coupon-status-filter {
+    height: 54px; border: 1px solid var(--coup-border); border-radius: 10px; outline: none; background: var(--coup-input); color: var(--coup-text); font-size: 14px; font-weight: 600;
+}
+.coupon-search { width: 100%; padding: 0 16px 0 46px; }
+.coupon-status-filter { min-width: 170px; padding: 0 14px; }
+.coupon-search::placeholder { color: var(--coup-muted); font-size: 14px; font-weight: 500; }
+.coupon-search:focus, .coupon-status-filter:focus { border-color: var(--coup-green); box-shadow: 0 0 0 3px var(--coup-green-soft); }
+
+.coupon-table-summary { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid var(--coup-border); }
+.coupon-result-text { color: var(--coup-muted); font-size: 11px; font-weight: 700; }
+.coupon-result-text strong { color: var(--coup-text); }
+
+.coupon-table-wrapper { width: 100%; overflow-x: auto; }
+.coupon-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+.coupon-table th {
+    height: 48px; padding: 0 16px; background: var(--coup-card-alt); border-bottom: 1px solid var(--coup-border);
+    color: var(--coup-muted); font-size: 10px; font-weight: 900; text-align: left; text-transform: uppercase; letter-spacing: .55px; white-space: nowrap;
+}
+.coupon-table td { padding: 15px 16px; background: transparent; border-bottom: 1px solid var(--coup-border-soft); color: var(--coup-body); font-size: 12px; line-height: 1.45; vertical-align: middle; }
+.coupon-table tbody tr { cursor: pointer; }
+.coupon-table tbody tr:hover { background: var(--coup-green-soft); }
+.coupon-table tbody tr.keyboard-selected { outline: 2px solid var(--coup-green); outline-offset: -2px; background: var(--coup-green-soft); }
+
+.order-box {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 30px; padding: 0 8px;
+    border-radius: 7px; background: var(--coup-input); border: 1px solid var(--coup-border); color: var(--coup-green); font-size: 11px; font-weight: 900;
+}
+.coupon-code-badge {
+    display: inline-block; font-family: monospace; font-size: 13px; font-weight: 900; color: var(--coup-green);
+    background: var(--coup-green-soft); padding: 5px 10px; border-radius: 7px; border: 1px dashed rgba(5,150,105,0.4); letter-spacing: .5px;
+}
+.discount-type-tag {
+    display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase;
+    background: var(--coup-blue-soft); color: var(--coup-blue);
+}
+.wholesale-tag {
+    display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase;
+    background: rgba(168,85,247,.12); color: #a855f7; border: 1px solid rgba(168,85,247,.25);
+}
+
+.coupon-status { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: 20px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.coupon-status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.coupon-status-active { background: var(--coup-green-soft); color: var(--coup-green); }
+.coupon-status-active .coupon-status-dot { background: var(--coup-green); box-shadow: 0 0 6px var(--coup-green); }
+.coupon-status-inactive { background: var(--coup-red-soft); color: var(--coup-red); }
+.coupon-status-inactive .coupon-status-dot { background: var(--coup-red); }
+
+.coupon-actions { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
+.coupon-action {
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px; width: 36px; height: 36px;
+    border: 1px solid var(--coup-border); border-radius: 8px; background: var(--coup-card); color: var(--coup-body) !important;
+    text-decoration: none; cursor: pointer; font-size: 13px;
+}
+.coupon-action:hover { border-color: var(--coup-green); background: var(--coup-green-soft); color: var(--coup-green) !important; }
+.coupon-action-delete:hover { border-color: rgba(220,38,38,.4); background: var(--coup-red-soft); color: var(--coup-red) !important; }
+.coupon-action .key-hint { min-width: 16px; height: 16px; font-size: 8px; }
+
+.coupon-empty, .coupon-no-result { padding: 65px 20px; text-align: center; }
+.coupon-empty-icon, .coupon-no-result-icon { margin-bottom: 12px; color: var(--coup-green); font-size: 32px; }
+.coupon-empty h3, .coupon-no-result h3 { margin: 0; color: var(--coup-text); font-size: 16px; font-weight: 900; }
+.coupon-empty p, .coupon-no-result p { margin: 6px 0 0; color: var(--coup-muted); font-size: 11px; }
+
+.coupon-pagination-bar { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 14px 18px; background: var(--coup-card); border-top: 1px solid var(--coup-border); min-height: 68px; }
+.coupon-page-info { color: var(--coup-muted); font-size: 11px; font-weight: 700; }
+.coupon-page-controls { display: flex; align-items: center; gap: 6px; }
+.page-size-wrap { display: flex; align-items: center; gap: 8px; margin-right: 10px; color: var(--coup-muted); font-size: 10px; font-weight: 800; }
+.page-size-select, .pagination-btn { height: 42px; border: 1px solid var(--coup-border); border-radius: 8px; background: var(--coup-card); color: var(--coup-text); font-size: 12px; font-weight: 800; outline: none; }
+.page-size-select { min-width: 78px; padding: 0 10px; }
+.pagination-btn { min-width: 42px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.pagination-btn:hover:not(:disabled), .pagination-btn.active { background: var(--coup-green); border-color: var(--coup-green); color: #fff !important; }
+.pagination-btn:disabled { opacity: .4; cursor: not-allowed; }
+.pagination-ellipsis { min-width: 26px; text-align: center; color: var(--coup-muted); font-size: 13px; }
+.dataset-note { margin-top: 4px; color: var(--coup-muted); font-size: 10px; }
+
+/* ==========================================================================
+   MODAL DIALOG STYLING
+   ========================================================================== */
+.modal-backdrop {
+    position: fixed; inset: 0; z-index: 99999; display: none; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+}
+.modal-backdrop.show { display: flex; }
+
+.coupon-modal {
+    width: min(750px, 100%); max-height: 90vh; overflow-y: auto; 
+    background: #ffffff !important; color: #162334 !important;
+    border: 1px solid #dce4ec; border-radius: 14px; box-shadow: 0 25px 75px rgba(0, 0, 0, 0.50);
+    display: flex; flex-direction: column;
+}
+
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid #dce4ec; background: #f8fafc !important; }
+.modal-header h3 { margin: 0; color: #162334 !important; font-size: 18px; font-weight: 900; }
+.modal-close { border: 0; background: transparent; color: #7b8da1; font-size: 26px; font-weight: 700; cursor: pointer; transition: color .15s; }
+.modal-close:hover { color: #dc2626; }
+
+.modal-body { padding: 28px; overflow-y: auto; background: #ffffff !important; color: #162334 !important; }
+.detail-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.detail-item { display: flex; flex-direction: column; gap: 5px; }
+.detail-item.full-width { grid-column: 1 / -1; }
+.detail-item label { color: #7b8da1 !important; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; }
+.detail-item .val { color: #162334 !important; font-size: 13px; font-weight: 700; word-break: break-word; }
+
+.modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid #dce4ec; background: #f8fafc !important; }
+.modal-footer .btn { background: #ffffff !important; color: #162334 !important; border-color: #dce4ec !important; }
+.modal-footer .btn:hover { background: rgba(5,150,105,.10) !important; color: #059669 !important; border-color: #059669 !important; }
+
+@media print {
+    body * { visibility: hidden; }
+    .coupon-content, .coupon-content *, .coupon-table, .coupon-table * { visibility: visible; }
+    .coupon-content { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border: none !important; }
+    .coupon-content-header, .coupon-filters, .coupon-table-summary, .coupon-pagination-bar, .coupon-actions th:last-child, .coupon-actions td:last-child, .key-hint { display: none !important; }
+}
 </style>
 
 <main class="main">
     <section class="content">
         <div class="coupon-page">
 
-            <!-- PAGE HEADER -->
             <div class="coupon-page-header">
                 <div>
                     <div class="coupon-breadcrumb">
-                        <span>Marketing</span>
-                        <span>/</span>
-                        <span class="current">Coupons</span>
+                        <span>Marketing</span><span>/</span><span class="current">Coupons</span>
                     </div>
                     <h1>Coupons Management</h1>
-                    <p>Manage promo discounts, usage limits, wholesale restrictions, dates and reports.</p>
+                    <p>Manage promo discount codes, limitations, wholesale restrictions, and status.</p>
                 </div>
 
                 <div class="header-actions">
-                    <button type="button" class="btn btn-blue" id="printBtn">
-                        🖨 Print <small>P</small>
-                    </button>
-                    <button type="button" class="btn" id="pdfBtn">
-                        ↓ PDF <small>V</small>
-                    </button>
-                    <button type="button" class="btn" id="excelBtn">
-                        ↓ Excel <small>X</small>
-                    </button>
-                    <a href="add.php" class="btn btn-primary" id="addCouponBtn">
-                        ＋ Add Coupon <small>A</small>
-                    </a>
+                    <button type="button" class="btn" id="printBtn" title="Print (P)">🖨 Print <small>P</small></button>
+                    <button type="button" class="btn" id="pdfBtn" title="PDF (V)">↓ PDF <small>V</small></button>
+                    <button type="button" class="btn" id="excelBtn" title="Excel (X)">↓ Excel <small>X</small></button>
+                    <a href="add.php" class="btn btn-primary" id="addCouponBtn" title="Add Coupon (A)">＋ Add Coupon <small>A</small></a>
                 </div>
             </div>
 
-            <!-- SUCCESS/ERROR MESSAGES -->
             <?php if ($actionMessage !== ''): ?>
-                <div class="notice notice-success">
-                    <?= e($actionMessage) ?>
-                </div>
+                <div class="notice notice-success"><?= e($actionMessage) ?></div>
             <?php endif; ?>
-
             <?php if ($actionError !== ''): ?>
-                <div class="notice notice-error">
-                    <?= e($actionError) ?>
-                </div>
+                <div class="notice notice-error"><?= e($actionError) ?></div>
             <?php endif; ?>
-
             <?php if ($queryError !== ''): ?>
-                <div class="notice notice-error">
-                    <?= e($queryError) ?>
-                </div>
+                <div class="notice notice-error"><?= e($queryError) ?></div>
             <?php endif; ?>
 
-            <!-- STATISTICS -->
             <div class="coupon-stats">
-                <div class="coupon-stat-item">
-                    <div class="coupon-stat-icon">#</div>
-                    <div>
-                        <div class="coupon-stat-label">Total Coupons</div>
-                        <div class="coupon-stat-value"><?= $totalCoupons ?></div>
-                    </div>
-                </div>
-
-                <div class="coupon-stat-item">
-                    <div class="coupon-stat-icon">✓</div>
-                    <div>
-                        <div class="coupon-stat-label">Active</div>
-                        <div class="coupon-stat-value"><?= $activeCoupons ?></div>
-                    </div>
-                </div>
-
-                <div class="coupon-stat-item">
-                    <div class="coupon-stat-icon">○</div>
-                    <div>
-                        <div class="coupon-stat-label">Inactive</div>
-                        <div class="coupon-stat-value"><?= $inactiveCoupons ?></div>
-                    </div>
-                </div>
-
-                <div class="coupon-stat-item">
-                    <div class="coupon-stat-icon">★</div>
-                    <div>
-                        <div class="coupon-stat-label">Wholesale Only</div>
-                        <div class="coupon-stat-value"><?= $wholesaleCoupons ?></div>
-                    </div>
-                </div>
+                <div class="coupon-stat-item"><div class="coupon-stat-icon">#</div><div><div class="coupon-stat-label">Total Coupons</div><div class="coupon-stat-value"><?= $totalCoupons ?></div></div></div>
+                <div class="coupon-stat-item"><div class="coupon-stat-icon">✓</div><div><div class="coupon-stat-label">Active</div><div class="coupon-stat-value"><?= $activeCoupons ?></div></div></div>
+                <div class="coupon-stat-item"><div class="coupon-stat-icon">○</div><div><div class="coupon-stat-label">Inactive</div><div class="coupon-stat-value"><?= $inactiveCoupons ?></div></div></div>
+                <div class="coupon-stat-item"><div class="coupon-stat-icon">★</div><div><div class="coupon-stat-label">Wholesale Only</div><div class="coupon-stat-value"><?= $wholesaleCoupons ?></div></div></div>
             </div>
 
-            <!-- COUPON CONTENT & TABLE -->
             <div class="coupon-content">
                 <div class="coupon-content-header">
                     <div class="coupon-content-title">
                         <h2>Coupon List</h2>
-                        <p>Coupon codes, discount values, minimum order amounts, limits and validity periods.</p>
+                        <p>Code, discount type, value, minimum order, usage counts, and validity dates.</p>
                     </div>
 
                     <div class="coupon-filters">
-                        <!-- REAL-TIME INSTANT SEARCH -->
                         <div class="coupon-search-wrap">
                             <span class="coupon-search-icon">⌕</span>
-                            <input
-                                type="search"
-                                id="couponSearch"
-                                class="coupon-search"
-                                placeholder="Search coupon code or type..."
-                                autocomplete="off">
+                            <input type="search" id="couponSearch" class="coupon-search" placeholder="Search coupon code... (B)" autocomplete="off">
                         </div>
-
-                        <!-- DISCOUNT TYPE FILTER -->
-                        <select id="typeFilter" class="coupon-select-filter">
+                        <select id="couponTypeFilter" class="coupon-status-filter">
                             <option value="all">All Types</option>
-                            <option value="percentage">Percentage (%)</option>
-                            <option value="fixed">Fixed Amount ($)</option>
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed Amount</option>
                         </select>
-
-                        <!-- STATUS FILTER -->
-                        <select id="couponStatusFilter" class="coupon-select-filter">
+                        <select id="couponStatusFilter" class="coupon-status-filter">
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -994,34 +435,18 @@ require_once __DIR__ . '/../includes/sidebar.php';
                     </div>
                 </div>
 
-                <!-- EXPORT BAR -->
-                <div class="export-bar">
-                    <span class="export-label">Reports & Export</span>
-                    <button type="button" class="btn" id="printBtn2">🖨 Print</button>
-                    <button type="button" class="btn" id="pdfBtn2">↓ PDF</button>
-                    <button type="button" class="btn" id="excelBtn2">↓ Excel</button>
-                </div>
-
-                <!-- TABLE SUMMARY -->
                 <div class="coupon-table-summary">
-                    <div class="coupon-result-text">
-                        Showing <strong id="visibleCouponCount"><?= $totalCoupons ?></strong> coupons
-                    </div>
-                    <div class="coupon-result-text">
-                        Total: <strong><?= $totalCoupons ?></strong>
-                    </div>
+                    <div class="coupon-result-text">Showing <strong id="visibleCouponCount"><?= $totalCoupons ?></strong> coupons</div>
+                    <div class="coupon-result-text">Total: <strong><?= $totalCoupons ?></strong></div>
                 </div>
 
-                <!-- TABLE WRAPPER -->
                 <div class="coupon-table-wrapper">
                     <?php if (empty($allCoupons)): ?>
                         <div class="coupon-empty">
                             <div class="coupon-empty-icon">🏷️</div>
                             <h3>No Coupons Found</h3>
                             <p>Create your first discount coupon code to incentivize customers.</p>
-                            <a href="add.php" class="btn btn-primary" style="margin-top:16px">
-                                ＋ Add First Coupon
-                            </a>
+                            <a href="add.php" class="btn btn-primary" style="margin-top:14px">＋ Add First Coupon</a>
                         </div>
                     <?php else: ?>
                         <table class="coupon-table" id="couponTable">
@@ -1036,557 +461,457 @@ require_once __DIR__ . '/../includes/sidebar.php';
                                     <th>Usage</th>
                                     <th>Target</th>
                                     <th>Status</th>
-                                    <th style="text-align:right;">Actions</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php 
-                                $serialNo = 1; 
-                                foreach ($allCoupons as $coupon): 
+                            <?php $no = 1; foreach ($allCoupons as $coupon): ?>
+                                <?php
+                                $couponId      = (int)$coupon['CouponId'];
+                                $code          = (string)$coupon['CouponCode'];
+                                $discountType  = (string)($coupon['DiscountType'] ?? 'Percentage');
+                                $discountValue = (float)($coupon['DiscountValue'] ?? 0);
+                                $minOrder      = (float)($coupon['MinOrderAmount'] ?? 0);
+                                $maxDiscount   = !empty($coupon['MaxDiscountAmount']) ? (float)$coupon['MaxDiscountAmount'] : null;
+                                $startDate     = dateValue($coupon['StartDate'] ?? null, 'd M Y');
+                                $endDate       = dateValue($coupon['EndDate'] ?? null, 'd M Y');
+                                $usageLimit    = !empty($coupon['UsageLimit']) ? (int)$coupon['UsageLimit'] : 'Unlimited';
+                                $timesUsed     = (int)($coupon['TimesUsed'] ?? 0);
+                                $isWholesale   = !empty($coupon['IsForWholesaleOnly']);
+                                $isActive      = !empty($coupon['IsActive']);
+                                $createdAt     = dateValue($coupon['CreatedAt'] ?? null, 'd M Y, h:i A');
+
+                                $discountFormatted = (strtolower($discountType) === 'percentage') 
+                                    ? number_format($discountValue, 1) . '%' 
+                                    : '$' . number_format($discountValue, 2);
+                                $currentNo = $no++;
                                 ?>
-                                    <?php
-                                    $couponId         = (int)($coupon['CouponId'] ?? 0);
-                                    $code             = (string)($coupon['CouponCode'] ?? '');
-                                    $discountType     = (string)($coupon['DiscountType'] ?? 'Percentage');
-                                    $discountValue    = (float)($coupon['DiscountValue'] ?? 0);
-                                    $minOrder         = (float)($coupon['MinOrderAmount'] ?? 0);
-                                    $maxDiscount      = !empty($coupon['MaxDiscountAmount']) ? (float)$coupon['MaxDiscountAmount'] : null;
-                                    
-                                    // DD/MM/YYYY FORMAT FOR START & END DATE
-                                    $startDate        = dateValue($coupon['StartDate'] ?? null, 'd/m/Y');
-                                    $endDate          = dateValue($coupon['EndDate'] ?? null, 'd/m/Y');
-                                    
-                                    $usageLimit       = !empty($coupon['UsageLimit']) ? (int)$coupon['UsageLimit'] : 'Unlimited';
-                                    $timesUsed        = (int)($coupon['TimesUsed'] ?? 0);
-                                    $isWholesale      = !empty($coupon['IsForWholesaleOnly']);
-                                    $isActive         = !empty($coupon['IsActive']);
-                                    
-                                    // DD/MM/YYYY FORMAT FOR CREATED AT
-                                    $createdAt        = dateValue($coupon['CreatedAt'] ?? null, 'd/m/Y, h:i A');
+                                <tr class="coupon-row" data-id="<?= $couponId ?>" data-status="<?= $isActive ? 'active' : 'inactive' ?>" data-type="<?= e(strtolower($discountType)) ?>" data-code="<?= e(strtolower($code)) ?>">
+                                    <td><span class="order-box"><?= $currentNo ?></span></td>
+                                    <td><span class="coupon-code-badge"><?= e($code) ?></span></td>
+                                    <td><strong><?= $discountFormatted ?></strong></td>
+                                    <td><span class="discount-type-tag"><?= e($discountType) ?></span></td>
+                                    <td><?= $minOrder > 0 ? '$' . number_format($minOrder, 2) : '—' ?></td>
+                                    <td>
+                                        <div style="font-size:11px;">
+                                            <div>From: <?= $startDate ?></div>
+                                            <div style="color:var(--coup-muted);">To: <?= $endDate ?></div>
+                                        </div>
+                                    </td>
+                                    <td><strong><?= $timesUsed ?></strong> / <span style="color:var(--coup-muted);"><?= $usageLimit ?></span></td>
+                                    <td>
+                                        <?php if ($isWholesale): ?>
+                                            <span class="wholesale-tag">Wholesale Only</span>
+                                        <?php else: ?>
+                                            <span style="color:var(--coup-muted);font-size:11px;">General</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($isActive): ?>
+                                            <span class="coupon-status coupon-status-active"><span class="coupon-status-dot"></span>Active</span>
+                                        <?php else: ?>
+                                            <span class="coupon-status coupon-status-inactive"><span class="coupon-status-dot"></span>Inactive</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="coupon-actions">
+                                            <button type="button" class="coupon-action detail-btn" title="View details"
+                                                data-code="<?= e($code) ?>"
+                                                data-type="<?= e($discountType) ?>"
+                                                data-value="<?= e($discountFormatted) ?>"
+                                                data-min="<?= $minOrder > 0 ? '$' . number_format($minOrder, 2) : 'None' ?>"
+                                                data-max="<?= $maxDiscount !== null ? '$' . number_format($maxDiscount, 2) : 'None' ?>"
+                                                data-validity="<?= e($startDate) ?> to <?= e($endDate) ?>"
+                                                data-usage="<?= $timesUsed ?> / <?= $usageLimit ?>"
+                                                data-target="<?= $isWholesale ? 'Wholesale Accounts Only' : 'General & Wholesale' ?>"
+                                                data-status="<?= $isActive ? 'Active' : 'Inactive' ?>"
+                                                data-created="<?= e($createdAt) ?>">◉</button>
 
-                                    $discountFormatted = (strtolower($discountType) === 'percentage') 
-                                        ? number_format($discountValue, 1) . '%' 
-                                        : '$' . number_format($discountValue, 2);
-                                    ?>
-                                    <tr
-                                        class="category-row coupon-row"
-                                        data-id="<?= $couponId ?>"
-                                        data-code="<?= e(strtolower($code)) ?>"
-                                        data-type="<?= e(strtolower($discountType)) ?>"
-                                        data-status="<?= $isActive ? 'active' : 'inactive' ?>">
+                                            <a href="edit.php?id=<?= $couponId ?>" class="coupon-action edit-btn" title="Edit Coupon (E)">✎<span class="key-hint">E</span></a>
 
-                                        <!-- SERIAL NO -->
-                                        <td>
-                                            <span class="order-box">#<?= $serialNo++ ?></span>
-                                        </td>
-
-                                        <!-- COUPON CODE -->
-                                        <td>
-                                            <span class="coupon-code-badge"><?= e($code) ?></span>
-                                        </td>
-
-                                        <!-- DISCOUNT VALUE -->
-                                        <td>
-                                            <span class="discount-val"><?= $discountFormatted ?></span>
-                                        </td>
-
-                                        <!-- DISCOUNT TYPE -->
-                                        <td>
-                                            <span class="discount-type-tag"><?= e($discountType) ?></span>
-                                        </td>
-
-                                        <!-- MIN ORDER -->
-                                        <td>
-                                            <?= $minOrder > 0 ? '$' . number_format($minOrder, 2) : 'No Min' ?>
-                                        </td>
-
-                                        <!-- VALIDITY (DD/MM/YYYY) -->
-                                        <td>
-                                            <div style="font-size:11px; line-height:1.4;">
-                                                <div>From: <?= $startDate ?></div>
-                                                <div style="color:var(--text-mute);">To: <?= $endDate ?></div>
-                                            </div>
-                                        </td>
-
-                                        <!-- USAGE -->
-                                        <td>
-                                            <div style="font-size:11px;">
-                                                <strong><?= $timesUsed ?></strong> / <span style="color:var(--text-mute);"><?= $usageLimit ?></span>
-                                            </div>
-                                        </td>
-
-                                        <!-- WHOLESALE TAG -->
-                                        <td>
-                                            <?php if ($isWholesale): ?>
-                                                <span class="wholesale-tag">Wholesale Only</span>
-                                            <?php else: ?>
-                                                <span style="color:var(--text-mute); font-size:11px;">All Customers</span>
-                                            <?php endif; ?>
-                                        </td>
-
-                                        <!-- STATUS -->
-                                        <td>
-                                            <?php if ($isActive): ?>
-                                                <span class="coupon-status coupon-status-active">
-                                                    <span class="coupon-status-dot"></span> Active
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="coupon-status coupon-status-inactive">
-                                                    <span class="coupon-status-dot"></span> Inactive
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-
-                                        <!-- ACTIONS -->
-                                        <td style="text-align:right;">
-                                            <div class="coupon-actions" style="justify-content:flex-end;">
-                                                <!-- VIEW DETAILS -->
-                                                <button
-                                                    type="button"
-                                                    class="coupon-action detail-btn"
-                                                    title="View Coupon Details"
-                                                    data-id="<?= $couponId ?>"
-                                                    data-code="<?= e($code) ?>"
-                                                    data-type="<?= e($discountType) ?>"
-                                                    data-val="<?= $discountFormatted ?>"
-                                                    data-min="<?= $minOrder > 0 ? '$' . number_format($minOrder, 2) : 'None' ?>"
-                                                    data-max="<?= $maxDiscount !== null ? '$' . number_format($maxDiscount, 2) : 'None' ?>"
-                                                    data-start="<?= $startDate ?>"
-                                                    data-end="<?= $endDate ?>"
-                                                    data-limit="<?= $usageLimit ?>"
-                                                    data-used="<?= $timesUsed ?>"
-                                                    data-target="<?= $isWholesale ? 'Wholesale Accounts Only' : 'General & Wholesale' ?>"
-                                                    data-status="<?= $isActive ? 'Active' : 'Inactive' ?>"
-                                                    data-created="<?= e($createdAt) ?>">
-                                                    ◉
-                                                </button>
-
-                                                <!-- EDIT -->
-                                                <a
-                                                    href="edit.php?id=<?= $couponId ?>"
-                                                    class="coupon-action edit-btn"
-                                                    title="Edit Coupon">
-                                                    ✎
-                                                </a>
-
-                                                <!-- DELETE -->
-                                                <form
-                                                    method="POST"
-                                                    action="delete.php"
-                                                    class="delete-form"
-                                                    style="display:inline">
-                                                    <input type="hidden" name="coupon_id" value="<?= $couponId ?>">
-                                                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                                                    <button
-                                                        type="submit"
-                                                        class="coupon-action coupon-action-delete delete-coupon-btn"
-                                                        title="Delete Coupon">
-                                                        ×
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
+                                            <form method="POST" action="delete.php" class="delete-form" style="display:inline">
+                                                <input type="hidden" name="coupon_id" value="<?= $couponId ?>">
+                                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                                <button type="submit" class="coupon-action coupon-action-delete delete-coupon-btn" title="Delete Coupon (D)">×<span class="key-hint">D</span></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                             </tbody>
                         </table>
-
-                        <!-- NO SEARCH RESULTS -->
-                        <div id="couponNoResult" class="category-no-result" style="display:none">
-                            <div class="category-no-result-icon">⌕</div>
-                            <h3>No matching coupons found</h3>
-                            <p>Try clearing your search query or adjusting your filters.</p>
+                        <div id="couponNoResult" class="coupon-no-result" style="display:none">
+                            <div class="coupon-no-result-icon">⌕</div>
+                            <h3>No matching coupons</h3>
+                            <p>Try changing your search or status filter.</p>
                         </div>
                     <?php endif; ?>
                 </div>
-            </div>
 
-            <!-- KEYBOARD SHORTCUTS -->
-            <div class="shortcut-help-box" id="shortcutHelpBox">
-                <div class="shortcut-help-title">
-                    <span>⌨</span>
-                    <span>Keyboard Shortcuts</span>
-                    <small>A B C D E P V X H • Esc</small>
-                </div>
-                <div class="shortcut-grid">
-                    <div class="shortcut-item"><span class="shortcut-key">A</span><span class="shortcut-desc">Add Coupon</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">B</span><span class="shortcut-desc">Search / Focus search field</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">C</span><span class="shortcut-desc">Filter Status / Types</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">D</span><span class="shortcut-desc">Delete selected coupon</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">E</span><span class="shortcut-desc">Edit selected coupon</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">P</span><span class="shortcut-desc">Print view</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">V</span><span class="shortcut-desc">Download PDF Report</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">X</span><span class="shortcut-desc">Download Excel (.xlsx)</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">H</span><span class="shortcut-desc">Toggle Shortcuts panel</span></div>
-                    <div class="shortcut-item"><span class="shortcut-key">Esc</span><span class="shortcut-desc">Close details / clear search</span></div>
+                <div class="coupon-pagination-bar" id="couponPaginationBar">
+                    <div>
+                        <div class="coupon-page-info" id="couponPageInfo">Showing 0-0 of 0 coupons</div>
+                        <div class="dataset-note">Use Search and page controls to manage large records.</div>
+                    </div>
+
+                    <div class="coupon-page-controls">
+                        <div class="page-size-wrap">
+                            <span>Show</span>
+                            <select id="couponPageSize" class="page-size-select">
+                                <option value="25">25</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <span>coupons</span>
+                        </div>
+
+                        <button type="button" class="pagination-btn" id="couponFirstPage" title="First page">«</button>
+                        <button type="button" class="pagination-btn" id="couponPrevPage" title="Previous page">‹</button>
+                        <span id="couponPageNumbers"></span>
+                        <button type="button" class="pagination-btn" id="couponNextPage" title="Next page">›</button>
+                        <button type="button" class="pagination-btn" id="couponLastPage" title="Last page">»</button>
+                    </div>
                 </div>
             </div>
-
         </div>
     </section>
 </main>
 
-<!-- COUPON DETAILS MODAL -->
+<!-- DETAILS MODAL -->
 <div class="modal-backdrop" id="couponModal" aria-hidden="true">
     <div class="coupon-modal" role="dialog" aria-modal="true" aria-labelledby="couponModalTitle">
         <div class="modal-header">
             <h3 id="couponModalTitle">Coupon Details</h3>
             <button type="button" class="modal-close" id="modalCloseBtn">×</button>
         </div>
-
         <div class="modal-body">
-            <div class="detail-grid">
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Coupon Code</label>
-                        <div id="modalCode" style="font-family:monospace; font-weight:800; font-size:16px; color:var(--green);">—</div>
-                    </div>
+            <div class="detail-info-grid">
+                <div class="detail-item">
+                    <label>Coupon Code</label>
+                    <div class="val" id="detailCode" style="font-family:monospace;font-weight:900;color:var(--coup-green);font-size:15px;">—</div>
                 </div>
-
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Discount Value</label>
-                        <div id="modalValue" style="font-weight:800; font-size:16px; color:var(--text-hi);">—</div>
-                    </div>
+                <div class="detail-item">
+                    <label>Discount Value</label>
+                    <div class="val" id="detailValue">—</div>
                 </div>
-
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Discount Type</label>
-                        <div id="modalType">—</div>
-                    </div>
+                <div class="detail-item">
+                    <label>Discount Type</label>
+                    <div class="val" id="detailType">—</div>
                 </div>
-
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Status</label>
-                        <div id="modalStatus">—</div>
-                    </div>
+                <div class="detail-item">
+                    <label>Status</label>
+                    <div class="val" id="detailStatus">—</div>
                 </div>
-
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Minimum Order Amount</label>
-                        <div id="modalMin">—</div>
-                    </div>
+                <div class="detail-item">
+                    <label>Minimum Order Amount</label>
+                    <div class="val" id="detailMin">—</div>
                 </div>
-
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Maximum Discount Cap</label>
-                        <div id="modalMax">—</div>
-                    </div>
+                <div class="detail-item">
+                    <label>Maximum Discount Cap</label>
+                    <div class="val" id="detailMax">—</div>
                 </div>
-
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Validity Period (d/m/Y)</label>
-                        <div id="modalValidity">—</div>
-                    </div>
+                <div class="detail-item">
+                    <label>Validity Period</label>
+                    <div class="val" id="detailValidity">—</div>
                 </div>
-
-                <div class="detail-card">
-                    <div class="detail-item">
-                        <label>Usage Statistics</label>
-                        <div id="modalUsage">—</div>
-                    </div>
+                <div class="detail-item">
+                    <label>Usage Tracking</label>
+                    <div class="val" id="detailUsage">—</div>
                 </div>
-
-                <div class="detail-card detail-full">
-                    <div class="detail-item">
-                        <label>Audience Restriction</label>
-                        <div id="modalTarget">—</div>
-                    </div>
+                <div class="detail-item full-width">
+                    <label>Audience Target</label>
+                    <div class="val" id="detailTarget">—</div>
                 </div>
-
-                <div class="detail-card detail-full">
-                    <div class="detail-item">
-                        <label>Created Timestamp</label>
-                        <div id="modalCreated">—</div>
-                    </div>
+                <div class="detail-item full-width">
+                    <label>Created Date</label>
+                    <div class="val" id="detailCreated">—</div>
                 </div>
             </div>
         </div>
-
         <div class="modal-footer">
             <button type="button" class="btn" id="modalCloseBtn2">Close</button>
         </div>
     </div>
 </div>
 
-<!-- LIBRARIES FOR PDF & EXCEL -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<script>
-(function() {
-    'use strict';
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput    = document.getElementById('couponSearch');
-        const typeFilter     = document.getElementById('typeFilter');
-        const statusFilter   = document.getElementById('couponStatusFilter');
-        const table          = document.getElementById('couponTable');
-        const countElement   = document.getElementById('visibleCouponCount');
-        const noResult       = document.getElementById('couponNoResult');
-        const shortcutBox    = document.getElementById('shortcutHelpBox');
-        const modal          = document.getElementById('couponModal');
-
-        function rows() {
-            return table ? Array.from(table.querySelectorAll('tbody .coupon-row')) : [];
-        }
-
-        function visibleRows() {
-            return rows().filter(r => r.style.display !== 'none');
-        }
-
-        function selectFirstVisible(scroll) {
-            rows().forEach(r => r.classList.remove('keyboard-selected'));
-            const first = visibleRows()[0];
-            if (first) {
-                first.classList.add('keyboard-selected');
-                if (scroll) first.scrollIntoView({ block: 'nearest' });
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | INSTANT REAL-TIME FILTER
-        |--------------------------------------------------------------------------
-        */
-        function filterCoupons() {
-            if (!table) return;
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
+ 
+<script> 
+(function(){ 
+    'use strict'; 
+ 
+    document.addEventListener('DOMContentLoaded', function(){ 
+        const searchInput   = document.getElementById('couponSearch'); 
+        const typeFilter    = document.getElementById('couponTypeFilter');
+        const statusFilter  = document.getElementById('couponStatusFilter'); 
+        const table         = document.getElementById('couponTable'); 
+        const countElement  = document.getElementById('visibleCouponCount'); 
+        const noResult      = document.getElementById('couponNoResult'); 
+        const modal         = document.getElementById('couponModal'); 
+ 
+        const pageInfo      = document.getElementById('couponPageInfo'); 
+        const pageNumbers   = document.getElementById('couponPageNumbers'); 
+        const pageSizeSelect= document.getElementById('couponPageSize'); 
+        const firstPageBtn  = document.getElementById('couponFirstPage'); 
+        const prevPageBtn   = document.getElementById('couponPrevPage'); 
+        const nextPageBtn   = document.getElementById('couponNextPage'); 
+        const lastPageBtn   = document.getElementById('couponLastPage'); 
+ 
+        let currentPage = 1; 
+        let pageSize = parseInt(pageSizeSelect?.value || '50', 10); 
+ 
+        function rows(){ 
+            return table ? Array.from(table.querySelectorAll('tbody .coupon-row')) : []; 
+        } 
+ 
+        function visibleRows(){ 
+            return rows().filter(row => row.style.display !== 'none'); 
+        } 
+ 
+        function matchingRows(){
             const q = (searchInput?.value || '').toLowerCase().trim();
-            const type = (typeFilter?.value || 'all');
-            const status = (statusFilter?.value || 'all');
+            const type = typeFilter?.value || 'all';
+            const status = statusFilter?.value || 'all';
 
-            let count = 0;
-
-            rows().forEach(function(row) {
-                const code    = row.dataset.code || '';
-                const rowType = row.dataset.type || '';
-                const rowStatus = row.dataset.status || '';
-
-                const textMatch   = (!q || code.includes(q) || rowType.includes(q));
-                const typeMatch   = (type === 'all' || rowType === type);
-                const statusMatch = (status === 'all' || rowStatus === status);
-
-                if (textMatch && typeMatch && statusMatch) {
-                    row.style.display = '';
-                    count++;
-                } else {
-                    row.style.display = 'none';
-                }
+            return rows().filter(row => {
+                const codeMatch = !q || (row.dataset.code || '').includes(q);
+                const typeMatch = type === 'all' || row.dataset.type === type;
+                const statusMatch = status === 'all' || row.dataset.status === status;
+                return codeMatch && typeMatch && statusMatch;
             });
-
-            if (countElement) countElement.textContent = count;
-            if (noResult) noResult.style.display = (count === 0) ? 'block' : 'none';
-
-            selectFirstVisible(false);
         }
+ 
+        function renderPageNumbers(totalPages){ 
+            if (!pageNumbers) return; 
+            pageNumbers.innerHTML = ''; 
+            if (totalPages <= 1) return; 
+ 
+            const maxButtons = 7; 
+            let start = Math.max(1, currentPage - 3); 
+            let end = Math.min(totalPages, start + maxButtons - 1); 
+ 
+            if ((end - start + 1) < maxButtons) { 
+                start = Math.max(1, end - maxButtons + 1); 
+            } 
+ 
+            if (start > 1) { 
+                const first = document.createElement('button'); 
+                first.type = 'button'; first.className = 'pagination-btn'; first.textContent = '1'; 
+                first.addEventListener('click', () => { currentPage = 1; renderPagination(); }); 
+                pageNumbers.appendChild(first); 
+                if (start > 2) { 
+                    const dots = document.createElement('span'); dots.className = 'pagination-ellipsis'; dots.textContent = '…'; 
+                    pageNumbers.appendChild(dots); 
+                } 
+            } 
+ 
+            for (let page = start; page <= end; page++) { 
+                const btn = document.createElement('button'); 
+                btn.type = 'button'; 
+                btn.className = 'pagination-btn' + (page === currentPage ? ' active' : ''); 
+                btn.textContent = String(page); 
+                btn.addEventListener('click', () => { currentPage = page; renderPagination(); }); 
+                pageNumbers.appendChild(btn); 
+            } 
+ 
+            if (end < totalPages) { 
+                if (end < totalPages - 1) { 
+                    const dots = document.createElement('span'); dots.className = 'pagination-ellipsis'; dots.textContent = '…'; 
+                    pageNumbers.appendChild(dots); 
+                } 
+                const last = document.createElement('button'); 
+                last.type = 'button'; last.className = 'pagination-btn'; last.textContent = String(totalPages); 
+                last.addEventListener('click', () => { currentPage = totalPages; renderPagination(); }); 
+                pageNumbers.appendChild(last); 
+            } 
+        } 
+ 
+        function renderPagination(){ 
+            if (!table) return; 
+            const matched = matchingRows(); 
+            const total = matched.length; 
+            const totalPages = Math.max(1, Math.ceil(total / pageSize)); 
+ 
+            if (currentPage > totalPages) currentPage = totalPages; 
+            if (currentPage < 1) currentPage = 1; 
+ 
+            rows().forEach(r => { r.style.display = 'none'; }); 
+ 
+            const startIndex = (currentPage - 1) * pageSize; 
+            const pageRows = matched.slice(startIndex, startIndex + pageSize); 
+ 
+            pageRows.forEach(row => { row.style.display = ''; }); 
+ 
+            const firstItem = total === 0 ? 0 : startIndex + 1; 
+            const lastItem = Math.min(startIndex + pageSize, total); 
+ 
+            if (pageInfo) pageInfo.textContent = 'Showing ' + firstItem + '–' + lastItem + ' of ' + total + ' coupons'; 
+            if (countElement) countElement.textContent = total; 
+            if (noResult) noResult.style.display = total === 0 ? 'block' : 'none'; 
+ 
+            if (firstPageBtn) firstPageBtn.disabled = currentPage <= 1; 
+            if (prevPageBtn) prevPageBtn.disabled = currentPage <= 1; 
+            if (nextPageBtn) nextPageBtn.disabled = currentPage >= totalPages || total === 0; 
+            if (lastPageBtn) lastPageBtn.disabled = currentPage >= totalPages || total === 0; 
+ 
+            renderPageNumbers(totalPages); 
+ 
+            rows().forEach(r => r.classList.remove('keyboard-selected')); 
+            const firstVisible = pageRows[0]; 
+            if (firstVisible) firstVisible.classList.add('keyboard-selected'); 
+        } 
+ 
+        function filterCoupons(resetPage){ 
+            if (resetPage !== false) currentPage = 1; 
+            renderPagination(); 
+        } 
+ 
+        function printCoupons(){ window.print(); } 
+        function excelCoupons(){ 
+            const data = matchingRows().map(row => ({ 
+                'Coupon Code': row.querySelector('.coupon-code-badge')?.innerText.trim() || '', 
+                'Discount': row.querySelector('td:nth-child(3)')?.innerText.trim() || '', 
+                'Type': row.querySelector('.discount-type-tag')?.innerText.trim() || '', 
+                'Min Order': row.querySelector('td:nth-child(5)')?.innerText.trim() || '', 
+                'Status': row.dataset.status === 'active' ? 'Active' : 'Inactive' 
+            })); 
+            if (!window.XLSX) return alert('Excel library is not loaded.'); 
+            const ws = XLSX.utils.json_to_sheet(data); 
+            const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, 'Coupons'); 
+            XLSX.writeFile(wb, 'coupons-' + new Date().toISOString().slice(0,10) + '.xlsx'); 
+        } 
+ 
+        function pdfCoupons(){ 
+            if (!window.jspdf || !window.jspdf.jsPDF) return alert('PDF library is not loaded.'); 
+            const body = matchingRows().map(row => [ 
+                row.querySelector('.order-box')?.innerText.trim() || '', 
+                row.querySelector('.coupon-code-badge')?.innerText.trim() || '', 
+                row.querySelector('td:nth-child(3)')?.innerText.trim() || '', 
+                row.querySelector('.discount-type-tag')?.innerText.trim() || '', 
+                row.querySelector('td:nth-child(5)')?.innerText.trim() || '', 
+                row.dataset.status === 'active' ? 'Active' : 'Inactive' 
+            ]); 
+ 
+            const doc = new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'}); 
+            doc.setFontSize(15); doc.text('GatewayLinen - Coupons',14,14); 
+            if (typeof doc.autoTable === 'function') { 
+                doc.autoTable({startY:22,head:[['#','Coupon Code','Discount','Type','Min Order','Status']],body:body,styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[5,150,105]}}); 
+            } 
+            doc.save('coupons-' + new Date().toISOString().slice(0,10) + '.pdf'); 
+        } 
+ 
+        document.getElementById('printBtn')?.addEventListener('click', printCoupons); 
+        document.getElementById('pdfBtn')?.addEventListener('click', pdfCoupons); 
+        document.getElementById('excelBtn')?.addEventListener('click', excelCoupons); 
+        searchInput?.addEventListener('input', () => filterCoupons()); 
+        typeFilter?.addEventListener('change', () => filterCoupons()); 
+        statusFilter?.addEventListener('change', () => filterCoupons()); 
+ 
+        function openDetails(btn){ 
+            document.getElementById('detailCode').textContent = btn.dataset.code || '—'; 
+            document.getElementById('detailValue').textContent = btn.dataset.value || '—'; 
+            document.getElementById('detailType').textContent = btn.dataset.type || '—'; 
+            document.getElementById('detailStatus').textContent = btn.dataset.status || '—'; 
+            document.getElementById('detailMin').textContent = btn.dataset.min || 'None'; 
+            document.getElementById('detailMax').textContent = btn.dataset.max || 'None'; 
+            document.getElementById('detailValidity').textContent = btn.dataset.validity || '—'; 
+            document.getElementById('detailUsage').textContent = btn.dataset.usage || '—'; 
+            document.getElementById('detailTarget').textContent = btn.dataset.target || '—'; 
+            document.getElementById('detailCreated').textContent = btn.dataset.created || '—'; 
+ 
+            modal.classList.add('show'); 
+            modal.setAttribute('aria-hidden','false'); 
+        } 
+ 
+        document.querySelectorAll('.detail-btn').forEach(btn => { 
+            btn.addEventListener('click', e => { e.stopPropagation(); openDetails(btn); }); 
+        }); 
+ 
+        function closeModal(){ 
+            if (!modal) return; 
+            modal.classList.remove('show'); 
+            modal.setAttribute('aria-hidden','true'); 
+        } 
+ 
+        document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal); 
+        document.getElementById('modalCloseBtn2')?.addEventListener('click', closeModal); 
+        modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); }); 
+ 
+        document.querySelectorAll('.delete-coupon-btn').forEach(btn => { 
+            btn.addEventListener('click', function(e){ 
+                e.stopPropagation(); 
+                const code = btn.closest('.coupon-row')?.querySelector('.coupon-code-badge')?.innerText.trim() || 'this coupon'; 
+                if (!confirm('Delete coupon "' + code + '"?\n\nThis action cannot be undone.')) e.preventDefault(); 
+            }); 
+        }); 
+ 
+        document.querySelectorAll('.coupon-row').forEach(row => { 
+            row.addEventListener('click', function(e){ 
+                if (e.target.closest('button') || e.target.closest('a') || e.target.closest('form')) return; 
+                rows().forEach(r => r.classList.remove('keyboard-selected')); 
+                this.classList.add('keyboard-selected'); 
+            }); 
+        }); 
 
-        /*
-        |--------------------------------------------------------------------------
-        | EXPORT TO EXCEL
-        |--------------------------------------------------------------------------
-        */
-        function excelExport() {
-            const data = visibleRows().map(function(row) {
-                return {
-                    '#': row.querySelector('.order-box')?.innerText.trim() || '',
-                    'Coupon Code': row.querySelector('.coupon-code-badge')?.innerText.trim() || '',
-                    'Discount': row.querySelector('.discount-val')?.innerText.trim() || '',
-                    'Type': row.querySelector('.discount-type-tag')?.innerText.trim() || '',
-                    'Status': row.dataset.status === 'active' ? 'Active' : 'Inactive'
-                };
-            });
-
-            if (window.XLSX) {
-                const ws = XLSX.utils.json_to_sheet(data);
-                ws['!cols'] = [{wch: 8}, {wch: 24}, {wch: 16}, {wch: 16}, {wch: 14}];
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Coupons');
-                XLSX.writeFile(wb, 'coupons-' + new Date().toISOString().slice(0, 10) + '.xlsx');
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | EXPORT TO PDF
-        |--------------------------------------------------------------------------
-        */
-        function pdfExport() {
-            if (!window.jspdf || !window.jspdf.jsPDF) {
-                alert('PDF library not available. Please print and choose Save as PDF.');
-                return;
-            }
-
-            const body = visibleRows().map(function(row) {
-                return [
-                    row.querySelector('.order-box')?.innerText.trim() || '',
-                    row.querySelector('.coupon-code-badge')?.innerText.trim() || '',
-                    row.querySelector('.discount-val')?.innerText.trim() || '',
-                    row.querySelector('.discount-type-tag')?.innerText.trim() || '',
-                    row.dataset.status === 'active' ? 'Active' : 'Inactive'
-                ];
-            });
-
-            const doc = new jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-            doc.setFontSize(16);
-            doc.text('GatewayLinen - Coupons Directory', 14, 14);
-            doc.setFontSize(9);
-            doc.text('Generated: ' + new Date().toLocaleString(), 14, 20);
-
-            if (typeof doc.autoTable === 'function') {
-                doc.autoTable({
-                    startY: 25,
-                    head: [['#', 'Coupon Code', 'Discount', 'Type', 'Status']],
-                    body: body,
-                    styles: { fontSize: 8, cellPadding: 3 },
-                    headStyles: { fontSize: 8 }
-                });
-            }
-
-            doc.save('coupons-' + new Date().toISOString().slice(0, 10) + '.pdf');
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | MODAL DETAILS
-        |--------------------------------------------------------------------------
-        */
-        function openModal(btn) {
-            document.getElementById('modalCode').textContent = btn.dataset.code || '—';
-            document.getElementById('modalValue').textContent = btn.dataset.val || '—';
-            document.getElementById('modalType').textContent = btn.dataset.type || '—';
-            document.getElementById('modalStatus').textContent = btn.dataset.status || '—';
-            document.getElementById('modalMin').textContent = btn.dataset.min || 'None';
-            document.getElementById('modalMax').textContent = btn.dataset.max || 'None';
-            document.getElementById('modalValidity').textContent = btn.dataset.start + ' to ' + btn.dataset.end;
-            document.getElementById('modalUsage').textContent = btn.dataset.used + ' times used (Limit: ' + btn.dataset.limit + ')';
-            document.getElementById('modalTarget').textContent = btn.dataset.target || 'All';
-            document.getElementById('modalCreated').textContent = btn.dataset.created || '—';
-
-            modal.classList.add('show');
-            modal.setAttribute('aria-hidden', 'false');
-        }
-
-        function closeModal() {
-            modal.classList.remove('show');
-            modal.setAttribute('aria-hidden', 'true');
-        }
-
-        document.querySelectorAll('.detail-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                openModal(this);
-            });
-        });
-
-        document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
-        document.getElementById('modalCloseBtn2')?.addEventListener('click', closeModal);
-        modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE CONFIRMATION
-        |--------------------------------------------------------------------------
-        */
-        document.querySelectorAll('.delete-coupon-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                const row = btn.closest('.coupon-row');
-                const code = row?.querySelector('.coupon-code-badge')?.innerText.trim() || 'this coupon';
-                const confirmed = confirm('Delete coupon code "' + code + '"?\n\nThis action cannot be undone.');
-                if (!confirmed) e.preventDefault();
-            });
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | BUTTON BINDINGS
-        |--------------------------------------------------------------------------
-        */
-        document.getElementById('printBtn')?.addEventListener('click', () => window.print());
-        document.getElementById('printBtn2')?.addEventListener('click', () => window.print());
-        document.getElementById('pdfBtn')?.addEventListener('click', pdfExport);
-        document.getElementById('pdfBtn2')?.addEventListener('click', pdfExport);
-        document.getElementById('excelBtn')?.addEventListener('click', excelExport);
-        document.getElementById('excelBtn2')?.addEventListener('click', excelExport);
-
-        searchInput?.addEventListener('input', filterCoupons);
-        typeFilter?.addEventListener('change', filterCoupons);
-        statusFilter?.addEventListener('change', filterCoupons);
-
-        /*
-        |--------------------------------------------------------------------------
-        | ROW SELECTION CLICK
-        |--------------------------------------------------------------------------
-        */
-        rows().forEach(row => {
-            row.addEventListener('click', function(e) {
-                if (e.target.closest('button, a, form')) return;
-                rows().forEach(r => r.classList.remove('keyboard-selected'));
-                row.classList.add('keyboard-selected');
-            });
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | KEYBOARD SHORTCUTS
-        |--------------------------------------------------------------------------
-        */
-        document.addEventListener('keydown', function(e) {
-            const tag = (e.target?.tagName || '').toLowerCase();
-            const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable;
-
-            if (typing) return;
-
-            const key = (e.key || '').toUpperCase();
-
-            if (['A', 'B', 'C', 'D', 'E', 'P', 'V', 'X', 'H'].includes(key)) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            if (key === 'A') {
-                document.getElementById('addCouponBtn')?.click();
-            } else if (key === 'B') {
-                searchInput?.focus();
-                searchInput?.select();
-            } else if (key === 'C') {
-                typeFilter?.focus();
-            } else if (key === 'D') {
-                const sel = document.querySelector('.coupon-row.keyboard-selected') || visibleRows()[0];
-                sel?.querySelector('.delete-coupon-btn')?.click();
-            } else if (key === 'E') {
-                const sel = document.querySelector('.coupon-row.keyboard-selected') || visibleRows()[0];
-                sel?.querySelector('.edit-btn')?.click();
-            } else if (key === 'P') {
-                window.print();
-            } else if (key === 'V') {
-                pdfExport();
-            } else if (key === 'X') {
-                excelExport();
-            } else if (key === 'H') {
-                shortcutBox?.classList.toggle('hidden');
-            } else if (key === 'ESCAPE') {
-                if (modal?.classList.contains('show')) {
-                    closeModal();
-                } else if (searchInput?.value) {
-                    searchInput.value = '';
-                    filterCoupons();
-                }
-                searchInput?.blur();
-            }
-        }, true);
-
-        filterCoupons();
-    });
-})();
-</script>
-
-<?php
-require_once __DIR__ . '/../includes/footer.php';
-?>
+        document.addEventListener('keydown', function(e){ 
+            const tag = (e.target?.tagName || '').toLowerCase(); 
+            const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable; 
+            if (typing) { 
+                if (e.key === 'Escape') { 
+                    if (modal?.classList.contains('show')) closeModal(); 
+                    else if (searchInput?.value) { searchInput.value=''; filterCoupons(); } 
+                    searchInput?.blur(); typeFilter?.blur(); statusFilter?.blur(); 
+                } 
+                return; 
+            } 
+ 
+            const key = (e.key || '').toUpperCase(); 
+            if (['A','B','C','D','E','P','V','X'].includes(key)) e.preventDefault(); 
+ 
+            if (key === 'A') document.getElementById('addCouponBtn')?.click(); 
+            else if (key === 'B') { searchInput?.focus(); searchInput?.select(); } 
+            else if (key === 'C') typeFilter?.focus(); 
+            else if (key === 'D') { 
+                const selected = document.querySelector('.coupon-row.keyboard-selected') || visibleRows()[0]; 
+                selected?.querySelector('.delete-coupon-btn')?.click(); 
+            } 
+            else if (key === 'E') { 
+                const selected = document.querySelector('.coupon-row.keyboard-selected') || visibleRows()[0]; 
+                selected?.querySelector('.edit-btn')?.click(); 
+            } 
+            else if (key === 'P') printCoupons(); 
+            else if (key === 'V') pdfCoupons(); 
+            else if (key === 'X') excelCoupons(); 
+            else if (key === 'ESCAPE') { 
+                if (modal?.classList.contains('show')) closeModal(); 
+            } 
+        }, true); 
+ 
+        firstPageBtn?.addEventListener('click', () => { currentPage = 1; renderPagination(); }); 
+        prevPageBtn?.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderPagination(); } }); 
+        nextPageBtn?.addEventListener('click', () => { 
+            const total = matchingRows().length; 
+            const totalPages = Math.max(1, Math.ceil(total / pageSize)); 
+            if (currentPage < totalPages) { currentPage++; renderPagination(); } 
+        }); 
+        lastPageBtn?.addEventListener('click', () => { 
+            const total = matchingRows().length; 
+            currentPage = Math.max(1, Math.ceil(total / pageSize)); 
+            renderPagination(); 
+        }); 
+        pageSizeSelect?.addEventListener('change', function(){ 
+            pageSize = parseInt(this.value || '50', 10); 
+            currentPage = 1; 
+            renderPagination(); 
+        }); 
+ 
+        filterCoupons(); 
+    }); 
+})(); 
+</script> 
+ 
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

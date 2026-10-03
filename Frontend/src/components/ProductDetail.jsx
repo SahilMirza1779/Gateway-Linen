@@ -9,6 +9,19 @@ import {
   FiUser,
   FiDownload,
   FiArrowRight,
+  FiStar,
+  FiTruck,
+  FiShield,
+  FiRefreshCw,
+  FiAward,
+  FiChevronRight,
+  FiPackage,
+  FiPlus,
+  FiMinus,
+  FiPercent,
+  FiClock,
+  FiHeadphones,
+  FiZap,
 } from "react-icons/fi";
 import { jsPDF } from "jspdf";
 import { useWishlist } from "../context/WishlistContext";
@@ -16,19 +29,16 @@ import { useCart } from "../context/CartContext";
 
 const resolveImgPath = (rawImg) => {
   let finalImg =
-    "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800";
+    "https://images.pexels.com/photos/1034584/pexels-photo-1034584.jpeg?auto=compress&cs=tinysrgb&w=800";
   if (rawImg) {
-    if (rawImg.startsWith("http")) {
-      finalImg = rawImg;
-    } else if (rawImg.startsWith("/")) {
-      finalImg = `http://localhost${rawImg}`;
-    } else {
+    if (rawImg.startsWith("http")) finalImg = rawImg;
+    else if (rawImg.startsWith("/")) finalImg = `http://localhost${rawImg}`;
+    else {
       const cleanPath = rawImg.replace(/^\/+/, "");
-      if (cleanPath.includes("Gateway-Linen")) {
+      if (cleanPath.includes("Gateway-Linen"))
         finalImg = `http://localhost/${cleanPath}`;
-      } else {
+      else
         finalImg = `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/${cleanPath}`;
-      }
     }
   }
   return finalImg;
@@ -46,8 +56,6 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(2);
   const [activeTab, setActiveTab] = useState("Details");
   const [showLoginModal, setShowLoginModal] = useState(false);
-
-  // Custom Success Modal State
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -61,35 +69,24 @@ const ProductDetail = () => {
       try {
         const response = await fetch(
           `http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php?action=get_product&id=${id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
+          { method: "GET", headers: { "Content-Type": "application/json" } }
         );
         const result = await response.json();
 
         let prodData = null;
-        if (result.success && result.data) {
-          prodData = result.data;
-        } else if (result.product) {
-          prodData = result.product;
-        }
+        if (result.success && result.data) prodData = result.data;
+        else if (result.product) prodData = result.product;
 
         const allRes = await fetch(
-          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php?action=get_products",
+          "http://localhost/Gateway-Linen/GatewayLinenAdmin-main/products/api.php?action=get_products"
         );
         const allResult = await allRes.json();
 
         let items = [];
-        if (allResult.success && Array.isArray(allResult.data)) {
-          items = allResult.data;
-        } else if (allResult.success && allResult.data?.items) {
+        if (allResult.success && Array.isArray(allResult.data)) items = allResult.data;
+        else if (allResult.success && allResult.data?.items)
           items = allResult.data.items;
-        } else if (Array.isArray(allResult)) {
-          items = allResult;
-        }
+        else if (Array.isArray(allResult)) items = allResult;
 
         const allItems = items.map((item) => {
           let rawImg = item.imageUrl || item.ImageUrl || item.image || "";
@@ -103,9 +100,8 @@ const ProductDetail = () => {
           };
         });
 
-        if (!prodData && id) {
+        if (!prodData && id)
           prodData = allItems.find((p) => String(p.id) === String(id));
-        }
 
         if (prodData) {
           let imagesList = [];
@@ -115,7 +111,7 @@ const ProductDetail = () => {
             prodData.images.length > 0
           ) {
             imagesList = prodData.images.map((img) =>
-              resolveImgPath(img.imageUrl || img.ImageUrl),
+              resolveImgPath(img.imageUrl || img.ImageUrl)
             );
           } else {
             const raw =
@@ -128,7 +124,7 @@ const ProductDetail = () => {
             id: prodData.productId || prodData.ProductId || id,
             name: prodData.name || prodData.Name || "Product Name",
             price: Number(
-              prodData.basePrice || prodData.price || prodData.Price || 200.04,
+              prodData.basePrice || prodData.price || prodData.Price || 200.04
             ),
             unit: prodData.unit || prodData.Unit || "DZ",
             sku: prodData.sku || prodData.SKU || `OP2-${id}754C01`,
@@ -148,10 +144,10 @@ const ProductDetail = () => {
             (p) =>
               String(p.id) !== String(currentProd.id) &&
               (p.categoryName || "").toLowerCase() ===
-                (currentProd.category || "").toLowerCase(),
+                (currentProd.category || "").toLowerCase()
           );
           setRelatedProducts(
-            filteredRelated.length > 0 ? filteredRelated : allItems.slice(0, 5),
+            filteredRelated.length > 0 ? filteredRelated : allItems.slice(0, 5)
           );
         }
       } catch (error) {
@@ -160,13 +156,11 @@ const ProductDetail = () => {
         setLoading(false);
       }
     };
-
     fetchProductDetails();
   }, [id]);
 
   const downloadSellSheetPDF = () => {
     if (!product) return;
-
     const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -175,7 +169,7 @@ const ProductDetail = () => {
     doc.setLineWidth(0.5);
     doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
 
-    doc.setFillColor(3, 29, 68);
+    doc.setFillColor(40, 116, 240);
     doc.rect(10, 10, pageWidth - 20, 25, "F");
 
     doc.setTextColor(255, 255, 255);
@@ -183,7 +177,7 @@ const ProductDetail = () => {
     doc.setFontSize(16);
     doc.text("GATEWAY LINEN - WHOLESALE SELL SHEET", 15, 26);
 
-    doc.setTextColor(181, 142, 88);
+    doc.setTextColor(251, 100, 27);
     doc.setFontSize(10);
     doc.text(`COLLECTION: ${product.category.toUpperCase()}`, 15, 45);
 
@@ -191,9 +185,9 @@ const ProductDetail = () => {
     doc.setFontSize(24);
     doc.text(product.name, 15, 55);
 
-    doc.setFillColor(250, 247, 242);
+    doc.setFillColor(241, 243, 246);
     doc.rect(15, 65, 80, 65, "F");
-    doc.setDrawColor(181, 142, 88);
+    doc.setDrawColor(40, 116, 240);
     doc.rect(15, 65, 80, 65, "S");
 
     doc.setFont("helvetica", "bold");
@@ -211,7 +205,7 @@ const ProductDetail = () => {
     doc.setTextColor(3, 29, 68);
     doc.text("PRODUCT SPECIFICATIONS", startX, 72);
 
-    doc.setDrawColor(181, 142, 88);
+    doc.setDrawColor(40, 116, 240);
     doc.line(startX, 75, startX + 90, 75);
 
     doc.setFontSize(10);
@@ -270,16 +264,16 @@ const ProductDetail = () => {
       bulletY += 7;
     });
 
-    doc.setFillColor(250, 247, 242);
+    doc.setFillColor(241, 243, 246);
     doc.rect(15, pageHeight - 35, pageWidth - 30, 18, "F");
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.setTextColor(3, 29, 68);
+    doc.setTextColor(40, 116, 240);
     doc.text(
       "Gateway Linen B2B Wholesale & Hospitality Desk",
       20,
-      pageHeight - 26,
+      pageHeight - 26
     );
 
     doc.setFont("helvetica", "normal");
@@ -288,7 +282,7 @@ const ProductDetail = () => {
     doc.text(
       "Email: gatewaylinen@gmail.com  |  Phone: +1 (204) 979-4044  |  Web: localhost:5173",
       20,
-      pageHeight - 21,
+      pageHeight - 21
     );
 
     doc.save(`${product.name.replace(/\s+/g, "_")}_SellSheet.pdf`);
@@ -296,30 +290,33 @@ const ProductDetail = () => {
 
   const handleAuthAction = (actionCallback) => {
     const loggedInUser = localStorage.getItem("user");
-    if (!loggedInUser) {
-      setShowLoginModal(true);
-    } else {
-      actionCallback();
-    }
+    if (!loggedInUser) setShowLoginModal(true);
+    else actionCallback();
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center font-sans text-xs uppercase tracking-widest font-bold text-gray-500">
-        Loading Product Details...
+      <div className="min-h-screen bg-[#F1F3F6] flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#2874F0] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[12px] uppercase tracking-widest font-bold text-gray-500">
+            Loading Product...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center font-sans px-4">
-        <h2 className="text-2xl font-serif font-bold text-[#031D44] mb-3">
+      <div className="min-h-screen bg-[#F1F3F6] flex flex-col items-center justify-center font-sans px-4">
+        <FiPackage size={56} className="text-gray-300 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">
           Product Not Found
         </h2>
         <button
           onClick={() => navigate("/")}
-          className="px-6 py-2.5 bg-[#031D44] text-white text-xs font-bold uppercase tracking-widest rounded-xl cursor-pointer"
+          className="px-6 py-2.5 bg-[#FB641B] hover:bg-[#e55a15] text-white text-[12px] font-bold uppercase tracking-widest rounded transition-colors cursor-pointer"
         >
           Back to Home
         </button>
@@ -329,114 +326,225 @@ const ProductDetail = () => {
 
   const unitPrice = Number(product.price);
   const totalPrice = unitPrice * quantity;
-  const formattedPrice = `$${totalPrice.toFixed(2)} / ${product.unit}`;
+  const originalPrice = unitPrice * 1.35;
+  const discount = Math.round(
+    ((originalPrice - unitPrice) / originalPrice) * 100
+  );
+  const seed = Number(String(product.id).slice(-2)) || 50;
+  const rating = (3.8 + (seed % 12) / 10).toFixed(1);
+  const reviews = 20 + ((seed * 7) % 200);
 
   return (
-    <div className="w-full bg-white min-h-screen py-6 sm:py-10 px-4 sm:px-6 md:px-12 font-sans text-gray-800">
-      <div className="max-w-[1300px] mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-50 border border-gray-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-xl text-[#031D44] hover:border-[#B58E58] transition-all cursor-pointer mb-5 shadow-2xs"
-        >
-          <FiArrowLeft size={13} /> Back
-        </button>
+    <div className="w-full bg-[#F1F3F6] min-h-screen font-sans pb-16">
+      {/* ============ BREADCRUMB ============ */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+          <div className="flex items-center gap-2 text-[12px] text-gray-500 flex-wrap">
+            <span
+              onClick={() => navigate("/")}
+              className="hover:text-[#2874F0] cursor-pointer font-medium"
+            >
+              Home
+            </span>
+            <FiChevronRight size={12} />
+            <span
+              onClick={() => navigate("/products")}
+              className="hover:text-[#2874F0] cursor-pointer font-medium"
+            >
+              Products
+            </span>
+            <FiChevronRight size={12} />
+            <span className="hover:text-[#2874F0] cursor-pointer font-medium">
+              {product.category}
+            </span>
+            <FiChevronRight size={12} />
+            <span className="text-[#2874F0] font-bold truncate max-w-[200px]">
+              {product.name}
+            </span>
+          </div>
+        </div>
+      </div>
 
-        {/* Main Product Section */}
-        <div className="bg-[#FAF7F2] border border-[#E5DCD0] rounded-[20px] md:rounded-[24px] p-4 sm:p-6 md:p-10 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 mb-8 sm:mb-12">
-          {/* Left: Image Gallery */}
-          <div className="lg:col-span-6 flex flex-col gap-3">
-            <div className="w-full aspect-[4/3] sm:aspect-[4/3] bg-white rounded-[16px] sm:rounded-2xl overflow-hidden border border-[#E5DCD0] relative shadow-inner">
-              <img
-                src={selectedImage}
-                alt={product.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src =
-                    "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800";
-                }}
-              />
-            </div>
+      {/* ============ MAIN PRODUCT CARD ============ */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="grid lg:grid-cols-12 gap-0">
+            {/* ============ LEFT: IMAGE GALLERY ============ */}
+            <div className="lg:col-span-5 p-5 md:p-6 lg:sticky lg:top-4 lg:self-start">
+              <div className="flex flex-col-reverse sm:flex-col gap-3">
+                {/* Main Image */}
+                <div className="relative aspect-square bg-[#F1F3F6] rounded-lg overflow-hidden border border-gray-200">
+                  <img
+                    src={selectedImage}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://images.pexels.com/photos/1034584/pexels-photo-1034584.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    }}
+                  />
 
-            {/* Thumbnail Row */}
-            {product.images && product.images.length > 1 && (
-              <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
-                {product.images.map((img, idx) => (
+                  {/* Discount badge */}
+                  {discount > 5 && (
+                    <span className="absolute top-3 left-3 bg-[#FB641B] text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded shadow-md">
+                      {discount}% OFF
+                    </span>
+                  )}
+
+                  {/* Wishlist */}
                   <button
-                    key={idx}
-                    onClick={() => setSelectedImage(img)}
-                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
-                      selectedImage === img
-                        ? "border-[#4A5D4E]"
-                        : "border-[#E5DCD0] opacity-70 hover:opacity-100"
-                    }`}
+                    onClick={() =>
+                      handleAuthAction(() =>
+                        toggleWishlistItem({
+                          ...product,
+                          id: product.id,
+                          price: unitPrice,
+                          image: selectedImage,
+                        })
+                      )
+                    }
+                    className="absolute top-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
                   >
-                    <img
-                      src={img}
-                      alt=""
-                      className="w-full h-full object-cover"
+                    <FiHeart
+                      size={17}
+                      className={
+                        isInWishlist(product.id)
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-500"
+                      }
                     />
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
 
-          {/* Right: Product Info & Actions */}
-          <div className="lg:col-span-6 flex flex-col justify-between">
-            <div>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2 sm:mb-3">
-                <span className="text-[10px] sm:text-xs font-bold text-[#B58E58] tracking-widest uppercase">
-                  {product.category}
-                </span>
+                {/* Thumbnails */}
+                {product.images && product.images.length > 1 && (
+                  <div className="flex gap-2.5 overflow-x-auto scrollbar-hide">
+                    {product.images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImage(img)}
+                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
+                          selectedImage === img
+                            ? "border-[#2874F0]"
+                            : "border-gray-200 opacity-70 hover:opacity-100"
+                        }`}
+                      >
+                        <img
+                          src={img}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-                <div className="flex flex-col items-start sm:items-end gap-1.5 w-full sm:w-auto">
-                  <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
-                    <button
-                      onClick={downloadSellSheetPDF}
-                      className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-[#031D44] hover:text-[#B58E58] transition-colors cursor-pointer bg-white px-3 sm:px-3.5 py-1.5 rounded-full border border-[#E5DCD0] shadow-2xs"
-                    >
-                      <FiDownload size={12} />{" "}
-                      <span className="hidden sm:inline">Download</span> Sell
-                      Sheet
-                    </button>
-                    <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[9px] sm:text-[10px] uppercase bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
-                      <FiCheck size={10} /> IN STOCK
-                    </span>
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest">
-                    SKU:{" "}
-                    <span className="font-bold text-gray-700">
-                      {product.sku}
-                    </span>
-                  </div>
+                {/* Quick action buttons */}
+                <div className="grid grid-cols-2 gap-2.5 mt-1">
+                  <button
+                    onClick={downloadSellSheetPDF}
+                    className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#2874F0] hover:text-white bg-white hover:bg-[#2874F0] border border-[#2874F0] px-3 py-2.5 rounded transition-colors"
+                  >
+                    <FiDownload size={13} /> Sell Sheet
+                  </button>
+                  <button className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#2874F0] hover:text-white bg-white hover:bg-[#2874F0] border border-[#2874F0] px-3 py-2.5 rounded transition-colors">
+                    <FiPackage size={13} /> Compare
+                  </button>
                 </div>
               </div>
+            </div>
 
-              <h1 className="text-xl sm:text-2xl md:text-4xl font-serif font-bold text-[#031D44] mb-2 sm:mb-3 leading-tight">
+            {/* ============ RIGHT: PRODUCT INFO ============ */}
+            <div className="lg:col-span-7 p-5 md:p-6 lg:p-8 border-l border-gray-100">
+              {/* Category + SKU */}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-[#FB641B] uppercase tracking-wider">
+                  {product.category}
+                </span>
+                <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
+                  SKU: <span className="text-gray-700">{product.sku}</span>
+                </span>
+              </div>
+
+              {/* Title */}
+              <h1 className="text-[20px] md:text-[24px] font-bold text-gray-800 leading-tight mb-3">
                 {product.name}
               </h1>
 
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#4A5D4E] mb-5 sm:mb-6">
-                {formattedPrice}
+              {/* Rating row */}
+              <div className="flex items-center gap-2.5 mb-4 flex-wrap">
+                <div className="flex items-center gap-0.5 bg-[#10B981] text-white text-[12px] font-bold px-2 py-0.5 rounded">
+                  {rating}
+                  <FiStar size={11} fill="white" />
+                </div>
+                <span className="text-[11px] text-gray-500">
+                  {reviews} ratings
+                </span>
+                <span className="w-px h-3 bg-gray-300" />
+                <span className="text-[11px] text-[#2874F0] font-bold flex items-center gap-1">
+                  <FiCheck size={11} /> Verified Quality
+                </span>
               </div>
 
-              <hr className="border-[#E5DCD0] mb-5 sm:mb-6" />
+              {/* Price block */}
+              <div className="mb-5 pb-5 border-b border-gray-100">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-[13px] text-gray-500">Starting from</span>
+                </div>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span className="text-[28px] md:text-[32px] font-bold text-gray-800">
+                    ${unitPrice.toFixed(2)}
+                  </span>
+                  <span className="text-[14px] text-gray-400 line-through">
+                    ${originalPrice.toFixed(2)}
+                  </span>
+                  <span className="text-[13px] font-bold text-green-600">
+                    Save ${(originalPrice - unitPrice).toFixed(2)} ({discount}%)
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Per <span className="font-bold uppercase">{product.unit}</span>{" "}
+                  · Taxes included
+                </p>
+              </div>
 
-              {/* Size Selector */}
-              <div className="mb-5 sm:mb-6">
-                <label className="block text-[10px] sm:text-xs font-bold text-[#031D44] uppercase tracking-wider mb-2 sm:mb-2.5">
-                  Select Size Option:
+              {/* Trust strip */}
+              <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-gray-100">
+                {[
+                  { icon: FiTruck, label: "Free Shipping", sub: "Over $350" },
+                  { icon: FiRefreshCw, label: "30-Day Returns", sub: "Easy" },
+                  { icon: FiShield, label: "Secure Payment", sub: "100%" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-9 h-9 bg-[#EAF2FF] rounded-full flex items-center justify-center shrink-0">
+                      <item.icon size={15} className="text-[#2874F0]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold text-gray-800 leading-tight">
+                        {item.label}
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        {item.sub}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Size selector */}
+              <div className="mb-5">
+                <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-2.5">
+                  Select Size
                 </label>
-                <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                <div className="flex flex-wrap gap-2">
                   {["Standard", "Queen Size", "King Size"].map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-[10px] sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer border ${
+                      className={`px-4 py-2.5 rounded text-[12px] font-bold transition-all cursor-pointer border-2 ${
                         selectedSize === size
-                          ? "bg-[#4A5D4E] text-white border-[#4A5D4E] shadow-sm"
-                          : "bg-white text-gray-700 border-[#E5DCD0] hover:border-[#4A5D4E]"
+                          ? "bg-[#2874F0] text-white border-[#2874F0] shadow-md"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-[#2874F0]"
                       }`}
                     >
                       {size}
@@ -445,28 +553,29 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* Quantity & Add to Cart */}
-              <div className="flex flex-row items-stretch sm:items-center gap-2.5 sm:gap-4 mb-4">
-                <div className="flex items-center border border-[#E5DCD0] rounded-xl bg-white overflow-hidden shrink-0">
+              {/* Quantity + Add to Cart */}
+              <div className="flex flex-col sm:flex-row items-stretch gap-3 mb-4">
+                <div className="flex items-center border-2 border-gray-300 rounded overflow-hidden shrink-0">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 sm:px-4 py-2.5 sm:py-3 text-gray-600 hover:bg-[#E5DCD0]/50 transition-colors font-bold cursor-pointer"
+                    className="w-10 h-12 flex items-center justify-center text-[#2874F0] hover:bg-[#EAF2FF] transition-colors cursor-pointer disabled:opacity-30"
+                    disabled={quantity <= 1}
                   >
-                    -
+                    <FiMinus size={14} />
                   </button>
-                  <span className="w-8 sm:w-10 text-center text-xs sm:text-sm font-bold text-[#031D44]">
+                  <span className="w-12 h-12 flex items-center justify-center text-[15px] font-bold text-gray-800 border-x-2 border-gray-300">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 sm:px-4 py-2.5 sm:py-3 text-gray-600 hover:bg-[#E5DCD0]/50 transition-colors font-bold cursor-pointer"
+                    className="w-10 h-12 flex items-center justify-center text-[#2874F0] hover:bg-[#EAF2FF] transition-colors cursor-pointer"
                   >
-                    +
+                    <FiPlus size={14} />
                   </button>
                 </div>
 
                 <button
-                  onClick={() => {
+                  onClick={() =>
                     handleAuthAction(() => {
                       addToCart(
                         {
@@ -477,121 +586,138 @@ const ProductDetail = () => {
                         },
                         quantity,
                         selectedSize,
-                        totalPrice,
+                        totalPrice
                       );
                       setSuccessMessage(
-                        `Successfully added ${quantity} item(s) to your cart!`,
+                        `Successfully added ${quantity} item(s) to your cart!`
                       );
                       setShowSuccessModal(true);
-                    });
-                  }}
-                  className="flex-1 py-2.5 sm:py-3.5 px-4 sm:px-6 bg-[#4A5D4E] hover:bg-[#031D44] text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                    })
+                  }
+                  className="flex-1 py-3.5 bg-[#FB641B] hover:bg-[#e55a15] text-white text-[13px] font-bold tracking-widest uppercase rounded transition-all shadow-lg shadow-[#FB641B]/30 hover:shadow-[#FB641B]/50 hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
                 >
-                  <FiShoppingCart size={15} /> Add to Cart
+                  <FiShoppingCart size={16} />
+                  Add to Cart · ${totalPrice.toFixed(2)}
+                  <FiArrowRight
+                    size={14}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </button>
               </div>
 
-              {/* Eden Textile Extra Info Boxes */}
-              <div className="space-y-2 mb-5">
-                <div className="text-[10px] sm:text-xs text-gray-600 font-light bg-white p-2.5 sm:p-3 rounded-xl border border-[#E5DCD0]">
-                  You will receive{" "}
-                  <span className="font-bold text-gray-800">1 box</span>, making
-                  your total quantity{" "}
-                  <span className="font-bold text-gray-800">
-                    {quantity} {product.unit}
-                  </span>{" "}
-                  of the SKU: {product.sku}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-600 font-medium bg-white p-2.5 rounded-xl border border-[#E5DCD0] flex justify-between items-center">
-                  <span>Min Quantity: 2</span>
-                  <span className="text-[#4A5D4E] font-bold">
-                    Free shipping over $350
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Wishlist action */}
-            <div className="flex items-center gap-4 pt-3.5 border-t border-[#E5DCD0] text-[10px] sm:text-xs text-gray-600 font-semibold">
+              {/* Wishlist button */}
               <button
-                onClick={() => {
+                onClick={() =>
                   handleAuthAction(() => {
                     toggleWishlistItem({
                       ...product,
                       id: product.id,
-                      price: formattedPrice,
+                      price: unitPrice,
                       image: selectedImage,
                     });
                     setSuccessMessage(
-                      `Successfully added "${product.name}" to your wishlist!`,
+                      `Successfully added "${product.name}" to your wishlist!`
                     );
                     setShowSuccessModal(true);
-                  });
-                }}
-                className="flex items-center gap-1.5 hover:text-[#B58E58] transition-colors cursor-pointer"
+                  })
+                }
+                className="w-full py-3 bg-white border-2 border-[#2874F0] text-[#2874F0] hover:bg-[#2874F0] hover:text-white text-[12px] font-bold uppercase tracking-widest rounded transition-colors flex items-center justify-center gap-2 mb-5"
               >
-                <FiHeart
-                  size={15}
-                  className={
-                    isInWishlist(product.id)
-                      ? "fill-red-500 text-red-500"
-                      : "text-gray-400"
-                  }
-                />
-                <span>ADD TO WISH LIST</span>
+                <FiHeart size={14} /> Add to Wishlist
               </button>
+
+              {/* Info boxes */}
+              <div className="space-y-2">
+                <div className="text-[11.5px] text-gray-700 bg-[#F1F3F6] p-3 rounded border border-gray-200 flex items-start gap-2">
+                  <FiPackage
+                    size={14}
+                    className="text-[#2874F0] mt-0.5 shrink-0"
+                  />
+                  <span>
+                    You will receive{" "}
+                    <span className="font-bold">1 box</span> — total{" "}
+                    <span className="font-bold">
+                      {quantity} {product.unit}
+                    </span>{" "}
+                    of SKU: {product.sku}
+                  </span>
+                </div>
+                <div className="text-[11.5px] text-gray-700 bg-[#FFF8E6] p-3 rounded border border-[#FF9F00]/30 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <FiPercent size={14} className="text-[#FF9F00] shrink-0" />
+                    <span>Min quantity: 2 units</span>
+                  </div>
+                  <span className="text-[#FB641B] font-bold text-[10px] uppercase tracking-wider">
+                    Free shipping $350+
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Tabs Section */}
-        <div className="bg-[#FAF7F2] border border-[#E5DCD0] rounded-[20px] md:rounded-[24px] p-5 sm:p-6 md:p-10 shadow-sm mb-12 sm:mb-16">
-          <div className="flex items-center gap-4 sm:gap-6 md:gap-10 border-b border-[#E5DCD0] pb-3 sm:pb-4 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
-            {["Details", "Shipping", "Return", "Warranty", "FAQs"].map(
-              (tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`text-xs sm:text-sm font-serif font-bold pb-1.5 sm:pb-2 transition-colors cursor-pointer relative whitespace-nowrap ${
-                    activeTab === tab
-                      ? "text-[#4A5D4E]"
-                      : "text-gray-400 hover:text-gray-700"
-                  }`}
-                >
-                  {tab}
-                  {activeTab === tab && (
-                    <span className="absolute bottom-[-13px] sm:bottom-[-17px] left-0 w-full h-[2px] bg-[#4A5D4E]"></span>
-                  )}
-                </button>
-              ),
-            )}
+        {/* ============ TABS SECTION ============ */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm mt-6 overflow-hidden">
+          <div className="bg-[#F1F3F6] border-b border-gray-200 overflow-x-auto scrollbar-hide">
+            <div className="flex">
+              {["Details", "Shipping", "Return", "Warranty", "FAQs"].map(
+                (tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-5 md:px-7 py-4 text-[12px] md:text-[13px] font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border-b-3 ${
+                      activeTab === tab
+                        ? "text-[#2874F0] border-[#2874F0] bg-white"
+                        : "text-gray-600 border-transparent hover:bg-white/50"
+                    }`}
+                    style={{
+                      borderBottomWidth: activeTab === tab ? "3px" : "3px",
+                    }}
+                  >
+                    {tab}
+                  </button>
+                )
+              )}
+            </div>
           </div>
 
-          <div className="text-[11px] sm:text-sm text-gray-600 font-light leading-relaxed space-y-3 sm:space-y-4 pt-1 sm:pt-2">
+          <div className="p-5 md:p-7 text-[12px] md:text-[13px] text-gray-600 leading-relaxed">
             {activeTab === "Details" && (
               <>
-                <h3 className="text-sm sm:text-base font-serif font-bold text-[#031D44]">
+                <h3 className="text-[15px] md:text-[16px] font-bold text-gray-800 mb-3">
                   Product Overview
                 </h3>
-                <p>{product.description}</p>
-                <h4 className="font-bold text-[#031D44] pt-1.5 sm:pt-2">
-                  Specifications & Features:
+                <p className="mb-4">{product.description}</p>
+                <h4 className="font-bold text-gray-800 mb-2.5">
+                  Specifications & Features
                 </h4>
-                <ul className="list-disc pl-4 sm:pl-5 space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-gray-600">
-                  <li>100% Combed Cotton premium weave</li>
-                  <li>Commercial grade hotel standard durability</li>
-                  <li>Enhanced resilience, softness, and absorbency</li>
-                  <li>Machine washable & dryer-safe industrial build</li>
-                </ul>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {[
+                    "100% Combed Cotton premium weave",
+                    "Commercial grade hotel standard durability",
+                    "Enhanced resilience, softness, and absorbency",
+                    "Machine washable & dryer-safe industrial build",
+                  ].map((feat, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 py-1.5"
+                    >
+                      <div className="w-4 h-4 rounded-full bg-[#EAF2FF] flex items-center justify-center shrink-0">
+                        <FiCheck size={9} className="text-[#2874F0]" />
+                      </div>
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
               </>
             )}
 
             {activeTab === "Shipping" && (
               <>
-                <h3 className="text-sm sm:text-base font-serif font-bold text-[#031D44]">
+                <h3 className="text-[15px] md:text-[16px] font-bold text-gray-800 mb-3">
                   Shipping Information
                 </h3>
-                <p>
+                <p className="mb-2">
                   We offer priority fast shipping across Canada and the US for
                   all hospitality commercial partners.
                 </p>
@@ -604,19 +730,19 @@ const ProductDetail = () => {
 
             {activeTab === "Return" && (
               <>
-                <h3 className="text-sm sm:text-base font-serif font-bold text-[#031D44]">
+                <h3 className="text-[15px] md:text-[16px] font-bold text-gray-800 mb-3">
                   Return Policy
                 </h3>
                 <p>
-                  Commercial returns are accepted within 30 days of purchase for
-                  unused items in original packaging.
+                  Commercial returns are accepted within 30 days of purchase
+                  for unused items in original packaging.
                 </p>
               </>
             )}
 
             {activeTab === "Warranty" && (
               <>
-                <h3 className="text-sm sm:text-base font-serif font-bold text-[#031D44]">
+                <h3 className="text-[15px] md:text-[16px] font-bold text-gray-800 mb-3">
                   Product Warranty
                 </h3>
                 <p>
@@ -628,7 +754,7 @@ const ProductDetail = () => {
 
             {activeTab === "FAQs" && (
               <>
-                <h3 className="text-sm sm:text-base font-serif font-bold text-[#031D44]">
+                <h3 className="text-[15px] md:text-[16px] font-bold text-gray-800 mb-3">
                   Frequently Asked Questions
                 </h3>
                 <p>
@@ -644,102 +770,113 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* RELATED PRODUCTS SECTION */}
+        {/* ============ RELATED PRODUCTS ============ */}
         {relatedProducts.length > 0 && (
-          <div className="mb-10">
-            <div className="flex justify-between items-center mb-5 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#031D44]">
-                Related Products
-              </h2>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <button
-                  onClick={() => navigate("/products")}
-                  className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#B58E58] hover:text-[#031D44] transition-colors mr-2"
-                >
-                  View All <FiArrowRight size={12} />
-                </button>
+          <div className="mt-8 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-[#F1F3F6] px-5 md:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#EAF2FF] text-[#2874F0] rounded-full flex items-center justify-center">
+                  <FiPackage size={16} />
+                </div>
+                <div>
+                  <h2 className="text-[15px] font-bold text-gray-800">
+                    Related Products
+                  </h2>
+                  <p className="text-[11px] text-gray-500">
+                    You may also like these
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => navigate("/products")}
+                className="text-[11px] font-bold text-[#2874F0] hover:text-[#FB641B] uppercase tracking-wider transition-colors flex items-center gap-1"
+              >
+                View All <FiChevronRight size={13} />
+              </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5">
+            <div className="p-5 md:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {relatedProducts.map((item) => {
                 const relId = item.id;
                 const relName = item.name || item.Name;
                 const relPrice = Number(item.basePrice || item.price || 24.78);
                 const relUnit = item.unit || item.Unit || "DZ";
+                const seedR = Number(String(relId).slice(-2)) || 50;
+                const relRating = (3.8 + (seedR % 12) / 10).toFixed(1);
 
                 return (
                   <div
                     key={relId}
                     onClick={() => navigate(`/product/${relId}`)}
-                    className="bg-white border border-[#E5DCD0] rounded-[16px] sm:rounded-2xl p-3 sm:p-4 flex flex-col justify-between group cursor-pointer shadow-2xs hover:shadow-md hover:border-[#B58E58] transition-all"
+                    className="group bg-white rounded-lg border border-gray-200 hover:border-[#2874F0] hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer overflow-hidden"
                   >
-                    <div>
-                      <div className="w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-2.5 sm:mb-3 relative border border-gray-100">
-                        <img
-                          src={item.resolvedImage}
-                          alt={relName}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          onError={(e) => {
-                            e.target.src =
-                              "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=500";
-                          }}
-                        />
-                      </div>
-                      <h3 className="text-[11px] sm:text-xs font-bold text-[#031D44] mb-2 line-clamp-2 min-h-[32px] leading-tight">
+                    <div className="relative aspect-square bg-[#F1F3F6] overflow-hidden">
+                      <img
+                        src={item.resolvedImage}
+                        alt={relName}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.src =
+                            "https://images.pexels.com/photos/1034584/pexels-photo-1034584.jpeg?auto=compress&cs=tinysrgb&w=500";
+                        }}
+                      />
+                      <span className="absolute top-2 left-2 bg-[#FB641B] text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                        25% OFF
+                      </span>
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-[12px] font-semibold text-gray-800 line-clamp-2 mb-2 min-h-[32px] leading-tight group-hover:text-[#2874F0] transition-colors">
                         {relName}
                       </h3>
-                    </div>
-
-                    <div className="pt-2 sm:pt-3 border-t border-[#E5DCD0] flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-1">
-                      <span className="text-[9px] sm:text-[10px] text-gray-400">
-                        Starting at:
-                      </span>
-                      <span className="text-[11px] sm:text-xs font-bold text-[#B58E58]">
-                        $ {relPrice.toFixed(2)} / {relUnit}
-                      </span>
+                      <div className="flex items-center gap-1 mb-2">
+                        <div className="flex items-center gap-0.5 bg-[#10B981] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                          {relRating}
+                          <FiStar size={8} fill="white" />
+                        </div>
+                        <span className="text-[9px] text-gray-500">
+                          ({20 + ((seedR * 7) % 200)})
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-[14px] font-bold text-gray-800">
+                          ${relPrice.toFixed(2)}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          /{relUnit}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-
-            {/* Mobile View All Button */}
-            <div className="mt-4 text-center sm:hidden">
-              <button
-                onClick={() => navigate("/products")}
-                className="w-full py-3 bg-white border border-[#E5DCD0] text-[#031D44] rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-2xs hover:bg-gray-50"
-              >
-                View All Related <FiArrowRight size={12} />
-              </button>
-            </div>
           </div>
         )}
       </div>
 
-      {/* Login Modal */}
+      {/* ============ LOGIN MODAL ============ */}
       {showLoginModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#FAF7F2] border border-[#E5DCD0] p-6 sm:p-8 rounded-[20px] sm:rounded-[24px] shadow-2xl w-full max-w-sm text-center relative">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-white p-7 rounded-lg shadow-2xl w-full max-w-sm text-center relative">
             <button
               onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-white p-1.5 rounded-full transition-colors cursor-pointer border border-[#E5DCD0]"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors"
             >
               <FiX size={16} />
             </button>
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#031D44] text-[#B58E58] rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
-              <FiUser size={22} />
+            <div className="w-14 h-14 bg-[#2874F0] text-white rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiUser size={26} />
             </div>
-            <h3 className="text-base sm:text-lg font-serif font-bold text-[#031D44] mb-1.5 sm:mb-2">
+            <h3 className="text-[18px] font-bold text-gray-800 mb-2">
               Login Required
             </h3>
-            <p className="text-[11px] sm:text-xs text-gray-600 mb-5 sm:mb-6 font-light leading-relaxed">
-              Please login first to add items to your cart, wishlist, or proceed
-              to checkout.
+            <p className="text-[12px] text-gray-600 mb-6 leading-relaxed">
+              Please login first to add items to your cart, wishlist, or
+              proceed to checkout.
             </p>
             <button
               onClick={() => navigate("/login")}
-              className="w-full py-2.5 sm:py-3 bg-[#031D44] text-white rounded-xl text-[10px] sm:text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
+              className="w-full py-3.5 bg-[#FB641B] text-white rounded text-[12px] font-bold uppercase tracking-wider hover:bg-[#e55a15] transition-all shadow-md"
             >
               Login Now
             </button>
@@ -747,38 +884,41 @@ const ProductDetail = () => {
         </div>
       )}
 
-      {/* Custom Luxurious Success Modal */}
+      {/* ============ SUCCESS MODAL ============ */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#FAF7F2] border border-[#E5DCD0] p-6 sm:p-8 rounded-[20px] sm:rounded-[24px] shadow-2xl w-full max-w-sm text-center relative">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-white p-7 rounded-lg shadow-2xl w-full max-w-sm text-center relative">
             <button
               onClick={() => setShowSuccessModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 bg-white p-1.5 rounded-full transition-colors cursor-pointer border border-[#E5DCD0]"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors"
             >
               <FiX size={16} />
             </button>
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#4A5D4E] text-white rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
-              <FiCheck size={24} />
+            <div className="relative mx-auto mb-4 w-fit">
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center relative z-10">
+                <FiCheck size={28} />
+              </div>
+              <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping" />
             </div>
-            <h3 className="text-base sm:text-lg font-serif font-bold text-[#031D44] mb-1.5 sm:mb-2">
-              Successfully Added
+            <h3 className="text-[18px] font-bold text-gray-800 mb-2">
+              Added Successfully!
             </h3>
-            <p className="text-[11px] sm:text-xs text-gray-600 mb-5 sm:mb-6 font-light leading-relaxed">
+            <p className="text-[12px] text-gray-600 mb-6 leading-relaxed">
               {successMessage}
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               <button
                 onClick={() => {
                   setShowSuccessModal(false);
                   navigate("/cart");
                 }}
-                className="w-full py-2.5 sm:py-3 bg-[#031D44] text-white rounded-xl text-[10px] sm:text-xs font-bold tracking-widest uppercase shadow-md hover:bg-[#B58E58] transition-all cursor-pointer"
+                className="w-full py-3.5 bg-[#FB641B] text-white rounded text-[12px] font-bold uppercase tracking-wider hover:bg-[#e55a15] transition-all shadow-md"
               >
                 View Cart & Checkout
               </button>
               <button
                 onClick={() => setShowSuccessModal(false)}
-                className="w-full py-2 sm:py-2.5 bg-white border border-[#E5DCD0] text-gray-700 rounded-xl text-[10px] sm:text-xs font-bold tracking-widest uppercase hover:bg-gray-50 transition-all cursor-pointer"
+                className="w-full py-3 bg-white border border-gray-300 text-gray-700 rounded text-[12px] font-bold uppercase tracking-wider hover:bg-gray-50 transition-all"
               >
                 Continue Shopping
               </button>
@@ -786,6 +926,11 @@ const ProductDetail = () => {
           </div>
         </div>
       )}
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 };
